@@ -1,0 +1,401 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Headers</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Updating headers and style tweaks.">
+<meta name="keywords" content="Rust, headers, stylesheets, bugs, nested, content">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.31_Bullets.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.02_Images.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.01 - Headers</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0621"  ><a  href="#0621"  >#</a>
+ 0621</h3>
+<div   ><p   >I'll break out all cards by headers, make the cards wrap content, and add some more padding around elements. This should also fix a few bugs I saw around nested bullets and missing content.</p>
+<p   >First off are some changes made to <span   class="codeblockDark outlinedDark">parse_contents</span>. I added a new line to each file if it didn't have one to ensure that all content gets parsed. There was an issue where it was chopping off text at one point.</p>
+<p   >The next major change in this file was the addition of hierarchal postprocessing. I wanted headers to start new cards or blocks of text, so I added logic to iterate over all IR and break it by headers. Each section would be a new IR type, the <span   class="codeblockDark outlinedDark">Card</span>.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/mod.rs
+
+...
+
+pub fn execute(contents: String, location: Location, opts: Options) -> Res&lt;ContentIr> {
+    // Preprocess things to simplify parsing.
+    let contents = {
+        let mut contents = contents.replace("\r\n", "\n");
+
+        // Add a newline to ensure that it gets processed correctly
+        if !contents.ends_with("\n") {
+            contents.push('\n');
+        }
+
+        contents
+    };
+
+    // Since this is a recursive processor, executing until nothing remains, set it up so that nothing has
+    // been processed yet.
+    let mut ir = vec![ContentIr::Unparsed {
+        contents,
+        validations: Validations {
+            skip_code_block: false,
+            skip_header: false,
+            skip_list: false,
+        },
+    }];
+
+    // Continue processing + reprocessing all elements until there's nothing left.
+    loop {
+        let (new_elements, continue_running) = parse(&amp;ir, opts);
+
+        ir = new_elements;
+
+        match continue_running {
+            ContinueRunning::Yes => {}
+            ContinueRunning::No => break,
+        }
+    }
+
+    // Do any hierarchal mappings
+    let mut contents = vec![];
+    let mut processing_header = None;
+    let mut header_collection = vec![];
+
+    while ir.len() > 0 {
+        let i = ir.remove(0);
+
+        match &amp;i {
+            ContentIr::Header {
+                header_size,
+                id,
+                text,
+            } => {
+                // Push the previous header on to the contents
+                if let Some(header) = processing_header {
+                    header_collection.insert(0, header);
+                    contents.push(ContentIr::Card(header_collection));
+                    header_collection = vec![];
+                }
+
+                processing_header = Some(i);
+            }
+            _ => {
+                if processing_header.is_some() {
+                    header_collection.push(i);
+                } else {
+                    contents.push(i);
+                }
+            }
+        }
+    }
+
+    if let Some(header) = processing_header {
+        header_collection.insert(0, header);
+        contents.push(ContentIr::Card(header_collection));
+        header_collection = vec![];
+    }
+
+    // Append the header collection to the end of the contents
+    contents.append(&amp;mut header_collection);
+
+    Res::Ok(Item {
+        item: ContentIr::Div { contents },
+        location: Some(location),
+    })
+}
+
+...
+
+</div>
+<p   >Here's the modified <span   class="codeblockDark outlinedDark">ContentIr</span>.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/content_ir.rs
+
+use crate::html::{
+    element::{self, ListType},
+    Element, HtmlElement,
+};
+
+use super::Validations;
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum ContentIr {
+    Card(Vec&lt;ContentIr>),
+    Codeblock(String),
+    Div {
+        contents: Vec&lt;ContentIr>,
+    },
+    Header {
+        header_size: u32,
+        id: Option&lt;String>,
+        text: String,
+    },
+    OrderedList {
+        items: Vec&lt;ContentIr>,
+        numeric: bool,
+    },
+    Text {
+        text: String,
+    },
+    Unparsed {
+        contents: String,
+        validations: Validations,
+    },
+    UnorderedList {
+        items: Vec&lt;ContentIr>,
+    },
+}
+
+impl HtmlElement for ContentIr {
+    fn to_element(&amp;self) -> Element {
+        match self {
+            ContentIr::Card(children) => {
+                element::card(children.iter().map(|ir| ir.to_element()).collect())
+            }
+            ContentIr::Codeblock(text) => element::code_block(text.clone()),
+            ContentIr::Div { contents } => {
+                element::div(contents.iter().map(|ir| ir.to_element()).collect())
+            }
+            ContentIr::Header {
+                header_size,
+                id,
+                text,
+            } => element::header(*header_size, id.clone(), text.clone()),
+            ContentIr::OrderedList { items, numeric } => element::list(
+                items.iter().map(|i| i.to_element()).collect(),
+                if *numeric {
+                    ListType::OrderedNumeric
+                } else {
+                    ListType::OrderedAlpha
+                },
+            ),
+            ContentIr::Text { text } => element::text(text),
+            ContentIr::Unparsed { .. } => {
+                todo!("Attempted to convert unparsed content to an element!")
+            }
+            ContentIr::UnorderedList { items } => element::list(
+                items.iter().map(|i| i.to_element()).collect(),
+                ListType::Unordered,
+            ),
+        }
+    }
+}
+
+</div>
+<p   >I did some rework of the <span   class="codeblockDark outlinedDark">Class</span> enum for HTML. The primary changes here were the expansion of the <span   class="codeblockDark outlinedDark">Padding</span> option. </p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet/class.rs
+
+...
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Class {
+    Card { dark_mode: bool },
+    Codeblock,
+    ContentWrapper,
+    List,
+    Outlined { dark_mode: bool },
+    Padded { position: Position },
+    Page,
+}
+
+impl Class {
+    pub fn all() -> Vec&lt;Self> {
+        vec![
+            Self::Card { dark_mode: false },
+            Self::Card { dark_mode: true },
+            Self::Codeblock,
+            Self::ContentWrapper,
+            Self::List,
+            Self::Outlined { dark_mode: false },
+            Self::Outlined { dark_mode: true },
+            Self::Padded {
+                position: Position::Bottom,
+            },
+            Self::Padded {
+                position: Position::Left,
+            },
+            Self::Padded {
+                position: Position::Right,
+            },
+            Self::Padded {
+                position: Position::Top,
+            },
+            Self::Page,
+        ]
+    }
+
+    pub fn css(&amp;self, theme: &amp;Theme) -> Css {
+        match self {
+            Self::Card { dark_mode } => card(self, *dark_mode, theme),
+            Self::Codeblock => codeblock(self, theme),
+            Self::ContentWrapper => content_wrapper(self),
+            Self::List => list(self),
+            Self::Outlined { dark_mode } => outline(self, *dark_mode, theme),
+            Self::Padded { position } => padded(self, *position),
+            Self::Page => page(self),
+        }
+    }
+
+    pub fn dark_mode(&amp;self) -> bool {
+        match self {
+            Self::Card { dark_mode } => *dark_mode,
+            Self::Codeblock => true,
+            Self::ContentWrapper => false,
+            Self::List => false,
+            Self::Outlined { dark_mode } => *dark_mode,
+            Self::Padded { .. } => false,
+            Self::Page => false,
+        }
+    }
+
+    pub fn selector(&amp;self) -> Selector {
+        let prefix: String = match self {
+            Self::Card { .. } => "card".into(),
+            Self::Codeblock => "codeblock".into(),
+            Self::ContentWrapper => "contentWrapper".into(),
+            Self::List => "list".into(),
+            Self::Outlined { .. } => "outlined".into(),
+            Self::Padded { position } => format!("padded{}", position.to_str()),
+            Self::Page => "page".into(),
+        };
+
+        let post_fix = match self.dark_mode() {
+            false => "Light",
+            true => "Dark",
+        };
+
+        format!("{}{}", prefix, post_fix).into()
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Position {
+    Bottom,
+    Left,
+    Right,
+    Top,
+}
+
+impl Position {
+    pub fn to_str(&amp;self) -> &amp;'static str {
+        match self {
+            Position::Bottom => "bottom",
+            Position::Left => "left",
+            Position::Right => "right",
+            Position::Top => "top",
+        }
+    }
+}
+
+...
+
+fn padded(class: &amp;Class, position: Position) -> Css {
+    let margin_position = match position {
+        Position::Bottom => "bottom",
+        Position::Left => "left",
+        Position::Right => "right",
+        Position::Top => "top",
+    };
+
+    format!(
+        "
+.{} {{
+    margin-{}: 16px;
+}}",
+        class.selector().to_str(),
+        margin_position,
+    )
+    .into()
+}
+
+...
+
+</div>
+<p   >Now with all those changes, I get a much prettier layout.</p>
+<p   ><a  href="assets/2021.09.01_0658.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.09.01_0658.png" alt="Multi bullets" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p>
+<p   ><a  href="assets/2021.09.01_0659.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.09.01_0659.png" alt="Code sections" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p>
+<p   >Several things I need to work on next:</p>
+<ul   class="listLight"><li><div   >Escaping HTML</div></li><li><div   >Adding fragment links to headers</div></li><li><div   >Adding image links + validations</div></li><li><div   >Adding page links + validations</div></li><li><div   >Metadata parsing</div></li><li><div   >Paragraph size enforcement</div></li></ul></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0710"  ><a  href="#0710"  >#</a>
+ 0710</h3>
+<div   ><p   >The last task I'll do for now is escaping of HTML. First I'll show off a picture of what it looks like unescaped:</p>
+<p   ><a  href="assets/2021.09.01_0710.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.09.01_0710.png" alt="Unescaped HTML" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p>
+<p   >I'll utilize the <span   class="codeblockDark outlinedDark">html-escape</span> crate and modify all the text handling in my <span   class="codeblockDark outlinedDark">content_ir</span> module.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/content_ir.rs
+
+...
+
+impl HtmlElement for ContentIr {
+    fn to_element(&amp;self) -> Element {
+        // When modifying this, ensure all text is escaped.
+
+        match self {
+            ContentIr::Card(children) => {
+                element::card(children.iter().map(|ir| ir.to_element()).collect())
+            }
+            ContentIr::Codeblock(text) => element::code_block(escape(text)),
+            ContentIr::Div { contents } => {
+                element::div(contents.iter().map(|ir| ir.to_element()).collect())
+            }
+            ContentIr::Header {
+                header_size,
+                id,
+                text,
+            } => element::header(*header_size, id.clone(), escape(text)),
+            ContentIr::OrderedList { items, numeric } => element::list(
+                items.iter().map(|i| i.to_element()).collect(),
+                if *numeric {
+                    ListType::OrderedNumeric
+                } else {
+                    ListType::OrderedAlpha
+                },
+            ),
+            ContentIr::Text { text } => element::text(&amp;escape(text)),
+            ContentIr::Unparsed { .. } => {
+                todo!("Attempted to convert unparsed content to an element!")
+            }
+            ContentIr::UnorderedList { items } => element::list(
+                items.iter().map(|i| i.to_element()).collect(),
+                ListType::Unordered,
+            ),
+        }
+    }
+}
+
+fn escape(s: &amp;str) -> String {
+    let mut output = String::new();
+    html_escape::encode_text_minimal_to_string(s, &amp;mut output);
+
+    output
+}
+
+</div>
+<p   >With that everything gets formatted nicely and I don't have to worry about explosions.</p>
+<p   ><a  href="assets/2021.09.01_0714.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.09.01_0714.png" alt="Escaped HTML" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p>
+<p   >One interesting thing that could be done is to add new types here, a <span   class="codeblockDark outlinedDark">UnescapedText</span> type and a <span   class="codeblockDark outlinedDark">HtmlEscapedText</span> type. I could then ensure that only <span   class="codeblockDark outlinedDark">HtmlEscapedText</span> gets passed to HTML generation methods, preventing this issue from ever happening again. I'll add it to the roadmap, but can't say when (or if) it'll get done.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

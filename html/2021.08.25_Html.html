@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>HTML Part 1</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Generate HTML elements based on some IR.">
+<meta name="keywords" content="Rust, starting, over, blog, generation, html, ir, generator, md">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.24_GenerationPt1.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.26_Html2.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.25 - HTML Part 1</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0715"  ><a  href="#0715"  >#</a>
+ 0715</h3>
+<div   ><p   >Sketched out the HTML elements.</p>
+<p   >Here's the top level module:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/mod.rs
+
+mod css_link;
+mod element;
+mod metadata;
+mod page;
+
+pub use css_link::CssLink;
+pub use element::Element;
+pub use metadata::Metadata;
+pub use page::Page;
+
+pub trait Html {
+    fn to_html(&amp;self) -> String;
+}
+</div>
+<p   >The most relevant parts will be the <span   class="codeblockDark outlinedDark">Page</span> and <span   class="codeblockDark outlinedDark">Element</span> types.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/page.rs
+use super::{CssLink, Element, Html, Metadata};
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Page {
+    pub content: Element,
+    pub css: CssLink,
+    pub file_name: String,
+    pub metadata: Metadata,
+    pub title: String,
+}
+
+impl Html for Page {
+    fn to_html(&amp;self) -> String {
+        format!(
+            "
+&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+&lt;title>{}&lt;/title>
+{}
+{}
+&lt;/head>
+&lt;body>
+{}
+&lt;/body>
+&lt;/html>
+",
+            self.title,
+            self.metadata.to_html(),
+            self.css.to_html(),
+            self.content.to_html()
+        )
+    }
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">Page</span> struct will be what gets turned into a HTML page. While it may evolve slightly over time, the other areas are most likely to change.</p>
+<p   >The <span   class="codeblockDark outlinedDark">CssLink</span> is a simple type to represent a link to a CSS file. It is extremely lean. </p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/css_link.rs
+use super::Html;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct CssLink(String);
+
+impl Html for CssLink {
+    fn to_html(&amp;self) -> String {
+        format!("&lt;link rel=\"stylesheet\" href=\"assets\\{}\">", self.0)
+    }
+}
+</div>
+<p   >I've taken to simple types like these to ensure that elements are only used where necessary. While everything could be represented by a string, this way I can ensure that I'm only using the expected type where wanted.</p>
+<p   >The <span   class="codeblockDark outlinedDark">Metadata</span> class is light as I'm not entirely sure how I want to generate it yet. I'll address that when I get everything compiling.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/metadata.rs
+use super::Html;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Metadata {
+    pub keywords: Vec&lt;String>,
+    pub summary: String,
+}
+
+impl Html for Metadata {
+    fn to_html(&amp;self) -> String {
+        todo!()
+    }
+}
+</div>
+<p   >Last, but certainly not least, is the <span   class="codeblockDark outlinedDark">Element</span> enum. It is empty for now, but things like <span   class="codeblockDark outlinedDark">div</span>'s, <span   class="codeblockDark outlinedDark">span</span>'s, <span   class="codeblockDark outlinedDark">img</span>'s, and other HTML elements will go in here. Keep an eye on this as it will become drastically more complex. </p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/element.rs
+use super::Html;
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Element {}
+
+impl Html for Element {
+    fn to_html(&amp;self) -> String {
+        todo!()
+    }
+}
+</div></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

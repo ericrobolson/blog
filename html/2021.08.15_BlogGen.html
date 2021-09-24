@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Blog Generation</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="New project: Starting a blog generator/compiler.">
+<meta name="keywords" content="rust, verlet, integrator, 2d, rain, world, deterministic, starting, over, 3d, pixel, art, blog, generation, markdown">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.14_WTF.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.16_BlogGen2.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.15 - Blog Generation</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0628"  ><a  href="#0628"  >#</a>
+ 0628</h3>
+<div   ><p   >I do wonder whether the Verlet integrator is the right approach. I suppose that's true for every single venture. </p>
+<p   >To be honest, while the idea of procedural animation is fantastic, I am not sold that I can do it in a reasonable time. I love the idea of a Rust based engine, but am not sure I can hack it quickly. </p>
+<p   >I think today I'll play around with other projects, such as fleshing out the markdown to html generator. If I do come back to Chaostar later today, I'll work on a different piece instead of the integrator.</p>
+<p   >For now I'm starting up a new <span   class="codeblockDark outlinedDark">md_to_html</span> Rust project. </p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0745"  ><a  href="#0745"  >#</a>
+ 0745</h3>
+<div   ><p   >I've fleshed out the basic structure for <span   class="codeblockDark outlinedDark">md_to_html</span>. I've been trying to develop most of my utility tools as CLI programs so that way I can wire them up into shell scripts. It should also enable CI/CD usage.</p>
+<p   >Here's the main:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// main.rs
+
+fn main() {
+    let env_args: Vec&lt;String> = env::args().collect();
+
+    check_for_flags(&amp;env_args);
+
+    let input_folder = match get_input_folder(&amp;env_args) {
+        Ok(input) => input,
+        Err(e) => {
+            print_err(e);
+            print_well_formed_example();
+            return;
+        }
+    };
+
+    let output_folder = match get_output_folder(&amp;env_args) {
+        Ok(output) => output,
+        Err(e) => {
+            print_err(e);
+            print_well_formed_example();
+            return;
+        }
+    };
+
+    let files = crawler::crawl(input_folder).unwrap();
+    let parsed_files = parser::parse(files).unwrap();
+    let checked_files = checker::check(parsed_files).unwrap();
+    let generated = generator::generate(checked_files);
+
+    // Go through and execute each op.
+    for op in generated {
+        match op {
+            // Things like 'write this binary to this file'
+            // or 'wipe output directory'
+            // etc.
+        }
+    }
+}
+</div>
+<p   >It follows a simple compiler pattern, where </p>
+<ol  type="1" class="listLight"><li><div   > The input folder + output folder are collected.</div></li><li><div   > The files are crawled + sourced by the 
+<span   class="codeblockDark outlinedDark">crawler::crawl()</span>
+.</div></li><li><div   > Files are then parsed into an intermediate representation in 
+<span   class="codeblockDark outlinedDark">parser::parse()</span>
+. These ensure that they follow the proper rules I'll be building out, such as code ticks must be closed. Errors are batched and progress halts.</div></li><li><div   > Files are then checked in 
+<span   class="codeblockDark outlinedDark">checker::check()</span>
+. Things like links, resources, etc. are validated. Errors are batched and progress halts.</div></li><li><div   > The checked files are finally ran through a generator which creates a list of ops that should be executed. Things like 'write this binary to this path', etc. I've found that writing a simple interpreter for these things has value and enables one to cleanly separate file i/o from commands.</div></li></ol>
+<p   >This version will be done as a single threaded one, but could easily go wide if need be. I tend to take the approach of get a simple version working, boost performance as time goes on.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0824"  ><a  href="#0824"  >#</a>
+ 0824</h3>
+<div   ><p   >The <span   class="codeblockDark outlinedDark">crawler</span> mod is fairly simple. It goes through an input folder and sources all files. It doesn't load anything, just compares the files found against a whitelist for things I can handle. </p>
+<p   >As I add things over time, I'll know when I need to update the code as it will throw errors when a new file type is encountered.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+//crawler/mod.rs
+
+/// Crawls the input folder, returning a list of files.
+pub fn crawl(input_folder: InputFolder) -> Result&lt;Files, Error> {
+    let dir = input_folder.to_string();
+
+    let mut files = Files {
+        md_paths: vec![],
+        gif_paths: vec![],
+    };
+
+    let mut errors = vec![];
+
+    for entry in WalkDir::new(&amp;dir)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| !e.file_type().is_dir())
+    {
+        let path = entry.path();
+        let path_string = String::from(path.to_str().unwrap_or("".into()));
+
+        if let Some(extension) = path.extension() {
+            if let Some(extension) = extension.to_str() {
+                match extension.to_lowercase().as_str() {
+                    "gif" => {
+                        files.gif_paths.push(path_string);
+                    }
+                    "md" => {
+                        files.md_paths.push(path_string);
+                    }
+                    _ => errors.push(Error::UnhandledFileType {
+                        path: path_string,
+                        file_type: String::from(extension),
+                    }),
+                }
+            }
+        }
+    }
+
+    if errors.len() != 0 {
+        panic!("{:#?}", errors)
+    }
+
+    Ok(files)
+}
+</div></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0940"  ><a  href="#0940"  >#</a>
+ 0940</h3>
+<div   ><p   >Parser is going along nicely. I've got the HTML titles, dates, next/previous blog entries and file paths parsed. </p>
+<p   >The next step will be converting it to elements that will then be ran through the checker. From there, it'll be ran through the generator and I'll be finished.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1025"  ><a  href="#1025"  >#</a>
+ 1025</h3>
+<div   ><p   >The formatting is garbage, but it is coming together. I expect this to grow over time, but for now I simply want to have a basic HTML page that's spit out that I can then tweak. </p>
+<p   >I have yet to do an <span   class="codeblockDark outlinedDark">index.html</span>, but I'm not sure I even want my blog posts to have that. This branch will get merged in when I have a more or less complete generator/compiler. </p>
+<p   >I don't want to have to deal with updating this all the time, so I'll get it to a spot where I do not need to touch it again any time soon. </p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1307"  ><a  href="#1307"  >#</a>
+ 1307</h3>
+<div   ><p   >It's sort of funny how designs can become something horrid. My parser, while functional, has a ton of issues with actually parsing things. It confuses lists or <span   class="codeblockDark outlinedDark">vecs</span> with markdown links. I'm going to try a different approach, a recursive one that iterates over and over on some input until it can't reduce it any more. This may get horridly complex and expensive, but I'm shooting for simplicity right now.</p>
+<p   >My approach will be as follows:</p>
+<ol  type="1" class="listLight"><li><div   > Take in a 
+<span   class="codeblockDark outlinedDark">Vec&lt;Thing></span>
+. If it's a 
+<span   class="codeblockDark outlinedDark">Unprocessed</span>
+ element, it will attempt to break it down into something else. If it cannot, then processing ends and it will be returned as raw text.</div></li><li><div   > The first element I will try to break down will be code blocks. This is substantially different than most things, and so it should be easier to start with.</div></li><li><div   > The next element I will attempt to break down will be a link. </div></li></ol></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1507"  ><a  href="#1507"  >#</a>
+ 1507</h3>
+<div   ><p   >Honestly this has moved along better than I thought. There's still some bugginess around link generation, but it's acceptable enough to move on. </p>
+<p   >Rather than build a 100% full functioned generator that can handle anything, this will specifically be used for blogging. </p>
+<p   >It will have some data driven components, such as a <span   class="codeblockDark outlinedDark">styles.css</span> file and perhaps some JS that is generated, but overall it's used for generating static pages.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1603"  ><a  href="#1603"  >#</a>
+ 1603</h3>
+<div   ><p   >I do like taking taking a break from the normal work. The next thing I'll end up doing is writing up a CI/CD (or some form of deployment pipeline) to put this online. </p>
+<p   >I'll get this to a point where I can reliably spit out HTML pages, then I'll merge this in after cleaning up the code. From there I'll go back to Chaostar and in about two weeks I'll switch to the deployment stage of things. </p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1739"  ><a  href="#1739"  >#</a>
+ 1739</h3>
+<div   ><p   >I'm becoming more enthralled with cross platform development. While the perfect world would be something like Haxe, except I write it, I don't think I can do that. </p>
+<p   >It's too big of an undertaking for me right now, though I suspect some echoes of it will happen as time goes on. </p>
+<p   >One thing I would be interested in is a sub language that has the properties of Lisp, but is essentially a lighter weight Rust. </p>
+<p   >Rust can be verbose, and take you down rabbit holes. Whereas in say JavaScript you have different concerns, after the footguns of course, where you are more concerned about the structure of the code. </p>
+<p   >Rust can lead you down the path of genericness, which while appealing, rarely has real world impacts. </p>
+<p   >I speak purely from experience where the more I make code generic, writing traits or otherwise 'future proofing', the less value it has and the higher rate of project failure. This makes one understand Go a bit more.  </p>
+<p   >Another realization I have had is that whether it is web, Android, iOS, a console, VR or a game engine, I can't make it bullet proof and future proof. </p>
+<p   >With 3rd party vendors increasingly shifting the ecosystem, I can't rely on one thing being perfect forever. </p>
+<p   >Security may change, permissions may change, etc. It would be better to shift all computation and such to a server I control. While certain ones, such as Outriders, may feel terrible this seems like the way forward. Something like the <a  href="https://www.gamedevs.org/uploads/tribes-networking-model.pdf"  >Tribes 2 model</a> would be ideal. </p>
+<p   >The core code of the client could likely remain the same, being FFI'd into each separate client. The client specific code itself would remain native, either in Objective C, JS, Java, Kotlin, C++, whichever. </p>
+<p   >An attribute system based on tags could be utilized on Rust code, and then a generator is ran on all source code to create up to date libraries for each client. </p>
+<p   >I would likely have a facade with an interface the client could call, with the Rust core spun up in a separate background thread. </p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="2130"  ><a  href="#2130"  >#</a>
+ 2130</h3>
+<div   ><p   >I have code sections, single code variables, gifs and links being converted. </p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

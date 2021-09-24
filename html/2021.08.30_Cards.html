@@ -1,0 +1,594 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Cards</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Chomping content and building cards.">
+<meta name="keywords" content="Rust, lists, chomping, content, cards, recursive, parsing, nested, content">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.29_Css3.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.31_Bullets.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.30 - Cards</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0513"  ><a  href="#0513"  >#</a>
+ 0513</h3>
+<div   ><p   >I'll add a now module for <span   class="codeblockDark outlinedDark">chomp</span>ing various content. </p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/chomp/mod.rs
+mod block;
+mod header;
+
+pub use block::block;
+pub use header::header;
+</div>
+<p   >It's basic, and just exposes two other files for chomping a header and the blocks.</p>
+<p   >In .md files a triple backtick signifies a code block. I'll go over that first.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/chomp/block.rs
+use crate::parser::md::{parse_contents::Validations, ContentIr};
+
+pub fn block(contents: &amp;String, validations: &amp;Validations) -> Option&lt;Vec&lt;ContentIr>> {
+    // Try to split it on the large chunks.
+    if let Some(start_idx) = contents.find("BACKTICK") {
+        let (before, code_start) = contents.split_at(start_idx);
+        let code_start = code_start.replacen("BACKTICK", "", 1);
+
+        if let Some(end_idx) = code_start.find("BACKTICK") {
+            let (code, after) = code_start.split_at(end_idx);
+            let after = after.replacen("BACKTICK", "", 1);
+
+            let mut before_validations = validations.clone();
+            before_validations.skip_code_block = true;
+
+            let mut ir = vec![];
+
+            if before.len() > 0 {
+                ir.push(ContentIr::Unparsed {
+                    contents: before.into(),
+                    validations: before_validations,
+                });
+            }
+
+            if code.len() > 0 {
+                ir.push(ContentIr::Codeblock(code.into()));
+            }
+
+            if after.len() > 0 {
+                ir.push(ContentIr::Unparsed {
+                    contents: after.into(),
+                    validations: validations.clone(),
+                });
+            }
+
+            return Some(ir);
+        }
+    }
+
+    None
+}
+</div>
+<p   >The pattern for the <span   class="codeblockDark outlinedDark">chomp</span> functions is as follows:</p>
+<ol  type="1" class="listLight"><li><div   > Attempt to find some start for the content</div></li><li><div   > If it matches, attempt to find the end</div></li><li><div   > If it is found, return the IR + the text before it started and the text after</div></li></ol>
+<p   >Doing it that way enables one to recursively match IR.</p>
+<p   >The header is next. It is more complex as it also calculates the header size, but follows the same pattern noted above.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/chomp/header.rs
+use crate::parser::md::{parse_contents::Validations, ContentIr};
+
+pub fn header(contents: &amp;String, validations: &amp;Validations) -> Option&lt;Vec&lt;ContentIr>> {
+    let chars: Vec&lt;char> = contents.chars().collect();
+
+    if chars.len() == 0 {
+        return None;
+    }
+
+    let mut start_idx = None;
+    let mut header_size = 0;
+    let mut end_idx = chars.len() - 1;
+    let mut stop = false;
+
+    for i in 0..chars.len() {
+        if stop == true {
+            break;
+        }
+
+        let c = chars[i];
+
+        let can_start_header = {
+            if i == 0 {
+                true
+            } else {
+                chars[i - 1] == '\n'
+            }
+        };
+
+        if can_start_header &amp;&amp; c == '#' {
+            header_size += 1;
+            stop = true;
+            start_idx = Some(i);
+            let mut continuous = true;
+
+            for j in i..chars.len() {
+                if chars[j] == '#' &amp;&amp; continuous {
+                    header_size += 1;
+                } else {
+                    continuous = false;
+                }
+
+                end_idx = j;
+
+                if chars[j] == '\n' {
+                    break;
+                }
+            }
+        }
+    }
+
+    if let Some(start_idx) = start_idx {
+        let (before, after) = contents.split_at(end_idx);
+        let (before, header) = before.split_at(start_idx);
+        let mut before_validations = validations.clone();
+        before_validations.skip_header = true;
+
+        let mut ir = vec![];
+        if before.len() > 0 {
+            ir.push(ContentIr::Unparsed {
+                contents: before.into(),
+                validations: before_validations,
+            });
+        }
+
+        let header: String = header.replace("#", "").into();
+        if header.len() > 0 {
+            ir.push(ContentIr::Header {
+                id: Some(header.replace(" ", "")),
+                header_size,
+                text: header,
+            });
+        }
+
+        if after.len() > 0 {
+            ir.push(ContentIr::Unparsed {
+                contents: after.into(),
+                validations: validations.clone(),
+            })
+        }
+
+        return Some(ir);
+    }
+
+    None
+}
+</div>
+<p   >These get wired up to the <span   class="codeblockDark outlinedDark">parse_contents</span> module. It follows a recursive pattern, attempting to parse each type of IR. If it doesn't match, it turns off the validations so that it does not attempt to parse that type again on recursive executions. </p>
+<p   >While I may run into issues doing it that way, it resulted in a simpler execution model.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/mod.rs
+mod chomp;
+mod content_ir;
+
+use crate::{Item, Location, Res};
+pub use content_ir::ContentIr;
+
+enum ContinueRunning {
+    No,
+    Yes,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Validations {
+    pub skip_code_block: bool,
+    pub skip_header: bool,
+}
+
+pub fn execute(contents: String, location: Location) -> Res&lt;ContentIr> {
+    // Simplify the newlines
+    let contents = contents.replace("\r\n", "\n");
+
+    // Since this is a recursive processor, executing until nothing remains, set it up so that nothing has
+    // been processed yet.
+    let mut ir = vec![ContentIr::Unparsed {
+        contents,
+        validations: Validations {
+            skip_code_block: false,
+            skip_header: false,
+        },
+    }];
+
+    // Continue processing + reprocessing all elements until there's nothing left.
+    loop {
+        let (new_elements, continue_running) = parse(&amp;ir);
+
+        ir = new_elements;
+
+        match continue_running {
+            ContinueRunning::Yes => {}
+            ContinueRunning::No => break,
+        }
+    }
+
+    Res::Ok(Item {
+        item: ContentIr::Div { contents: ir },
+        location: Some(location),
+    })
+}
+
+fn parse(elements: &amp;Vec&lt;ContentIr>) -> (Vec&lt;ContentIr>, ContinueRunning) {
+    let mut new = vec![];
+    let mut continue_running = ContinueRunning::No;
+
+    for element in elements {
+        match element {
+            ContentIr::Unparsed {
+                contents,
+                validations,
+            } => {
+                // Attempt to process something.
+                // If something was found, add it to the end and keep going.
+                if let Some(mut ir) = try_process(contents, validations) {
+                    new.append(&amp;mut ir);
+                    continue_running = ContinueRunning::Yes;
+                }
+                // Nothing matched, so return it as text.
+                else {
+                    new.push(ContentIr::Text(contents.clone()));
+                }
+            }
+            _ => {
+                new.push(element.clone());
+            }
+        }
+    }
+
+    (new, continue_running)
+}
+
+/// Attempts to process the contents, stepping through the various types until nothing is left.
+fn try_process(contents: &amp;String, validations: &amp;Validations) -> Option&lt;Vec&lt;ContentIr>> {
+    // Do these in priority.
+    // New things that are added should be processed here.
+    let mut validations = validations.clone();
+
+    if !validations.skip_code_block {
+        if let Some(ir) = chomp::block(contents, &amp;validations) {
+            return Some(ir);
+        } else {
+            validations.skip_code_block = true;
+        }
+    }
+
+    if !validations.skip_header {
+        if let Some(ir) = chomp::header(contents, &amp;validations) {
+            return Some(ir);
+        } else {
+            validations.skip_header = true;
+        }
+    }
+
+    None
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">ContentIr</span> is updated as well to include the new types and to generate the HTML elements.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/content_ir.rs
+use crate::html::{element, Element, HtmlElement};
+
+use super::Validations;
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum ContentIr {
+    Codeblock(String),
+    Div {
+        contents: Vec&lt;ContentIr>,
+    },
+    Header {
+        header_size: u32,
+        id: Option&lt;String>,
+        text: String,
+    },
+    Text(String),
+    Unparsed {
+        contents: String,
+        validations: Validations,
+    },
+}
+
+impl HtmlElement for ContentIr {
+    fn to_element(&amp;self) -> Element {
+        match self {
+            ContentIr::Codeblock(text) => element::code_block(text.clone()),
+            ContentIr::Div { contents } => {
+                element::div(contents.iter().map(|ir| ir.to_element()).collect())
+            }
+            ContentIr::Header {
+                header_size,
+                id,
+                text,
+            } => element::header(*header_size, id.clone(), text.clone()),
+            ContentIr::Text(text) => element::text(text),
+            ContentIr::Unparsed { .. } => {
+                todo!("Attempted to convert unparsed content to an element!")
+            }
+        }
+    }
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">Element</span> gets some new kinds:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/element.rs
+use super::{stylesheet::Class, Html};
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Element {
+    pub classes: Vec&lt;Class>,
+    pub id: Option&lt;String>,
+    pub kind: Kind,
+}
+
+impl Html for Element {
+    fn to_html(&amp;self) -> String {
+        let class = {
+            if self.classes.is_empty() {
+                String::default()
+            } else {
+                format!(
+                    "class=\"{}\"",
+                    self.classes
+                        .iter()
+                        .map(|c| c.selector().to_str().into())
+                        .collect::&lt;Vec&lt;String>>()
+                        .join(" ")
+                )
+            }
+        };
+
+        let selector;
+        let children;
+
+        match &amp;self.kind {
+            Kind::Card(contents) => {
+                selector = String::from("div");
+                children = contents.clone();
+            }
+            Kind::Codeblock(text) => {
+                selector = String::from("div");
+                children = text.clone();
+            }
+            Kind::Div {
+                children: child_elements,
+            } => {
+                selector = String::from("div");
+                children = child_elements
+                    .iter()
+                    .map(|c| c.to_html())
+                    .collect::&lt;Vec&lt;String>>()
+                    .join("\n");
+            }
+            Kind::Header { header_size, text } => {
+                selector = format!("h{}", header_size);
+                children = text.clone();
+            }
+        }
+
+        format!("&lt;{} {}>{}&lt;/{}>", selector, class, children, selector)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Kind {
+    Card(String),
+    Codeblock(String),
+    Div { children: Vec&lt;Element> },
+    Header { header_size: u32, text: String },
+}
+
+pub fn code_block(code: String) -> Element {
+    Element {
+        classes: vec![
+            Class::Codeblock,
+            Class::ContentWrapper,
+            Class::Outlined {
+                dark_mode: Class::Codeblock.dark_mode(),
+            },
+        ],
+        id: None,
+        kind: Kind::Codeblock(code),
+    }
+}
+
+pub fn div(children: Vec&lt;Element>) -> Element {
+    Element {
+        classes: vec![],
+        id: None,
+        kind: Kind::Div { children },
+    }
+}
+
+pub fn header(header_size: u32, id: Option&lt;String>, text: String) -> Element {
+    Element {
+        classes: vec![],
+        id,
+        kind: Kind::Header { header_size, text },
+    }
+}
+
+pub fn text(s: &amp;str) -> Element {
+    Element {
+        classes: vec![
+            Class::Outlined { dark_mode: false },
+            Class::Card { dark_mode: false },
+        ],
+        id: None,
+        kind: Kind::Card(s.into()),
+    }
+}
+</div>
+<p   >And finally the <span   class="codeblockDark outlinedDark">Stylesheet</span> gets updated. I made some tweaks to add a new code block class, fitted the content to the page and removed the x-overflow. Code blocks do have an x-overflow, but every other part shouldn't.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet/class.rs
+use super::Html;
+use super::*;
+use crate::theme::Theme;
+pub use css::Css;
+pub use selector::Selector;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Class {
+    Card { dark_mode: bool },
+    Codeblock,
+    ContentWrapper,
+    Outlined { dark_mode: bool },
+    Page,
+}
+
+impl Class {
+    pub fn all() -> Vec&lt;Self> {
+        vec![
+            Self::Card { dark_mode: false },
+            Self::Card { dark_mode: true },
+            Self::Codeblock,
+            Self::ContentWrapper,
+            Self::Outlined { dark_mode: false },
+            Self::Outlined { dark_mode: true },
+            Self::Page,
+        ]
+    }
+
+    pub fn css(&amp;self, theme: &amp;Theme) -> Css {
+        match self {
+            Class::Card { dark_mode } => card(self, *dark_mode, theme),
+            Class::Codeblock => codeblock(self, theme),
+            Class::ContentWrapper => content_wrapper(self),
+            Class::Outlined { dark_mode } => outline(self, *dark_mode, theme),
+            Class::Page => page(self),
+        }
+    }
+
+    pub fn dark_mode(&amp;self) -> bool {
+        match self {
+            Class::Card { dark_mode } => *dark_mode,
+            Class::Codeblock => true,
+            Class::ContentWrapper => false,
+            Class::Outlined { dark_mode } => *dark_mode,
+            Class::Page => false,
+        }
+    }
+
+    pub fn selector(&amp;self) -> Selector {
+        let prefix = match self {
+            Class::Card { .. } => "card",
+            Class::Codeblock => "codeblock",
+            Class::ContentWrapper => "contentWrapper",
+            Class::Outlined { .. } => "outlined",
+            Class::Page => "page",
+        };
+
+        let post_fix = match self.dark_mode() {
+            false => "Light",
+            true => "Dark",
+        };
+
+        format!("{}{}", prefix, post_fix).into()
+    }
+}
+
+pub fn body(theme: &amp;Theme) -> Css {
+    let rules = vec![
+        format!("background: {}", theme.fill_secondary_light_mode.to_html()),
+        format!("color: {}", theme.text_primary_light_mode.to_html()),
+        "font-family: Arial, Helvetica, sans-serif".into(),
+        "font-size: 18pt".into(),
+        "font-weight: 400".into(),
+        "height: 100%".into(),
+        "margin: auto".into(),
+        "max-width: 100vw".into(),
+        "min-height: 100vh".into(),
+        "padding: 0".into(),
+        "text-align: center".into(),
+        "width: 100% - 100vw".into(),
+    ];
+    let selector = "body";
+
+    let main_class = format!("{} {{ {} }}", selector, combine_rules(rules));
+
+    let classes = vec![main_class];
+
+    classes.join("\n").into()
+}
+
+...
+
+fn codeblock(class: &amp;Class, theme: &amp;Theme) -> Css {
+    let rules = vec![
+        format!("background: {}", theme.fill_primary_dark_mode.to_html()),
+        format!("border-color: {}", theme.fill_secondary_dark_mode.to_html()),
+        format!("color: {}", theme.text_primary_dark_mode.to_html()),
+        "flex: none".into(),
+        "height: 100%".into(),
+        "line-height: 1.25".into(),
+        "overflow-x: auto".into(),
+        "padding: 8px".into(),
+        "text-align: left".into(),
+        "text-justify: none".into(),
+        "white-space: pre".into(),
+    ];
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(rules)
+    );
+
+    main_class.into()
+}
+
+...
+
+fn page(class: &amp;Class) -> Css {
+    format!(
+        "
+.{} {{
+    align-content: center;            
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 100vw;
+    width: 100vw - (100vw - 100%);
+}}",
+        class.selector().to_str()
+    )
+    .into()
+}
+
+...
+
+</div>
+<p   >Things are starting to come together.</p>
+<p   ><a  href="assets/2021.08.30_0605.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.08.30_0605.png" alt="Current render" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p>
+<p   >Things I still want to tackle:</p>
+<ul   class="listLight"><li><div   >Header formatting + fragment link</div></li><li><div   >Image links + validation</div></li><li><div   >Page links + validation</div></li><li><div   >External page links</div></li><li><div   >Bullets</div></li><li><div   >Navigation</div></li><li><div   >Links</div></li><li><div   >Index page</div></li></ul>
+<p   >I did a brief experiment where I enabled multithreading. It cuts the execution time in half, but the compile time goes way up again. Leaving out for now.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

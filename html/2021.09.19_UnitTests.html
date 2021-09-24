@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Unit Tests</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Writing a unit testing framework in Scheme.">
+<meta name="keywords" content="chicken, unit, testing, parsing, file, loading, crawling">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.18_NotIndex.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.20_UnitTest2.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.19 - Unit Tests</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0623"  ><a  href="#0623"  >#</a>
+ 0623</h3>
+<div   ><p   >Again, no Index page for <span   class="codeblockDark outlinedDark">blog_gen</span>. Scheme is just too intriguing right now. I'll keep adding to my parsing methods. These can be used for converting a language to Scheme syntax.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+;; parsing.scm
+
+;; Parsing related methods
+
+;; Loads the given .scm file as a list
+(define (parse-file->list file)
+    (let ((port (open-input-file file)))
+    (port->list port)))
+
+;; Parses the given string as a list
+(define (parse-string->list string)
+    (let ((p (open-input-string string)))
+    (port->list p)))
+
+;; Reads the given port as a list
+(define (port->list port)
+    (let f ((x (read port)))
+        (if (eof-object? x)
+            (begin
+                (close-input-port port) '())
+            (cons x (f (read port))))))
+
+</div>
+<p   >All the methods above are useful for reading files or strings and separating them into tokens.</p>
+<p   >Another thing I've done is write a macro that mimics Haskell syntax. Though this doesn't actually execute anything yet, it does spit out a list of elements.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// test2.cc
+
+(define-syntax fn
+    (syntax-rules ()
+        ((fn id args return-type impl . impls)
+            `(fn ,'id ,'args return-type ,(cons 'impl 'impls) ))
+        ))
+
+;; Test 1
+(print 
+    (fn fact (Int) Int
+        ((0) 1)
+        ((n) (* n (- n 1))))
+)
+;; Test 2
+(print 
+    (fn add (Int Int) Int 
+        ((a b) (+ a b)))
+)
+</div>
+<p   >The output for running this is as follows:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+; loading test2.cc ...
+(fn fact (Int) Int (((0) 1) ((n) (* n (- n 1)))))
+(fn add (Int Int) Int (((a b) (+ a b))))
+#;119>
+</div>
+<p   >I don't quite know what I'll do with this information yet. I suppose for now I'm just learning what the language can do and how to utilize it.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0921"  ><a  href="#0921"  >#</a>
+ 0921</h3>
+<div   ><p   >I wrote a simple test module for Scheme. One thing I definitely want to do is write up a destructure macro. For this test module, I want to keep it as simple as possible with as few dependencies as possible. There's a lot that I can do, such as crawling a list of all files within this module, executing them recursively. I can figure that out later.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+; unit-test.scm
+
+;; An individual test case.
+(define (test test-case actual expected)
+    (list 
+        ;; success or fail
+        (cond 
+            ((eq? actual expected) 'success)
+            (else 'fail))
+        test-case
+        actual 
+        expected))
+
+;; A test module.
+(define (tests first . rest)
+    (let ((cases (cons first rest)))
+        (map (lambda (case)
+            (let (
+                (result (car case))
+                (test-case (car (cdr case)))
+                (actual (car (cdr (cdr case))))
+                (expected (car (cdr (cdr (cdr case)))))
+                )
+                (cond 
+                    ((null? case) (error "you passed a null value!"))
+                    ((eq? result 'fail) 
+                        (print "fail - " test-case)
+                        (print "\t wanted: " expected)
+                        (print "\t actual: " actual)
+                        )
+                    (else (print "success - " test-case)))
+                ))
+            cases)))
+
+;; Some example tests
+(tests 
+    (test "true should equal true" 
+        #t #t)
+    (test "true should equal true" 
+        #f #t)
+    (test "(+ 1 2) should equal 3" 
+        (+ 1 2) 3)
+)
+</div>
+<p   >I will give one win to Scheme, this was extremely trivial to write. It took perhaps 15m after I decided to do it to getting a working implementation done.</p>
+<p   >Using the REPL helps quite a bit, but I also wanted to ensure I can test things over and over, rather than doing everything manually. My hope is to start using this new project to generate code in other languages, so I want to make sure I keep this maintainable with some form of automated testing.</p>
+<p   >There are quite a few different ways I can utilize this module. I can import it and call it within specific files, or I can recursively browse everything and execute anything that matches <span   class="codeblockDark outlinedDark">*.tests.scm</span>. </p>
+<p   >I'll be tackling the <span   class="codeblockDark outlinedDark">*.test.scm</span> method and seeing how far I can get with that.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1033"  ><a  href="#1033"  >#</a>
+ 1033</h3>
+<div   ><p   >I decided to dogfood this module. I may end up utilizing some mocks as time goes on, but for now I'll just add a <span   class="codeblockDark outlinedDark">map-path</span> method that combines a directory, parent and filename.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+;; unit-test.scm
+
+;; Appends the file parent and directory to the file
+(define (map-path file dir? parent?)
+    (string-append 
+        (if (null? parent?) "" (string-append parent? "/"))
+        (if (null? dir?) "" (string-append dir? "/"))
+        file))
+
+(testing map-path
+    (test "map-path no parent? or dir? returns file"
+        (map-path "foo.bar" '() '())
+        "foo.bar")
+    (test "map-path no dir? returns file"
+        (map-path "foo.bar" '() "hi")
+        "hi/foo.bar")
+    (test "map-path no parent? returns file"
+        (map-path "foo.bar" "dir" '())
+        "dir/foo.bar")
+    (test "map-path returns file"
+        (map-path "foo.bar" "dir" "parent")
+        "parent/dir/foo.bar")
+    )
+</div>
+<p   >I'll also add a method to check if it's the proper file type to load.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+
+;; Checks if the given file is a test file
+(define (is-test-file? file)
+    (cond
+        ((string? file) (ends-with? file ".test.scm" ))
+        (else #f)
+    ))
+
+;; Checks if the given string ends with the given suffix
+(define (ends-with? string suffix)
+    (cond
+        ((and 
+            (string? string) 
+            (string? suffix) 
+            (>= (string-length string) (string-length suffix))
+            )
+            (let (
+                (end (substring string (- (string-length string) (string-length suffix)) (string-length string)))
+                )
+            (equal? suffix end))) 
+        (else #f)
+    ))
+
+(testing ends-with? 
+    (test "non-string input returns #f"
+        (ends-with? 1 2) 
+        #f)
+    (test "'a test string' and 'foo' returns #f"
+        (ends-with? "a test string" "foo")
+        #f)
+    (test "'foo string' and 'foo' returns #f"
+        (ends-with? "foo string" "foo")
+        #f)
+    (test "'foo string' and 'string' returns #t"
+        (ends-with? "foo string" "string")
+        #t)
+)
+
+(testing is-test-file? 
+    (test "nil returns false"
+        (is-test-file? '()) 
+        #f)
+    (test "'regular-file.scm' returns false"
+        (is-test-file? "regular-file.scm") 
+        #f)
+    (test "non-string returns false"
+        (is-test-file? 1) 
+        #f)
+    (test "'passing-file.test.scm' returns true"
+        (is-test-file? "passing-file.test.scm") 
+        #t)
+)
+</div>
+<p   >This is turning out rather nicely.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

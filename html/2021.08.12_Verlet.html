@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Verlet Integration</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="On bugs with physical simulations, pivoting and art.">
+<meta name="keywords" content="rust, verlet, integrator, 2d, dead, cells, 3d, pixel, art">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.11_GreenerGrass.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.13_2dSwitchover.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.12 - Verlet Integration</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0726"  ><a  href="#0726"  >#</a>
+ 0726</h3>
+<div   ><p   >There's some form of bug with my integrator. It tends to align on the z-axis, which is definitely not wanted. I need to do some digging to determine what should be done here. </p>
+<p   >Alternatively, I could switch to a pure 2d model and utilize that. In doing so, I could completely switch my coordinates to i32's, which are purely deterministic and would reduce the overhead of a fixed point number. </p>
+<p   >It would unfortunately restrict the ability to do 3d, but that may not be a bad thing. At this point painting or pixel art seems to be faster for me to knock out, especially if I utilize a Dead Cells art flow. It also opens up the ability to target mobile</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0755"  ><a  href="#0755"  >#</a>
+ 0755</h3>
+<div   ><p   >I've made a decision. 2d pixel art will be the way forward. This means that I don't have to spend quite as much time on assets and don't need to spend quite as much time on complex art.</p>
+<p   >Game choices:</p>
+<ol  type="1" class="listLight"><li><div   > Pixel art (possibly using Dead Cells workflow)</div></li><li><div   > Fully deterministic 2d based physics using i32s</div></li><li><div   > Open world, fully simulated at all times like Rain World</div></li><li><div   > Ragdolls + procedural animations like Rain World</div></li><li><div   > Rollback netcode (enables coop or pvp)</div></li><li><div   > Escape from Tarkov like main loop, with physical based combat?</div></li><li><div   > STRETCH: Noita based cellular automata destruction</div></li></ol>
+<p   >In a sentence, this game is a physics based combat sim where you execute raids to level up your character in between server wipes.</p>
+<p   >I need to adjust my road map to accommodate this, and will do so later today. I still plan on utilizing a Verlet based integration system, however it will be tailored to 2d. I'm going to go for speed of development and not go for a 'perfectly coded' system. It will evolve over time, and that's OK. Don't need to get it perfect immediately. </p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Finishing Blog Generation</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Wrapping up on blog generation and more VR thoughts.">
+<meta name="keywords" content="rust, compiler, blog, generation, markdown, cross, platform, clients, virtual, reality">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.16_BlogGen2.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.18_Colors.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.17 - Finishing Blog Generation</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0625"  ><a  href="#0625"  >#</a>
+ 0625</h3>
+<div   ><p   >Regardless of how far I get, by the end of this week I'll be pausing development on the blog generator. Thus, I'll have to ensure that I get it in a useable state. There are several issues I need to resolve before then:</p>
+<ul   class="listLight"><li><div   >Come up with a good layout. Right now it's trash.</div></li><li><div   >Come up with good styling. Right now it's trash.</div></li><li><div   >Fix issues where C# causes a header to be spat out.</div></li><li><div   >Add iframe class.</div></li><li><div   >Add bullet lists</div></li><li><div   >Add numbered lists</div></li><li><div   >Add alphabetical lists</div></li><li><div   >Generate index.html</div></li><li><div   >Generate side nav</div></li><li><div   >Responsiveness?</div></li><li><div   >Fix single code quote</div></li></ul>
+<p   >Those are in no particular order. Today I'll be working on #3, #4, and possibly 5-7.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0643"  ><a  href="#0643"  >#</a>
+ 0643</h3>
+<div   ><p   >Fixed both the C# issue and added the ability to embed Youtube videos. Also added the ability to embed a iframe in a 16x9 aspect ratio.</p>
+<p   >I suspect that lists will be slightly more complicated. If I get bullets done I'll be happy, but I suspect alphabetical and numerical lists will be the same solution. </p>
+<p   >One thing I can think of off is the ability to parse subsections of code. E.g. a bullet list may contain any arbitrary amount of other elements, and should be parsed that way. Perhaps this is where nesting is added?</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0717"  ><a  href="#0717"  >#</a>
+ 0717</h3>
+<div   ><p   >This <a  href="https://news.ycombinator.com/item?id=28206007"  >YCombinator comment</a> by mythz is interesting. Here's a quoted version:</p>
+<div   class="cardDark hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><div   ><p   >What's funny about having to rely on unauthorized clones to provide a fast native UX was that Spotify's original client back in 2008 started out as beautifully light, custom rendered native client.</p>
+<p   >Few Apps ever had that wow factor the first time I used it, it was so much lighter and more responsive than anything else of the day. I remember being perplexed at how I could search and skip to any part of a song quicker than iTunes could looking at a local library. Everything was latency-free and instantaneous.</p>
+<p   >We were building a Music Startup at the time, so we investigated how it worked. We we’re very surprised we couldn’t find any evidence of an established UI toolkit. It looked as though they had built their own custom UI renderer and optimized TCP protocol which sent back its metadata in XML. Their traffic looked like it was initially seeded from their own (or CDN) servers (for best latency) and then overtime we would see some P2P traffic on the wire.</p>
+<p   >Our QT/C++ client had decent performance but was noticeably heavier than Spotify's. I was disappointed to see their native client eventually be abandoned and succumb to become yet another Chromium wrapper. I expect it fell to the pressures of a growing startup adding 100s of developers (without the skill of their original CTO/devs) where a native UI couldn't be updated and re-iterated as fast as a Web App. I wish they maintained 2 desktop clients, and left their native client alone to just be an audio player and push all their new social features to their new flagship CEF app.</p>
+<p   >It's unfortunate the skill and desire of building fast native UIs are being lost to Electron and CEF wrappers. Seems the larger the organization the more likely they are to build new Web rendered Desktop Apps and we have to rely on unauthorized Indie efforts like this for fast, responsive native UIs.</p></div></div>
+<p   >That makes me think I could do the same for my clients. A simplified metadata renderer seeded from my own server that is utilized in native clients. </p>
+<p   >Further investigation will be required. Not sure how this would work on PC, Web, Android, iOS and consoles, but perhaps it's the way forward?</p>
+<p   >Testing out a few bullet options:</p>
+<ul   class="listLight"><li><div   >Foo</div></li><li><div   >Bar</div></li><li><div   >Testy Test!</div></li></ul>
+<ol  type="a" class="listLight"><li><div   > Apple</div></li><li><div   > Cherry</div></li><li><div   > Pie</div></li></ol>
+<ol  type="1" class="listLight"><li><div   > Sum</div></li><li><div   > Multiply</div></li><li><div   > Subtract</div></li></ol></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1620"  ><a  href="#1620"  >#</a>
+ 1620</h3>
+<div   ><p   >Tried out Skyrim VR. The teleportation works well, though being in a vehicle that moves + bumps is nauseating while you're static. In particular, I'm referring to the prisoner cart ride. </p>
+<p   >The Air Link functionality in the Quest2 works well, though I think a native experience such as Beat Saber feels better. There's nothing that jumps out at me in particular, but perhaps it is a slight latency due to the network.</p>
+<p   >Ordered + unordered lists are finished. Iframes have been wired up. Overall a productive burst. This is the list that I would like to finish before merging to main:</p>
+<ul   class="listLight"><li><div   >Add in a responsive blog layout</div></li><li><div   >Add in CSS for quotes</div></li><li><div   >Add in CSS for code blocks</div></li><li><div   >Add in CSS for single, in line code </div></li><li><div   >Links to other MD files</div></li><li><div   >Arbitrary nesting of HTML in lists</div></li><li><div   >Generation of index.html</div></li></ul>
+<p   >There's no particular order there. Perhaps I will add links to other MD files first, make a responsive blog layout, add an index.html, then finish the rest. Doing those should be achievable before next Monday.</p>
+<p   >For reference, here's the current state of things:</p>
+<p   ><a  href="assets/2021.08.17_1628.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.08.17_1628.png" alt="State of things" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

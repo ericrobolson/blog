@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>A New Language</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Thoughts on creating a new concurrent, gradually typed language.">
+<meta name="keywords" content="elixir, erlang, rust, lisp, concurrent, new, language, process">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.03_Ideas3.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.04_SummariesAndValidations.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.04 - A New Language</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="2100"  ><a  href="#2100"  >#</a>
+ 2100</h3>
+<div   ><p   >I am intrigued by Erlang + Elixir's processes. What would that look like in a more performant language that is native? The concurrency model + scheduling seems quite fantastic, perhaps that can be done as a language based off of Rust?</p>
+<p   ><span   class="codeblockDark outlinedDark">#[catch_unwind]</span> and <span   class="codeblockDark outlinedDark">#[no_panic]</span> should be researched to see how this could be done. </p>
+<p   >The intent would be to get a compiled artifact that is as performant as Rust natively is, but is as concurrent as Elixir is. I'll refer to Erlang + Elixir interchangeably, but will tend towards Elixir. Ideally this would be used on all platforms, web + native. Not quite sure how that'd work out yet, but it's a nice idea.</p>
+<p   >While I love static types, perhaps a new concept would be a gradual typing. Something along the lines of a <span   class="codeblockDark outlinedDark">Any</span> type. There would also be the abilty to 'clamp down' the types as time goes on, as well as type-classes from Haskell to perform conversions. A reason for this is this <a  href="https://softwareengineering.stackexchange.com/a/105848"  >StackOverflow post</a>. One can quickly prototype in a dynamic sense, utilizing the 'let it crash' philosophy, and tighten the types as use cases come along.</p>
+<p   >So the minimum features would be:</p>
+<ul   class="listLight"><li><div   >Processes as a core part of the language, like Elixir</div></li><li><div   >Functional</div></li><li><div   >Let it crash philosophy, if a process dies it should not impact anything else</div></li><li><div   >Gradually typed</div></li><li><div   >ADTs</div></li><li><div   >Easy macros</div></li><li><div   >Extremely terse and simple </div></li><li><div   >Easy way to directly call Rust or JavaScript code from libs</div></li></ul>
+<p   >This language should follow the below cycle:</p>
+<ul   class="listLight"><li><div   >Dogfooded + bootstrapped compiler</div></li><li><div   >Minimal 
+<span   class="codeblockDark outlinedDark">core</span>
+ lib that can easily be ported anywhere</div></li><li><div   >A package manager, bootstrapped</div></li><li><div   >A small set of 
+<span   class="codeblockDark outlinedDark">std</span>
+ modules that provide file i/o, etc.</div></li><li><div   >Based off of Rust with 
+<span   class="codeblockDark outlinedDark">async-std</span>
+ or 
+<span   class="codeblockDark outlinedDark">tokio</span>
+ for non-blocking io for native</div></li><li><div   >Pure JS for web</div></li><li><div   ><a  href="https://medium.com/ballerina-techblog/implementing-a-language-server-how-hard-can-it-be-part-1-introduction-c915d2437076"  >Language server</a>
+ </div></li></ul>
+<p   >Looking at how the <span   class="codeblockDark outlinedDark">blog_gen</span> project has gone, I think a key part will be releasing fast and releasing early. </p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

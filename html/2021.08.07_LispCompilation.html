@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Lisp Compilation</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Using Lisp as a compiler for DSLs.">
+<meta name="keywords" content="Lisp, Rust, scripting, assembly, compiler">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.06_RustAgain.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.08_Rendering.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.07 - Lisp Compilation</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0701"  ><a  href="#0701"  >#</a>
+ 0701</h3>
+<div   ><p   >Last night I found <a  href="https://redlinernotes.com/docs/cl-6502.pdf"  >this article</a> where a Lisp program compiles to 6502 assembly. It's a rather interesting one, and I think I may dig into it and see what could be utilized. Perhaps something that compiles to Rust, JS or GDScript?</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0758"  ><a  href="#0758"  >#</a>
+ 0758</h3>
+<div   ><p   >I've continued work on Chaostar. Right now I'm working on adding in the renderer. Perhaps I'll generate Rust code with Lisp, but that seems ridiculous. I think shipping something will be more valuable than needlessly complex tech stacks. </p>
+<p   >I am familiar with Rust, so I can hack something together rather quickly. If I do implement a scripting language, THAT will be done in Lisp. </p>
+<p   >Perhaps generating bytecode from Lisp like the linked article above. Regardless, that is something that will be researched down the line. </p>
+<p   >I think I can get rather far without implementing a scripting language, though after the guts of the engine is done it may be worth it. Things like rollback, netcode, collision detection, etc. will stay in the engine. The script will be anything that is not a core system.</p>
+<p   >The approach I am taking with the renderer is a naive one. It is a 'stateless' approach, where everything gets discarded each render pass. A possible optimization is to convert everything to 'resources' using a concept similar to a database table. </p>
+<p   >The core will say 'Render this MeshId', 'Render this TextureId', etc. and the (shell) renderer will say 'Give me the mesh you have stored with this id', 'Give me the texture you have stored with this id' and upload that to the GPU if it does not have it in memory. </p>
+<p   >It would take longer however, and I want speed right now to get to the simulation aspect. Rendering is not the focus on the road map, though it will be crucial later on. The bare minimum is colors and triangles. Sprites, normal maps, lighting and sprite destruction will come later.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1009"  ><a  href="#1009"  >#</a>
+ 1009</h3>
+<div   ><p   >For PC my renderer will use <a  href="https://github.com/gfx-rs/wgpu"  >WGPU</a>. I would highly recommend <a  href="https://sotrh.github.io/learn-wgpu"  >Learn WGPU</a>. It's kept up to date and is a great into to 3d gfx. Most of the things involved are out of scope for my projects, but that is primarily because I am using it as a reference to see how to utilize WGPU. </p>
+<p   >I'm stepping through the tutorial, but making everything 'plural'. That is, utilizing collections rather than single items. This renderer will evolve, so if I'm forced to deal with collections now it's trivial to expand on them later. Treat things as data, not code. </p>
+<p   >It may be worth looking into Emacs again. For example, writing a function that will load a HTML page. Then parsing it and copying to another file. Mapping text if you will.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1106"  ><a  href="#1106"  >#</a>
+ 1106</h3>
+<div   ><p   >Wrapped up drawing of vertices with indices. Not sure how that'll look in the core part of the engine, but I can evolve it as time goes on. For now I'll work on adding additional debug shapes. Then I'll start working on an ECS type simulation adding in movement then physics.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

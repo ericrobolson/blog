@@ -1,0 +1,410 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Crawling</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Implementing a file crawler for generation.">
+<meta name="keywords" content="Rust, starting, over, blog, generation, crawler, files">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.22_SecondStart.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.24_GenerationPt1.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.23 - Crawling</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0527"  ><a  href="#0527"  >#</a>
+ 0527</h3>
+<div   ><p   >New module, <span   class="codeblockDark outlinedDark">crawler.rs</span>.</p>
+<p   >Not a lot going on, just loading the input directory, crawling the files, and ensuring only whitelisted ones are loaded. Any invalid file types return an error.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// crawler.rs
+
+use crate::{Directory, Item, Location, Res};
+use walkdir::WalkDir;
+
+pub struct File {
+    pub kind: FileKind,
+    pub path: String,
+    pub file_name: String,
+}
+
+pub enum FileKind {
+    Css,
+    Img,
+    Md,
+}
+
+pub fn execute(dir: Directory) -> Vec&lt;Res&lt;File>> {
+    let directory = dir.to_string();
+
+    let mut files = vec![];
+
+    for entry in WalkDir::new(&amp;directory)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| !e.file_type().is_dir())
+    {
+        let path = entry.path();
+
+        let file_name = path.file_name().unwrap().to_str().unwrap_or("").to_string();
+        let path_string = String::from(path.to_str().unwrap_or("".into()));
+
+        if let Some(extension) = path.extension() {
+            if let Some(extension) = extension.to_str() {
+                match extension.to_lowercase().as_str() {
+                    "gif" | "png" => {
+                        files.push(Res::Ok(Item {
+                            item: File {
+                                kind: FileKind::Img,
+                                path: path_string,
+                                file_name,
+                            },
+                            location: None,
+                        }));
+                    }
+                    "md" => {
+                        files.push(Res::Ok(Item {
+                            item: File {
+                                kind: FileKind::Md,
+                                path: path_string,
+                                file_name,
+                            },
+                            location: None,
+                        }));
+                    }
+                    "css" => {
+                        files.push(Res::Ok(Item {
+                            item: File {
+                                kind: FileKind::Css,
+                                path: path_string,
+                                file_name,
+                            },
+                            location: None,
+                        }));
+                    }
+                    _ => files.push(Res::Error {
+                        location: Some(Location {
+                            column: 0,
+                            file: file_name,
+                            line: 0,
+                            path: path_string,
+                        }),
+                        msg: format!("Unhandled file type '{}'!", extension),
+                    }),
+                }
+            }
+        }
+    }
+
+    files
+}
+</div>
+<p   >No validation of any sort occurs past file extensions. That will be handled later on in the analyzer section. Next up is the parser.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// main.rs
+
+// Parse all intermediate representations
+let ir_results: Vec&lt;Res&lt;IntermediateRepresentation>> =
+    crawled_files.par_iter().map(|f| parse(f)).collect();
+
+let ir = match map_results(ir_results) {
+    Ok(ir) => ir,
+    Err(_) => return,
+};
+</div>
+<p   >As most of the parsing can be parallelized, I went ahead and added in Rayon. In the first iteration I didn't parallelize anything, so while it behaved quite well, as time goes on the input files will drastically grow. It's easier to handle that now. </p>
+<p   >For parsing, I'll have a top level function at the <span   class="codeblockDark outlinedDark">parse/</span> module, which will then delegate to smaller parsing functions depending on file types.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/mod.rs
+use crate::{
+    crawler::{File, FileKind},
+    Item, Location, Res,
+};
+
+mod css;
+mod img;
+mod md;
+
+pub use css::Css;
+pub use img::Img;
+pub use md::Md;
+
+pub enum IntermediateRepresentation {
+    Css(Css),
+    Img(Img),
+    Md(Md),
+}
+
+pub fn execute(file: &amp;Item&lt;File>) -> Res&lt;IntermediateRepresentation> {
+    let location = Location {
+        column: 0,
+        file: file.item.file_name.clone(),
+        line: 0,
+        path: file.item.path.clone(),
+    };
+
+    let path = file.item.path.clone();
+
+    match file.item.kind {
+        FileKind::Css => css::parse(path, location),
+        FileKind::Img => img::parse(path, location),
+        FileKind::Md => md::parse(path, location),
+    }
+}
+</div>
+<p   >Before continuing to the CSS parser, there are a few changes that need to be made.</p>
+<p   >I'll add a new <span   class="codeblockDark outlinedDark">Html</span> trait to enable the generation of HTML code.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html.rs
+pub trait Html {
+    fn to_html(&amp;self) -> String;
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">Context</span> struct requires a section for the theme. The theme will be used to color CSS. I'll break that out into a separate module.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// theme.rs
+use crate::html::Html;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Theme {
+    pub accent_blue: Color,
+    pub accent_green: Color,
+    pub accent_red: Color,
+    pub fill_primary_dark_mode: Color,
+    pub fill_primary_light_mode: Color,
+    pub fill_secondary_dark_mode: Color,
+    pub fill_secondary_light_mode: Color,
+    pub text_primary_dark_mode: Color,
+    pub text_primary_light_mode: Color,
+    pub text_secondary_dark_mode: Color,
+    pub text_secondary_light_mode: Color,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Color {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+    pub a: u8,
+}
+
+impl Html for Color {
+    fn to_html(&amp;self) -> String {
+        format!("rgba({},{},{},{})", self.r, self.g, self.b, self.a)
+    }
+}
+
+impl From&lt;[u8; 3]> for Color {
+    fn from([r, g, b]: [u8; 3]) -> Self {
+        Self {
+            r,
+            g,
+            b,
+            a: u8::MAX,
+        }
+    }
+}
+</div>
+<p   >Then I'll update the <span   class="codeblockDark outlinedDark">env_args</span> module to return an <span   class="codeblockDark outlinedDark">Arc&lt;Context></span> and populate the theme with a default. As time goes on it would be ideal to pull it from a config file.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// env_args.rs
+
+pub fn parse() -> Option&lt;Res&lt;Arc&lt;Context>>> {
+    let env_args = {
+        let mut env_args: Vec&lt;String> = env::args().collect();
+        env_args.remove(0);
+        env_args
+    };
+
+    if env_args.is_empty() {
+        return Some(Res::Error {
+            location: None,
+            msg: "No valid args! Type 'help' to list all options".into(),
+        });
+    }
+
+    match Command::parse(env_args) {
+        Ok(command) => match command {
+            Command::Help => {
+                Command::list_help();
+                return None;
+            }
+            Command::Generate { input, output } => {
+                // TODO: load from a JSON file.
+                let theme = Theme {
+                    accent_blue: [30, 71, 246].into(),
+                    accent_green: [104, 159, 57].into(),
+                    accent_red: [204, 0, 0].into(),
+                    fill_primary_dark_mode: [37, 37, 37].into(),
+                    fill_primary_light_mode: [255, 255, 255].into(),
+                    fill_secondary_dark_mode: [0, 0, 0].into(),
+                    fill_secondary_light_mode: [224, 224, 224].into(),
+                    text_primary_dark_mode: [255, 255, 255].into(),
+                    text_primary_light_mode: [3, 3, 3].into(),
+                    text_secondary_dark_mode: [162, 162, 162].into(),
+                    text_secondary_light_mode: [96, 96, 96].into(),
+                };
+
+                return Some(Res::Ok(Item {
+                    item: Arc::new(Context {
+                        input,
+                        output,
+                        theme,
+                    }),
+                    location: None,
+                }));
+            }
+        },
+        Err(e) => Some(Res::Error {
+            location: None,
+            msg: e,
+        }),
+    }
+}
+</div>
+<p   >Finally the CSS parser can be built out.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/css.rs
+use super::IntermediateRepresentation;
+use crate::{html::Html, Context, Item, Location, Res};
+use std::sync::Arc;
+
+pub struct Css {
+    pub contents: Vec&lt;u8>,
+}
+
+pub fn parse(
+    file_path: String,
+    location: Location,
+    context: Arc&lt;Context>,
+) -> Res&lt;IntermediateRepresentation> {
+    let contents = match std::fs::read_to_string(&amp;file_path) {
+        Ok(c) => c,
+        Err(e) => {
+            return Res::Error {
+                msg: format!("{:#?}", e),
+                location: Some(location),
+            }
+        }
+    };
+
+    // Preprocess CSS.
+    let contents = {
+        const TEXT_PRIMARY_LIGHT_MODE: &amp;'static str = "_TXT_L_PRIMARY";
+        const TEXT_SECONDARY_LIGHT_MODE: &amp;'static str = "_TXT_L_SECONDARY";
+        const TEXT_PRIMARY_DARK_MODE: &amp;'static str = "_TXT_D_PRIMARY";
+        const TEXT_SECONDARY_DARK_MODE: &amp;'static str = "_TXT_D_SECONDARY";
+
+        const FILL_PRIMARY_LIGHT_MODE: &amp;'static str = "_FILL_L_PRIMARY";
+        const FILL_SECONDARY_LIGHT_MODE: &amp;'static str = "_FILL_L_SECONDARY";
+        const FILL_PRIMARY_DARK_MODE: &amp;'static str = "_FILL_D_PRIMARY";
+        const FILL_SECONDARY_DARK_MODE: &amp;'static str = "_FILL_D_SECONDARY";
+
+        const ACCENT_RED: &amp;'static str = "_ACCENT_RED";
+        const ACCENT_GREEN: &amp;'static str = "_ACCENT_GREEN";
+        const ACCENT_BLUE: &amp;'static str = "_ACCENT_BLUE";
+
+        let colors = &amp;context.theme;
+
+        contents
+            .replace(
+                TEXT_PRIMARY_LIGHT_MODE,
+                &amp;colors.text_primary_light_mode.to_html(),
+            )
+            .replace(
+                TEXT_SECONDARY_LIGHT_MODE,
+                &amp;colors.text_secondary_light_mode.to_html(),
+            )
+            .replace(
+                TEXT_PRIMARY_DARK_MODE,
+                &amp;colors.text_primary_dark_mode.to_html(),
+            )
+            .replace(
+                TEXT_SECONDARY_DARK_MODE,
+                &amp;colors.text_secondary_dark_mode.to_html(),
+            )
+            .replace(
+                FILL_PRIMARY_LIGHT_MODE,
+                &amp;colors.fill_primary_light_mode.to_html(),
+            )
+            .replace(
+                FILL_SECONDARY_LIGHT_MODE,
+                &amp;colors.fill_secondary_light_mode.to_html(),
+            )
+            .replace(
+                FILL_PRIMARY_DARK_MODE,
+                &amp;colors.fill_primary_dark_mode.to_html(),
+            )
+            .replace(
+                FILL_SECONDARY_DARK_MODE,
+                &amp;colors.fill_secondary_dark_mode.to_html(),
+            )
+            .replace(ACCENT_RED, &amp;colors.accent_red.to_html())
+            .replace(ACCENT_GREEN, &amp;colors.accent_green.to_html())
+            .replace(ACCENT_BLUE, &amp;colors.accent_blue.to_html())
+    };
+
+    Res::Ok(Item {
+        item: IntermediateRepresentation::Css(Css {
+            contents: contents.into_bytes(),
+        }),
+        location: Some(location),
+    })
+}
+</div>
+<p   >There is nothing terribly complex going on. While I could keep the contents as a String instead of a <span   class="codeblockDark outlinedDark">Vec&lt;u8></span>, I can't think of any more processing I'll be doing on CSS files before generating the output.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0632"  ><a  href="#0632"  >#</a>
+ 0632</h3>
+<div   ><p   >Next in line will be image parsing. It will be similar to the CSS parser, but less complex as no CSS preprocessing will be done.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/img.rs
+use super::IntermediateRepresentation;
+use crate::{Item, Location, Res};
+
+pub struct Img {
+    pub contents: Vec&lt;u8>,
+}
+
+pub fn parse(file_path: String, location: Location) -> Res&lt;IntermediateRepresentation> {
+    let contents = match std::fs::read(&amp;file_path) {
+        Ok(c) => c,
+        Err(e) => {
+            return Res::Error {
+                msg: format!("{:#?}", e),
+                location: Some(location),
+            }
+        }
+    };
+
+    Res::Ok(Item {
+        item: IntermediateRepresentation::Img(Img { contents }),
+        location: Some(location),
+    })
+}
+</div>
+<p   >The parsing of .md files will have a much higher complexity, so I will handle that at a later time. My plan for that is to start at the bottom and work my way up. </p>
+<p   >I'll enhance the <span   class="codeblockDark outlinedDark">html</span> module to spit out basic pages, then start generating IR from the <span   class="codeblockDark outlinedDark">md.rs</span> parser. I'll wire up a simple implementation of the code generator and skip the analyzer. I need a prototype working so I can ensure I'm building the right things.</p>
+<p   >I did note that I will be utilizing hexagonal architecture for this project. That was not entirely accurate. A change for that would be moving all file i/o to the main loop, then updating the parsers with loaded files. </p>
+<p   >If this were any other sort of project where I would not be running it on a computer, I would stop all progress until that was finished.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

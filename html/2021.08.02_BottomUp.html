@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Bottom Up Design</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="On Emacs, VS Code and bottom up design.">
+<meta name="keywords" content="Emacs, VS, Code, Bottom, Up, Design, Lisp">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.07.31_TheNextDay.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.03_OnLisp.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.02 - Bottom Up Design</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0643"  ><a  href="#0643"  >#</a>
+ 0643</h3>
+<div   ><p   >When doing a new language or tooling, pick a pet project. Do it in different languages or things like that to notice the differences. For example, I'm learning Emacs right now. All the things I'm doing related to code are in Emacs, though I still have VS Code around for when I can't figure something out in a timely manner. </p>
+<p   >While VS Code comes with more out of the box and is far easier to get up and running, Emacs + Slime is the de facto way to hack Lisp code. When in Rome...</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="2051"  ><a  href="#2051"  >#</a>
+ 2051</h3>
+<div   ><p   >One interesting thing I've read about is bottom up design. Typically you determine the lowest parts you need to implement, and build those out. The idea is that by doing this, the risk of failure is minimized. As systems change, the cost of a failure shrinks when it's a small chunk. </p>
+<p   >I'm not totally sure how it would work out in my projects, but it sounds intriguing. I think to start with I'll implement something simple, such as a JavaScript game. Lisp will be utilized, but I'm not sure how.</p>
+<p   >What are the parts of a game engine?</p>
+<ul   class="listLight"><li><div   >User input</div></li><li><div   >Network input</div></li><li><div   >Main Loop</div></li><li><div   >Network output</div></li><li><div   >Audio Rendering</div></li><li><div   >GFX Rendering</div></li></ul>
+<p   >How to break it up for bottom up design?</p>
+<p   >For BB:</p>
+<ul   class="listLight"><li><div   >Timestepping (gaffer on games article)</div></li><li><div   >User input + input mapper</div></li><li><div   >Network input</div></li><li><div   >Network output</div></li><li><div   >GGPO/rollback</div></li></ul>
+<p   >Is there an easier project to do? What scope can be cut?</p>
+<p   >Required:</p>
+<ul   class="listLight"><li><div   >Rollback netcode</div></li><li><div   >60hz timestepping</div></li></ul></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

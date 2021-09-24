@@ -1,0 +1,322 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>HTML Part 2</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Generating more HTML elements based on some IR.">
+<meta name="keywords" content="Rust, starting, over, blog, generation, html, ir, generator, md">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.25_Html.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.27_Css.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.26 - HTML Part 2</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0623"  ><a  href="#0623"  >#</a>
+ 0623</h3>
+<div   ><p   >Right now the HTML is all empty. I'll wire up the <span   class="codeblockDark outlinedDark">Html</span> trait to the generator now.</p>
+<p   >I'll start by implementing the most simple <span   class="codeblockDark outlinedDark">Element</span>. This is strictly a placeholder.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/element.rs
+use super::Html;
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Element {
+    Text(String),
+}
+
+impl Html for Element {
+    fn to_html(&amp;self) -> String {
+        match self {
+            Element::Text(s) => s.clone(),
+        }
+    }
+}
+
+pub fn text(s: &amp;str) -> Element {
+    Element::Text(s.into())
+}
+</div>
+<p   >I'll also update the <span   class="codeblockDark outlinedDark">CssLink</span> module.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/css_link.rs
+use super::Html;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct CssLink(String);
+
+impl Html for CssLink {
+    fn to_html(&amp;self) -> String {
+        format!("&lt;link rel=\"stylesheet\" href=\"{}\">", self.0)
+    }
+}
+
+impl From&lt;String> for CssLink {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">Md</span> module requires some updates as well. I'll add in <span   class="codeblockDark outlinedDark">keywords</span>, <span   class="codeblockDark outlinedDark">display_title</span> and <span   class="codeblockDark outlinedDark">summary</span> fields.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/mod.rs
+mod filename;
+use super::IntermediateRepresentation;
+use crate::{Item, Location, Res};
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Md {
+    pub contents: String,
+    pub date: String,
+    pub day: String,
+    pub default_title: String,
+    pub display_title: String,
+    pub html_file_name: String,
+    pub keywords: Vec&lt;String>,
+    pub month: String,
+    pub path: String,
+    pub summary: String,
+    pub year: String,
+}
+
+pub fn parse(file_path: String, location: Location) -> Res&lt;IntermediateRepresentation> {
+    let path = std::path::Path::new(&amp;file_path);
+    let path_string = String::from(path.to_str().unwrap_or("".into()));
+    let file_name = path.file_name().unwrap().to_str().unwrap_or("").to_string();
+
+    match filename::validate(&amp;file_name, &amp;path_string) {
+        Ok(_) => {}
+        Err(e) => {
+            return Res::Error {
+                location: Some(location),
+                msg: e,
+            }
+        }
+    }
+
+    const DATE_LEN: usize = 10;
+
+    let date = &amp;file_name[..DATE_LEN].to_string().replace(".", "_");
+
+    let default_title = &amp;file_name[DATE_LEN..]
+        .to_string()
+        .replace("_", "")
+        .replace(".md", "");
+
+    let date = date.clone().replace("_", ".");
+
+    let split: Vec&lt;String> = date.split(".").map(|m| m.to_string()).collect();
+    const YEAR_IDX: usize = 0;
+    const MONTH_IDX: usize = 1;
+    const DAY_IDX: usize = 2;
+
+    let contents = match std::fs::read_to_string(path) {
+        Ok(s) => s,
+        Err(e) => {
+            return Res::Error {
+                location: Some(location),
+                msg: format!("{:#?}", e),
+            }
+        }
+    };
+
+    let display_title = "TODO: Display Title".to_string();
+    let keywords = vec![];
+    let summary = "TODO: Summary".to_string();
+
+    Res::Ok(Item {
+        item: IntermediateRepresentation::Md(Md {
+            contents,
+            date: date.clone(),
+            day: split[DAY_IDX].clone(),
+            default_title: default_title.clone(),
+            display_title,
+            html_file_name: format!("{}_{}.html", date, default_title),
+            keywords,
+            month: split[MONTH_IDX].clone(),
+            summary,
+            path: path_string.clone(),
+            year: split[YEAR_IDX].clone(),
+        }),
+        location: Some(location),
+    })
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">generator()</span> method in the generator module will be updated to convert the <span   class="codeblockDark outlinedDark">Md</span> struct to a <span   class="codeblockDark outlinedDark">Page</span> struct.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// generator/mod.rs
+
+fn generate(ir: &amp;Item&lt;IntermediateRepresentation>, context: Arc&lt;Context>) -> Res&lt;()> {
+    let output_dir = context.output.to_string();
+    let path;
+    let contents;
+
+    let css_link: CssLink = format!("{}/{}", ASSETS, "styles.css").into();
+
+    match &amp;ir.item {
+        IntermediateRepresentation::Css(css) => {
+            path = format!("{}assets/{}", output_dir, css.file_name);
+            contents = css.contents.clone();
+        }
+        IntermediateRepresentation::Img(img) => {
+            path = format!("{}assets/{}", output_dir, img.file_name);
+            contents = img.contents.clone();
+        }
+        IntermediateRepresentation::Md(md) => {
+            path = format!("{}{}", output_dir, md.html_file_name);
+
+            let page = Page {
+                content: text(&amp;md.contents),
+                css: css_link,
+                file_name: md.html_file_name.clone(),
+                metadata: Metadata {
+                    author: context.author.clone(),
+                    keywords: md.keywords.clone(),
+                    summary: md.summary.clone(),
+                },
+                title: md.display_title.clone(),
+            };
+
+            contents = page.to_html().as_bytes().to_vec();
+        }
+    }
+
+    match fs::write(path, contents) {
+        Ok(_) => Res::Ok(Item {
+            item: (),
+            location: None,
+        }),
+        Err(e) => Res::Error {
+            msg: format!("{:#?}", e),
+            location: ir.location.clone(),
+        },
+    }
+}
+</div>
+<p   >Now that things are compiling, I'm getting errors thrown from various <span   class="codeblockDark outlinedDark">todo!()</span>'s. <span   class="codeblockDark outlinedDark">Metadata</span> requires some modifications.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/metadata.rs
+use super::Html;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Metadata {
+    pub author: String,
+    pub keywords: Vec&lt;String>,
+    pub summary: String,
+}
+
+struct Kv&lt;'a> {
+    k: &amp;'a str,
+    v: &amp;'a str,
+}
+
+struct Meta&lt;'a> {
+    kv: Vec&lt;Kv&lt;'a>>,
+}
+
+impl Html for Metadata {
+    fn to_html(&amp;self) -> String {
+        // Build up all metadata tags, then spit out the HTML
+        // https://www.w3schools.com/tags/tag_meta.asp
+        let keywords = self.keywords.join(", ");
+        let items = vec![
+            Meta {
+                kv: vec![Kv {
+                    k: "charset",
+                    v: "UTF-8",
+                }],
+            },
+            Meta {
+                kv: vec![
+                    Kv {
+                        k: "name",
+                        v: "description",
+                    },
+                    Kv {
+                        k: "content",
+                        v: &amp;self.summary,
+                    },
+                ],
+            },
+            Meta {
+                kv: vec![
+                    Kv {
+                        k: "name",
+                        v: "keywords",
+                    },
+                    Kv {
+                        k: "content",
+                        v: &amp;keywords,
+                    },
+                ],
+            },
+            Meta {
+                kv: vec![
+                    Kv {
+                        k: "name",
+                        v: "author",
+                    },
+                    Kv {
+                        k: "content",
+                        v: &amp;self.author,
+                    },
+                ],
+            },
+            Meta {
+                kv: vec![
+                    Kv {
+                        k: "name",
+                        v: "viewport",
+                    },
+                    Kv {
+                        k: "content",
+                        v: "width=device-width, initial-scale=1.0",
+                    },
+                ],
+            },
+        ];
+
+        items
+            .iter()
+            .map(|i| {
+                let kvs =
+                    i.kv.iter()
+                        .map(|kv| format!("{}=\"{}\"", kv.k, kv.v))
+                        .collect::&lt;Vec&lt;String>>()
+                        .join(" ");
+
+                format!("&lt;meta {}>", kvs)
+            })
+            .collect::&lt;Vec&lt;String>>()
+            .join("\n")
+    }
+}
+</div>
+<p   >While lengthy, all it is doing is building up key/value pairs and spitting out <span   class="codeblockDark outlinedDark">&lt;meta></span> elements. </p>
+<p   >This results in the following HTML page now:</p>
+<p   ><a  href="assets/2021.08.26_0657.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.08.26_0657.png" alt="Generated HTML" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p>
+<p   >I would like to replace the copied CSS files with a generated one. This would ensure that all elements are kept up to date and statically checked. Using text files means that there is no true link, so breaking changes won't be caught.</p>
+<p   >Next up will be parsing the contents. I'll likely start with code blocks and other bloc k based elements as they should have the highest priority.</p>
+<p   >I also noticed a bug with file extensions. I mistyped a <span   class="codeblockDark outlinedDark">.png</span> as <span   class="codeblockDark outlinedDark">.PNG</span>. This will have to be addressed down the line. I think the solution will be to lowercase all filenames.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>On Lisp Again</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Figuring out how to give Lisp a second chance.">
+<meta name="keywords" content="Lisp, Common, Tooling, Visual, Studio, Script">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.04_Witd.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.06_RustAgain.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.05 - On Lisp Again</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0748"  ><a  href="#0748"  >#</a>
+ 0748</h3>
+<div   ><p   >I've decided to give CL a second chance. Emacs + Slime is not a good experience, and the package management for CL is terrible. I would like to focus on the language without dealing with the terrible UX. </p>
+<p   >Perhaps I'm being too aggressive and dismissive, but if a language is unable to engage users early on in the experience it will lose out on adoption. Visual Studio Code is an IDE I'm familiar with, so it's the one I'll utilize. </p>
+<p   >For hacking, CL will be run in a <span   class="codeblockDark outlinedDark">.sh</span> script that looks like the following:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+# Set the start dir of this
+START_DIR=$PWD
+
+# Set the WatcherInTheDeep path
+WITD_PATH="../_opensource/watcher_in_the_deep"
+
+# Run the lisp program
+cd $WITD_PATH
+cargo run $START_DIR sbcl --noinform --disable-debugger --load "program.lisp" --eval "(quit)"
+
+</div>
+<p   >The above script starts WatcherInTheDeep, and when files change reruns the program. I expect this to evolve over time, but the gist is that I get a deterministic REPL without having to deal with absurd chording like Emacs utilizes. </p>
+<p   >The project I am currently working on is a blog generator that takes in these <span   class="codeblockDark outlinedDark">.md</span> files and spits out HTML. It's going to utilize a bottom up design, where I begin with HTML generation functions, then eventually move into loading + parsing the <span   class="codeblockDark outlinedDark">.md</span> files, spitting out HTML and writing that to an artifact. </p>
+<p   >It may use a hexagonal architecture, but that is likely overkill at this point. For now focusing on small functions that can be composed to build what I need.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

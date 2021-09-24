@@ -1,0 +1,1490 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Images, Iframe and videos</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Added in iframes, images and videos.">
+<meta name="keywords" content="Rust, fragment, generation, links, metadata, iframes, images, videos">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.01_Header.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.03_Fragments.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.02 - Images, Iframe and videos</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0730"  ><a  href="#0730"  >#</a>
+ 0730</h3>
+<div   ><p   >This ended up being a monster. It was extremely productive, but it's gonna be a lot to go over. Iframes, embedded videos, images and links were added.</p>
+<p   >As usual, I'll begin with a new <span   class="codeblockDark outlinedDark">chomp</span>er. This will parse out all links, iframes, images and videos. Analysis on the validity of links will be done later.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/chomp/link.rs
+use crate::{
+    parser::md::{
+        parse_contents::{content_ir::LinkType, Validations},
+        ContentIr,
+    },
+    Item, Location, Res,
+};
+
+pub fn link(
+    contents: &amp;String,
+    location: &amp;Location,
+    validations: &amp;Validations,
+) -> Res&lt;Option&lt;Vec&lt;ContentIr>>> {
+    // See if it starts with a '('.
+    let mut description_start = None;
+    let mut description_end = None;
+    let mut exclamation = None;
+    let mut url_start = None;
+    let mut url_end = None;
+
+    let mut short_out = false;
+
+    let mut idx = 0;
+    let chars: Vec&lt;char> = contents.chars().collect();
+
+    if chars.len() == 0 {
+        return Res::Ok(Item {
+            item: None,
+            location: Some(location.clone()),
+        });
+    }
+
+    while idx &lt; chars.len() {
+        let c = chars[idx];
+
+        //TODO: the error handling for links is... iffy.
+        // This will get the basic versions going at least.
+
+        match c {
+            '[' => {
+                if let Some(start) = description_start {
+                    idx = start - 1;
+                    short_out = true;
+                }
+
+                description_start = Some(idx);
+            }
+            ']' => {
+                if description_start.is_some() {
+                    description_end = Some(idx);
+                }
+            }
+            '(' => {
+                if description_end.is_some() {
+                    url_start = Some(idx);
+                }
+            }
+            ')' => {
+                if url_start.is_some() {
+                    url_end = Some(idx);
+                    break;
+                }
+            }
+            '!' => {
+                if description_start.is_none() {
+                    exclamation = Some(idx);
+                }
+            }
+            _ => {}
+        }
+
+        if short_out {
+            exclamation = None;
+            description_start = None;
+            description_end = None;
+            url_start = None;
+            url_end = None;
+        }
+
+        if description_start.is_some()
+            &amp;&amp; description_end.is_some()
+            &amp;&amp; url_start.is_some()
+            &amp;&amp; url_end.is_some()
+        {
+            break;
+        }
+
+        idx += 1;
+    }
+
+    if let Some(description_start) = description_start {
+        if let Some(description_end) = description_end {
+            if let Some(url_start) = url_start {
+                if let Some(url_end) = url_end {
+                    if description_start >= description_end || url_start >= url_end {
+                        return Res::Ok(Item {
+                            item: None,
+                            location: Some(location.clone()),
+                        });
+                    }
+
+                    let exclamation = {
+                        if let Some(exclamation) = exclamation {
+                            if description_start > 1 &amp;&amp; exclamation == (description_start - 1) {
+                                true
+                            } else {
+                                false
+                            }
+                        } else {
+                            false
+                        }
+                    };
+
+                    let description = &amp;contents[description_start..description_end]
+                        .replace("[", "")
+                        .replace("]", "");
+                    let mut url = String::from(
+                        &amp;contents[url_start..url_end]
+                            .replace("(", "")
+                            .replace(")", ""),
+                    );
+
+                    // Remove ! if it's a gif link
+                    let description_start = {
+                        if exclamation &amp;&amp; description_start > 0 {
+                            description_start - 1
+                        } else {
+                            description_start
+                        }
+                    };
+
+                    let before = &amp;contents[..description_start];
+
+                    let mut end_parse = url_end + 1;
+                    if end_parse == contents.len() {
+                        end_parse -= 1;
+                    }
+
+                    let after = &amp;contents[end_parse..];
+
+                    let mut ir = vec![];
+
+                    if before.len() > 0 {
+                        let mut validations = validations.clone();
+                        validations.skip_link = true;
+
+                        ir.push(ContentIr::Unparsed {
+                            contents: before.into(),
+                            validations: validations,
+                        });
+                    }
+
+                    // Push the link itself
+                    {
+                        let mut link_type = LinkType::Regular;
+
+                        if exclamation {
+                            const IMG: &amp;'static str = "./_img/";
+                            if url.starts_with(IMG) {
+                                url = url.replace(IMG, "assets/");
+                                link_type = LinkType::LocalImage;
+                            } else {
+                                let desc = description.trim();
+                                if desc == "youtube" {
+                                    link_type = LinkType::Youtube;
+                                } else if desc == "iframe" {
+                                    link_type = LinkType::Iframe;
+                                } else {
+                                    return Res::Error {
+                                        location: Some(location.clone()),
+                                        msg: format!("Misused link in file '{:?}'! This is probably a gif: {:?}.", location.file, url),
+                                    };
+                                }
+                            }
+                        }
+
+                        ir.push(ContentIr::Link {
+                            description: description.into(),
+                            link_type,
+                            url: url.into(),
+                        });
+                    }
+
+                    if after.len() > 0 {
+                        ir.push(ContentIr::Unparsed {
+                            contents: after.into(),
+                            validations: validations.clone(),
+                        });
+                    }
+
+                    return Res::Ok(Item {
+                        item: Some(ir),
+                        location: Some(location.clone()),
+                    });
+                }
+            }
+        }
+    }
+
+    return Res::Ok(Item {
+        item: None,
+        location: Some(location.clone()),
+    });
+}
+</div>
+<p   >New <span   class="codeblockDark outlinedDark">ContentIr</span> types are added for each of these.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/content_ir.rs
+use crate::html::{
+    element::{self, ListType},
+    Element, HtmlElement,
+};
+
+use super::Validations;
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum ContentIr {
+    Card(Vec&lt;ContentIr>),
+    Codeblock(String),
+    Div {
+        contents: Vec&lt;ContentIr>,
+    },
+    Header {
+        header_size: u32,
+        id: Option&lt;String>,
+        text: String,
+    },
+    Link {
+        description: String,
+        url: String,
+        link_type: LinkType,
+    },
+    OrderedList {
+        items: Vec&lt;ContentIr>,
+        numeric: bool,
+    },
+    Text {
+        text: String,
+    },
+    Unparsed {
+        contents: String,
+        validations: Validations,
+    },
+    UnorderedList {
+        items: Vec&lt;ContentIr>,
+    },
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum LinkType {
+    Iframe,
+    LocalImage,
+    Regular,
+    Youtube,
+}
+
+impl HtmlElement for ContentIr {
+    fn to_element(&amp;self) -> Element {
+        // When modifying this, ensure all text is escaped.
+
+        match self {
+            ContentIr::Card(children) => {
+                element::card(children.iter().map(|ir| ir.to_element()).collect())
+            }
+            ContentIr::Codeblock(text) => element::code_block(escape(text)),
+            ContentIr::Div { contents } => {
+                element::div(contents.iter().map(|ir| ir.to_element()).collect())
+            }
+            ContentIr::Header {
+                header_size,
+                id,
+                text,
+            } => element::header(*header_size, id.clone(), escape(text)),
+            ContentIr::Link {
+                description,
+                url,
+                link_type,
+            } => match link_type {
+                LinkType::Iframe => element::iframe(description.clone(), url.clone()),
+                LinkType::LocalImage => element::image(None, description.clone(), url.clone()),
+                LinkType::Regular => element::link(None, description.clone(), url.clone(), true),
+                LinkType::Youtube => element::youtube(url.clone()),
+            },
+            ContentIr::OrderedList { items, numeric } => element::list(
+                items.iter().map(|i| i.to_element()).collect(),
+                if *numeric {
+                    ListType::OrderedNumeric
+                } else {
+                    ListType::OrderedAlpha
+                },
+            ),
+            ContentIr::Text { text } => element::text(&amp;escape(text)),
+            ContentIr::Unparsed { .. } => {
+                todo!("Attempted to convert unparsed content to an element!")
+            }
+            ContentIr::UnorderedList { items } => element::list(
+                items.iter().map(|i| i.to_element()).collect(),
+                ListType::Unordered,
+            ),
+        }
+    }
+}
+
+fn escape(s: &amp;str) -> String {
+    let mut output = String::new();
+    html_escape::encode_text_minimal_to_string(s, &amp;mut output);
+
+    output
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">parse</span> module has also increased in size. I wanted to add in the ability to return warnings, so I did it on this commit. While it's not optimal and I would like it to be more fine grained, it's sufficient for now.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/mod.rs
+mod chomp;
+mod content_ir;
+
+use crate::{Item, Location, Res};
+pub use content_ir::ContentIr;
+
+pub(crate) enum ContinueRunning {
+    No,
+    Yes,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Options {
+    pub make_cards: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Validations {
+    pub skip_code_block: bool,
+    pub skip_header: bool,
+    pub skip_link: bool,
+    pub skip_list: bool,
+}
+
+pub fn execute(contents: String, location: Location, opts: Options) -> Res&lt;ContentIr> {
+    let mut warnings = vec![];
+
+    // Preprocess things to simplify parsing.
+    let contents = {
+        let mut contents = contents.replace("\r\n", "\n");
+
+        // Add a newline to ensure that it gets processed correctly
+        if !contents.ends_with("\n") {
+            contents.push('\n');
+        }
+
+        contents
+    };
+
+    // Since this is a recursive processor, executing until nothing remains, set it up so that nothing has
+    // been processed yet.
+    let mut ir = vec![ContentIr::Unparsed {
+        contents,
+        validations: Validations {
+            skip_code_block: false,
+            skip_header: false,
+            skip_link: false,
+            skip_list: false,
+        },
+    }];
+
+    // Continue processing + reprocessing all elements until there's nothing left.
+    loop {
+        let result = match parse(&amp;ir, &amp;location, opts) {
+            Res::Ok(item) => item.item,
+            Res::Warn { item, msg } => {
+                warnings.push(msg);
+                item.item
+            }
+            Res::Error { location, msg } => return Res::Error { location, msg },
+        };
+
+        let (new_elements, continue_running) = result;
+
+        ir = new_elements;
+
+        match continue_running {
+            ContinueRunning::Yes => {}
+            ContinueRunning::No => break,
+        }
+    }
+
+    // Do any hierarchal mappings
+    let mut contents = vec![];
+    let mut processing_header = None;
+    let mut header_collection = vec![];
+
+    while ir.len() > 0 {
+        let i = ir.remove(0);
+
+        match &amp;i {
+            ContentIr::Header {
+                header_size,
+                id,
+                text,
+            } => {
+                // Push the previous header on to the contents
+                if let Some(header) = processing_header {
+                    header_collection.insert(0, header);
+                    contents.push(ContentIr::Card(header_collection));
+                    header_collection = vec![];
+                }
+
+                processing_header = Some(i);
+            }
+            _ => {
+                if processing_header.is_some() {
+                    header_collection.push(i);
+                } else {
+                    contents.push(i);
+                }
+            }
+        }
+    }
+
+    // If there's a werking header, add it to the end
+    if let Some(header) = processing_header {
+        header_collection.insert(0, header);
+        contents.push(ContentIr::Card(header_collection));
+        header_collection = vec![];
+    }
+
+    // TODO: I think this can be nuked, but should be tested
+    {
+        // Append the header collection to the end of the contents
+        contents.append(&amp;mut header_collection);
+    }
+
+    Res::Ok(Item {
+        item: ContentIr::Div { contents },
+        location: Some(location),
+    })
+}
+
+pub(crate) fn parse(
+    elements: &amp;Vec&lt;ContentIr>,
+    location: &amp;Location,
+    opts: Options,
+) -> Res&lt;(Vec&lt;ContentIr>, ContinueRunning)> {
+    let mut new = vec![];
+    let mut continue_running = ContinueRunning::No;
+
+    let mut warnings = vec![];
+
+    for element in elements {
+        match element {
+            ContentIr::Unparsed {
+                contents,
+                validations,
+            } => {
+                // Attempt to process something.
+                // If something was found, add it to the end and keep going.
+                let ir;
+                match try_process(contents, &amp;location, opts, validations) {
+                    Res::Ok(item) => ir = item.item,
+                    Res::Warn { item, msg } => {
+                        ir = item.item;
+                        warnings.push(msg);
+                    }
+                    Res::Error { location, msg } => {
+                        return Res::Error {
+                            location: location.clone(),
+                            msg,
+                        }
+                    }
+                }
+
+                if let Some(mut ir) = ir {
+                    new.append(&amp;mut ir);
+                    continue_running = ContinueRunning::Yes;
+                }
+                // Nothing matched, so return it as text.
+                else if contents.len() > 0 {
+                    new.push(ContentIr::Text {
+                        text: contents.clone(),
+                    });
+                }
+            }
+            _ => {
+                new.push(element.clone());
+            }
+        }
+    }
+
+    let item = Item {
+        item: (new, continue_running),
+        location: Some(location.clone()),
+    };
+
+    if warnings.is_empty() {
+        Res::Ok(item)
+    } else {
+        Res::Warn {
+            item,
+            msg: warnings.join("\n"),
+        }
+    }
+}
+
+/// Attempts to process the contents, stepping through the various types until nothing is left.
+fn try_process(
+    contents: &amp;String,
+    location: &amp;Location,
+    opts: Options,
+    validations: &amp;Validations,
+) -> Res&lt;Option&lt;Vec&lt;ContentIr>>> {
+    // Do these in priority.
+    // New things that are added should be processed here.
+    let mut validations = validations.clone();
+
+    if !validations.skip_code_block {
+        if let Some(ir) = chomp::block(contents, &amp;validations) {
+            return Res::Ok(Item {
+                item: Some(ir),
+                location: Some(location.clone()),
+            });
+        } else {
+            validations.skip_code_block = true;
+        }
+    }
+
+    if !validations.skip_header {
+        if let Some(ir) = chomp::header(contents, &amp;validations) {
+            return Res::Ok(Item {
+                item: Some(ir),
+                location: Some(location.clone()),
+            });
+        } else {
+            validations.skip_header = true;
+        }
+    }
+
+    if !validations.skip_list {
+        if let Some(ir) = chomp::list(contents, opts, &amp;validations) {
+            return Res::Ok(Item {
+                item: Some(ir),
+                location: Some(location.clone()),
+            });
+        } else {
+            validations.skip_list = true;
+        }
+    }
+
+    if !validations.skip_link {
+        let mut warning = None;
+        let mut ir;
+
+        match chomp::link(contents, location, &amp;validations) {
+            Res::Ok(item) => ir = item.item,
+            Res::Warn { item, msg } => {
+                ir = item.item;
+                warning = Some(msg);
+            }
+            Res::Error { location, msg } => todo!(),
+        }
+
+        if let Some(ir) = ir {
+            return match warning {
+                Some(warning) => Res::Warn {
+                    item: Item {
+                        item: Some(ir),
+                        location: Some(location.clone()),
+                    },
+                    msg: warning,
+                },
+                None => Res::Ok(Item {
+                    item: Some(ir),
+                    location: Some(location.clone()),
+                }),
+            };
+        } else {
+            validations.skip_link = true;
+        }
+    }
+
+    return Res::Ok(Item {
+        item: None,
+        location: Some(location.clone()),
+    });
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">Element</span> functionality was increased quite a bit as well to support all the various types. I also took the time to break out some components + refactor a bit.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/element.rs
+use super::{
+    stylesheet::{Class, Position},
+    Html,
+};
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Element {
+    pub classes: Vec&lt;Class>,
+    pub id: Option&lt;String>,
+    pub kind: Kind,
+}
+
+impl Html for Element {
+    fn to_html(&amp;self) -> String {
+        let class = {
+            if self.classes.is_empty() {
+                String::default()
+            } else {
+                format!(
+                    "class=\"{}\"",
+                    self.classes
+                        .iter()
+                        .map(|c| c.selector().to_str().into())
+                        .collect::&lt;Vec&lt;String>>()
+                        .join(" ")
+                )
+            }
+        };
+
+        let selector;
+        let mut children = String::new();
+        let mut attributes: Option&lt;String> = None;
+
+        match &amp;self.kind {
+            Kind::Card(contents) => {
+                selector = String::from("div");
+                children = contents.clone();
+            }
+            Kind::Codeblock(text) => {
+                selector = String::from("div");
+                children = text.clone();
+            }
+            Kind::Div {
+                children: child_elements,
+            } => {
+                selector = String::from("div");
+                children = child_elements
+                    .iter()
+                    .map(|c| c.to_html())
+                    .collect::&lt;Vec&lt;String>>()
+                    .join("\n");
+            }
+            Kind::Header { header_size, text } => {
+                selector = format!("h{}", header_size);
+                children = text.clone();
+            }
+            Kind::List { items, list_type } => {
+                let (s, attr) = match list_type {
+                    ListType::OrderedAlpha => (String::from("ol"), Some("type=\"a\"".into())),
+                    ListType::OrderedNumeric => (String::from("ol"), Some("type=\"1\"".into())),
+                    ListType::Unordered => (String::from("ul"), None),
+                };
+
+                attributes = attr;
+                children = items
+                    .iter()
+                    .map(|e| e.to_html())
+                    .map(|e| format!("&lt;li>{}&lt;/li>", e))
+                    .collect();
+                selector = s;
+            }
+            Kind::Link {
+                description,
+                redirect,
+                url,
+            } => {
+                let redirect_text = if *redirect {
+                    ""
+                } else {
+                    "target=\"_blank\" rel=\"noreferrer noopener\""
+                };
+
+                selector = String::from("a");
+                children = description.clone();
+                attributes = Some(format!("href=\"{}\" {}", url, redirect_text));
+            }
+            Kind::Iframe { description, url } => {
+                selector = String::from("iframe");
+                attributes = Some(
+                    format!("
+                        src=\"{}\" 
+                        title=\"{}\" 
+                        frameborder=\"0\" 
+                        allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" 
+                        allowfullscreen",
+                        url, description));
+            }
+            Kind::Image { description, url } => {
+                selector = String::from("img");
+                attributes = Some(format!("src=\"{}\" alt=\"{}\"", url, description));
+            }
+            Kind::Youtube { url } => {
+                selector = String::from("iframe");
+                attributes = Some(
+                    format!("
+                        src=\"{}\" 
+                        title=\"YouTube video player\" 
+                        frameborder=\"0\" 
+                        allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" 
+                        allowfullscreen",
+                        url));
+            }
+        }
+
+        let attributes = match attributes {
+            Some(s) => s,
+            None => String::default(),
+        };
+
+        format!(
+            "&lt;{} {} {}>{}&lt;/{}>",
+            selector, attributes, class, children, selector
+        )
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Kind {
+    Card(String),
+    Codeblock(String),
+    Div {
+        children: Vec&lt;Element>,
+    },
+    Header {
+        header_size: u32,
+        text: String,
+    },
+    Iframe {
+        description: String,
+        url: String,
+    },
+    Image {
+        description: String,
+        url: String,
+    },
+    Link {
+        description: String,
+        redirect: bool,
+        url: String,
+    },
+    List {
+        items: Vec&lt;Element>,
+        list_type: ListType,
+    },
+    Youtube {
+        url: String,
+    },
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum ListType {
+    OrderedAlpha,
+    OrderedNumeric,
+    Unordered,
+}
+
+pub fn card(children: Vec&lt;Element>) -> Element {
+    Element {
+        classes: vec![
+            Class::Card { dark_mode: false },
+            Class::HoverShadow,
+            Class::Outlined { dark_mode: false },
+            Class::Padded {
+                position: Position::Bottom,
+            },
+            Class::Padded {
+                position: Position::Top,
+            },
+            Class::Shadow,
+        ],
+        id: None,
+        kind: Kind::Div { children },
+    }
+}
+
+pub fn code_block(code: String) -> Element {
+    Element {
+        classes: vec![
+            Class::Codeblock,
+            Class::ContentWrapper,
+            Class::HoverShadow,
+            Class::Outlined {
+                dark_mode: Class::Codeblock.dark_mode(),
+            },
+            Class::Padded {
+                position: Position::Bottom,
+            },
+            Class::Padded {
+                position: Position::Top,
+            },
+            Class::Shadow,
+        ],
+        id: None,
+        kind: Kind::Codeblock(code),
+    }
+}
+
+pub fn div(children: Vec&lt;Element>) -> Element {
+    Element {
+        classes: vec![],
+        id: None,
+        kind: Kind::Div { children },
+    }
+}
+
+pub fn header(header_size: u32, id: Option&lt;String>, text: String) -> Element {
+    Element {
+        classes: vec![],
+        id,
+        kind: Kind::Header { header_size, text },
+    }
+}
+
+pub fn iframe(description: String, url: String) -> Element {
+    aspect_ratio_16x9_container(Element {
+        classes: vec![Class::AspectRatio16x9Inner],
+        id: None,
+        kind: Kind::Iframe { description, url },
+    })
+}
+
+pub fn image(id: Option&lt;String>, description: String, url: String) -> Element {
+    let img_element = Element {
+        classes: vec![
+            Class::FullImg,
+            Class::HoverShadow,
+            Class::Padded {
+                position: Position::Bottom,
+            },
+            Class::Padded {
+                position: Position::Top,
+            },
+            Class::Shadow,
+        ],
+        id,
+        kind: Kind::Image {
+            description,
+            url: url.clone(),
+        },
+    }
+    .to_html();
+
+    Element {
+        classes: vec![],
+        id: None,
+        kind: Kind::Link {
+            description: img_element,
+            redirect: false,
+            url,
+        },
+    }
+}
+
+fn aspect_ratio_16x9_container(content: Element) -> Element {
+    Element {
+        classes: vec![
+            Class::AspectRatio16x9Container,
+            Class::HoverShadow,
+            Class::Padded {
+                position: Position::Bottom,
+            },
+            Class::Padded {
+                position: Position::Top,
+            },
+            Class::Shadow,
+        ],
+        id: None,
+        kind: Kind::Div {
+            children: vec![content],
+        },
+    }
+}
+
+pub fn link(id: Option&lt;String>, description: String, url: String, redirect: bool) -> Element {
+    Element {
+        classes: vec![],
+        id,
+        kind: Kind::Link {
+            description,
+            redirect,
+            url,
+        },
+    }
+}
+
+pub fn list(items: Vec&lt;Element>, list_type: ListType) -> Element {
+    Element {
+        classes: vec![Class::List],
+        id: None,
+        kind: Kind::List { items, list_type },
+    }
+}
+
+pub fn text(s: &amp;str) -> Element {
+    Element {
+        classes: vec![],
+        id: None,
+        kind: Kind::Card(s.into()),
+    }
+}
+
+pub fn youtube(url: String) -> Element {
+    aspect_ratio_16x9_container(Element {
+        classes: vec![Class::AspectRatio16x9Inner],
+        id: None,
+        kind: Kind::Youtube { url },
+    })
+}
+</div>
+<p   >And finally is the <span   class="codeblockDark outlinedDark">Class</span> changes for the stylesheet. </p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet/class.rs
+use super::Html;
+use super::*;
+use crate::theme::Theme;
+pub use css::Css;
+pub use selector::Selector;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Class {
+    AspectRatio16x9Container,
+    AspectRatio16x9Inner,
+    Card { dark_mode: bool },
+    Codeblock,
+    ContentWrapper,
+    FullImg,
+    HoverShadow,
+    List,
+    Outlined { dark_mode: bool },
+    Padded { position: Position },
+    Page,
+    Shadow,
+}
+
+impl Class {
+    pub fn all() -> Vec&lt;Self> {
+        vec![
+            Class::AspectRatio16x9Container,
+            Class::AspectRatio16x9Inner,
+            Class::Card { dark_mode: false },
+            Class::Card { dark_mode: true },
+            Class::Codeblock,
+            Class::ContentWrapper,
+            Class::FullImg,
+            Class::HoverShadow,
+            Class::List,
+            Class::Outlined { dark_mode: false },
+            Class::Outlined { dark_mode: true },
+            Class::Padded {
+                position: Position::Bottom,
+            },
+            Self::Padded {
+                position: Position::Left,
+            },
+            Self::Padded {
+                position: Position::Right,
+            },
+            Self::Padded {
+                position: Position::Top,
+            },
+            Self::Page,
+            Self::Shadow,
+        ]
+    }
+
+    pub fn css(&amp;self, theme: &amp;Theme) -> Css {
+        match self {
+            Class::AspectRatio16x9Container => aspect_ratio_16x9_container(self),
+            Class::AspectRatio16x9Inner => aspect_ratio_16x9_inner(self),
+            Class::Card { dark_mode } => card(self, *dark_mode, theme),
+            Class::Codeblock => codeblock(self, theme),
+            Class::ContentWrapper => content_wrapper(self),
+            Class::FullImg => full_img(self),
+            Class::HoverShadow => hover_shadow(self),
+            Class::List => list(self),
+            Class::Outlined { dark_mode } => outline(self, *dark_mode, theme),
+            Class::Padded { position } => padded(self, *position),
+            Class::Page => page(self),
+            Class::Shadow => shadow(self),
+        }
+    }
+
+    pub fn dark_mode(&amp;self) -> bool {
+        match self {
+            Class::AspectRatio16x9Container => false,
+            Class::AspectRatio16x9Inner => false,
+            Class::Card { dark_mode } => *dark_mode,
+            Class::Codeblock => true,
+            Class::ContentWrapper => false,
+            Class::FullImg => false,
+            Class::HoverShadow => false,
+            Class::List => false,
+            Class::Outlined { dark_mode } => *dark_mode,
+            Class::Padded { .. } => false,
+            Class::Page => false,
+            Class::Shadow => false,
+        }
+    }
+
+    pub fn selector(&amp;self) -> Selector {
+        let prefix: String = match self {
+            Class::AspectRatio16x9Container => "aspectRatio16x9Container".into(),
+            Class::AspectRatio16x9Inner => "aspectRatio16x9Inner".into(),
+            Class::Card { .. } => "card".into(),
+            Class::Codeblock => "codeblock".into(),
+            Class::ContentWrapper => "contentWrapper".into(),
+            Class::FullImg => "fullImg".into(),
+            Class::HoverShadow => "hoverShadow".into(),
+            Class::List => "list".into(),
+            Class::Outlined { .. } => "outlined".into(),
+            Class::Padded { position } => format!("padded{}", position.to_str()),
+            Class::Page => "page".into(),
+            Class::Shadow => "shadow".into(),
+        };
+
+        let post_fix = match self.dark_mode() {
+            false => "Light",
+            true => "Dark",
+        };
+
+        format!("{}{}", prefix, post_fix).into()
+    }
+}
+
+...
+
+fn aspect_ratio_16x9_container(class: &amp;Class) -> Css {
+    let main_rules = vec![
+        "height: 0px".into(),
+        "padding-bottom: 56.25%".into(),
+        "position: relative".into(),
+        "width: 100%".into(),
+    ];
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(main_rules)
+    );
+
+    main_class.into()
+}
+
+fn aspect_ratio_16x9_inner(class: &amp;Class) -> Css {
+    let main_rules = vec![
+        "height: 100%".into(),
+        "left: 0".into(),
+        "position: absolute".into(),
+        "top: 0".into(),
+        "width: 100%".into(),
+    ];
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(main_rules)
+    );
+
+    main_class.into()
+}
+
+...
+
+fn card(class: &amp;Class, dark_mode: bool, theme: &amp;Theme) -> Css {
+    let color = match dark_mode {
+        true => theme.fill_primary_dark_mode.to_html(),
+        false => theme.fill_primary_light_mode.to_html(),
+    };
+
+    let main_rules = vec![
+        format!("background: {}", color),
+        "display: flex".into(),
+        "flex-direction: column".into(),
+        "padding: 16px".into(),
+        "text-align: justify".into(),
+        "width: 100%".into(),
+        "word-wrap: normal".into(),
+    ];
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(main_rules)
+    );
+
+    main_class.into()
+}
+
+...
+
+fn full_img(class: &amp;Class) -> Css {
+    let main_rules = vec![
+        "height: auto".into(),
+        "max-width: 100%".into(),
+        "width: 100%".into(),
+    ];
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(main_rules)
+    );
+
+    main_class.into()
+}
+
+fn hover_shadow(class: &amp;Class) -> Css {
+    let hover_rules: Vec&lt;String> = vec!["box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2)".into()];
+
+    let hover_class = format!(
+        ".{}:hover {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(hover_rules)
+    );
+
+    hover_class.into()
+}
+
+...
+
+fn shadow(class: &amp;Class) -> Css {
+    let main_rules = vec!["box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2)".into()];
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(main_rules)
+    );
+
+    main_class.into()
+}
+
+...
+
+</div>
+<p   >Here's the roadmap now:</p>
+<ul   class="listLight"><li><div   >Fragments to headers</div></li><li><div   >MD page links</div></li><li><div   >Validation of links + media</div></li><li><div   >Metadata parsing + requirements/warnings</div></li><li><div   >Paragraph size</div></li><li><div   >Inline code quotes</div></li><li><div   >Navigation</div></li><li><div   >Index</div></li><li><div   >Series</div></li><li><div   >Filename preprocessing</div></li><li><div   >Deeper analysis</div></li><li><div   >Addition of folders for parsing</div></li><li><div   >Networking </div></li></ul></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="2030"  ><a  href="#2030"  >#</a>
+ 2030</h3>
+<div   ><p   >I added in inline code fragments + fixed a few formatting issues. One thing of note is now it takes ~400ms single threaded vs ~150ms multithreaded. I suspect this will only become more apparent.</p>
+<p   >The rest of this post will only paint the broad strokes. I'm finding that as I implement more and more additional parsing it becomes rote. As it's late I want to get it on here then sleep.</p>
+<p   >First is a new <span   class="codeblockDark outlinedDark">chomp</span>er and new <span   class="codeblockDark outlinedDark">ContentIr</span> type. This gets added to the <span   class="codeblockDark outlinedDark">parse</span> method as well. </p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/chomp/inline_code.rs
+use crate::parser::md::{parse_contents::Validations, ContentIr};
+
+pub fn inline_code(contents: &amp;String, validations: &amp;Validations) -> Option&lt;Vec&lt;ContentIr>> {
+    // Try to split it on the large chunks.
+    if let Some(start_idx) = contents.find("`") {
+        let (before, code_start) = contents.split_at(start_idx);
+        let code_start = code_start.replacen("`", "", 1);
+
+        if let Some(end_idx) = code_start.find("`") {
+            let (code, after) = code_start.split_at(end_idx);
+            let after = after.replacen("`", "", 1);
+
+            let mut before_validations = validations.clone();
+            before_validations.skip_inline_code = true;
+
+            let mut ir = vec![];
+
+            if before.len() > 0 {
+                ir.push(ContentIr::Unparsed {
+                    contents: before.into(),
+                    validations: before_validations,
+                });
+            }
+
+            if code.len() > 0 {
+                ir.push(ContentIr::InlineCode(code.into()));
+            }
+
+            if after.len() > 0 {
+                ir.push(ContentIr::Unparsed {
+                    contents: after.into(),
+                    validations: validations.clone(),
+                });
+            }
+
+            return Some(ir);
+        }
+    }
+
+    None
+}
+</div>
+<p   >New elements are added and refactored.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/element.r
+
+...
+
+impl Html for Element {
+    fn to_html(&amp;self) -> String {
+        let class = {
+            if self.classes.is_empty() {
+                String::default()
+            } else {
+                format!(
+                    "class=\"{}\"",
+                    self.classes
+                        .iter()
+                        .map(|c| c.selector().to_str().into())
+                        .collect::&lt;Vec&lt;String>>()
+                        .join(" ")
+                )
+            }
+        };
+
+        let selector;
+        let mut children = String::new();
+        let mut attributes: Option&lt;String> = None;
+
+        match &amp;self.kind {
+           
+           ...
+
+            Kind::Span { children: c } => {
+                selector = String::from("span");
+                children = c.iter().map(|e| e.to_html()).collect();
+            }
+            Kind::Text(text) => return text.clone(),
+            
+            ...
+
+        }
+
+       ...
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Kind {
+    
+    ...
+
+    Span {
+        children: Vec&lt;Element>,
+    },
+    Text(String),
+   
+    ...
+}
+
+...
+
+pub fn card(children: Vec&lt;Element>) -> Element {
+    Element {
+        classes: vec![
+            Class::Card { dark_mode: false },
+            Class::HoverShadow,
+            Class::Outlined { dark_mode: false },
+            Class::Padded {
+                position: Position::Bottom,
+            },
+            Class::Padded {
+                position: Position::Top,
+            },
+            Class::Shadow,
+            Class::TextAlign {
+                alignment: Alignment::Left,
+            },
+        ],
+        id: None,
+        kind: Kind::Div { children },
+    }
+}
+
+...
+
+pub fn inline_code(code: String) -> Element {
+    Element {
+        classes: vec![
+            Class::Codeblock,
+            Class::Outlined {
+                dark_mode: Class::Codeblock.dark_mode(),
+            },
+        ],
+        id: None,
+        kind: Kind::Span {
+            children: vec![text(&amp;code)],
+        },
+    }
+}
+
+...
+
+pub fn text(s: &amp;str) -> Element {
+    Element {
+        classes: vec![],
+        id: None,
+        kind: Kind::Text(s.into()),
+    }
+}
+
+...
+
+</div>
+<p   >Finally the <span   class="codeblockDark outlinedDark">Class</span>es are wired up.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet/class.rs
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Class {
+    
+    ...
+
+    TextAlign { alignment: Alignment },
+}
+
+impl Class {
+    pub fn all() -> Vec&lt;Self> {
+        vec![
+           
+            ...
+
+            Self::TextAlign {
+                alignment: Alignment::Center,
+            },
+            Self::TextAlign {
+                alignment: Alignment::Justify,
+            },
+            Self::TextAlign {
+                alignment: Alignment::Left,
+            },
+            Self::TextAlign {
+                alignment: Alignment::Right,
+            },
+        ]
+    }
+
+    pub fn css(&amp;self, theme: &amp;Theme) -> Css {
+        match self {
+            
+            ...
+
+            Class::TextAlign { alignment } => text_align(self, alignment),
+        }
+    }
+
+    pub fn dark_mode(&amp;self) -> bool {
+        match self {
+         
+            ...
+
+            Class::TextAlign { alignment } => false,
+        }
+    }
+
+    pub fn selector(&amp;self) -> Selector {
+        let prefix: String = match self {
+            
+            ...
+            
+            Class::TextAlign { alignment } => format!("alignment{}", alignment.to_str()),
+        };
+
+        let post_fix = match self.dark_mode() {
+            false => "Light",
+            true => "Dark",
+        };
+
+        format!("{}{}", prefix, post_fix).into()
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Alignment {
+    Center,
+    Justify,
+    Left,
+    Right,
+}
+
+impl Alignment {
+    pub fn to_str(&amp;self) -> &amp;'static str {
+        match self {
+            Alignment::Center => "center",
+            Alignment::Justify => "justify",
+            Alignment::Left => "left",
+            Alignment::Right => "right",
+        }
+    }
+}
+
+...
+
+fn codeblock(class: &amp;Class, theme: &amp;Theme) -> Css {
+    let rules = vec![
+        format!("background: {}", theme.fill_primary_dark_mode.to_html()),
+        format!("border-color: {}", theme.fill_secondary_dark_mode.to_html()),
+        format!("color: {}", theme.text_primary_dark_mode.to_html()),
+        "flex: none".into(),
+        "line-height: 1.25".into(),
+        "overflow-x: auto".into(),
+        "padding-left: 8px".into(),
+        "padding-right: 8px".into(),
+        "text-align: left".into(),
+        "text-justify: none".into(),
+        "white-space: pre".into(),
+    ];
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(rules)
+    );
+
+    main_class.into()
+}
+
+...
+
+fn outline(class: &amp;Class, dark_mode: bool, theme: &amp;Theme) -> Css {
+    let color = match dark_mode {
+        true => theme.fill_secondary_dark_mode.to_html(),
+        false => theme.fill_secondary_light_mode.to_html(),
+    };
+
+    let main_rules = vec![
+        "border: 1px solid".into(),
+        format!("border-color: {}", color).into(),
+        "border-radius: 8px".into(),
+    ];
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(main_rules)
+    );
+
+    format!("{}", main_class).into()
+}
+
+...
+
+fn text_align(class: &amp;Class, alignment: &amp;Alignment) -> Css {
+    let main_rules = vec![format!("text-align: {}", alignment.to_str())];
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(main_rules)
+    );
+
+    main_class.into()
+}
+
+...
+
+</div></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

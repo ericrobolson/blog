@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Cutting Scope</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Reducing the amount of work left on blog_gen.">
+<meta name="keywords" content="cutting, scope, rust, page, blog_gen, index, html, elixir, rust">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.11_DeploymentAndTechStack.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.13_MoreScheme.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.12 - Cutting Scope</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0635"  ><a  href="#0635"  >#</a>
+ 0635</h3>
+<div   ><p   >I do want to be done with the <span   class="codeblockDark outlinedDark">blog_gen</span> project. I'm finding that for side projects, I can't spend a ton of time on them without some form of visible benefit. Quantity over quality is my preference, as you'll reach quality by doing something a lot.</p>
+<p   >I spent a bit of time this morning cutting scope down to what is absolutely required to get this shipped. The remaining tasks are </p>
+<ol  type="1" class="listLight"><li><div   > About me</div></li><li><div   > Index page</div></li><li><div   > Side nav</div></li></ol>
+<p   >With that I can consider this project done.</p>
+<p   >I'll add a new <span   class="codeblockDark outlinedDark">Page</span> content type.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/page.rs
+use super::ContentIr;
+use crate::Item;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Page {
+    pub contents: Item&lt;ContentIr>,
+    pub file_name: String,
+    pub keywords: Vec&lt;String>,
+    pub summary: String,
+    pub title: String,
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">Config</span> file gets updated so I can populate these fields.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// config.rs
+use crate::theme::Theme;
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Config {
+    pub about_me: String,
+    pub about_me_keywords: Vec&lt;String>,
+    pub about_me_summary: String,
+    pub author: String,
+    pub github: Option&lt;String>,
+    pub index_keywords: Vec&lt;String>,
+    pub index_summary: String,
+    pub linked_in: Option&lt;String>,
+    pub projects: Vec&lt;Project>,
+    #[serde(default)]
+    pub theme: Theme,
+    pub twitter: Option&lt;String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Project {
+    pub title: String,
+    pub description: String,
+    pub url: String,
+}
+
+impl Config {
+    pub fn example_config() -> Self {
+        Self {
+            about_me: "Required: A blurb about you!".into(),
+            about_me_keywords: vec!["Required: About Me keywords".into()],
+            about_me_summary: "Required: About Me summary".into(),
+            author: "Required: Your name goes here".into(),
+            github: Some("Optional github profile".into()),
+            index_keywords: vec!["Required: Index keywords".into()],
+            index_summary: "Required: Index summary".into(),
+            linked_in: Some("Optional linked in profile".into()),
+            projects: vec![Project {
+                title: "Example Title".into(),
+                description: "Example Description".into(),
+                url: "ExampleUrl".into(),
+            }],
+            theme: Theme::default(),
+            twitter: Some("Optional twitter".into()),
+        }
+    }
+}
+</div>
+<p   >And I finally stub it out on the <span   class="codeblockDark outlinedDark">builder</span> module. The plan is to build the scaffolding today, then start populating it tomorrow. I'll keep going in bite sized chunks.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// builder/mod.rs
+
+...
+
+
+    // Build the standalone pages
+    for page in build_standalone_pages(&amp;build_context, context.clone()) {
+        let res = match page {
+            Res::Ok(i) => Res::Ok(Item {
+                item: IntermediateRepresentation::Page(i.item),
+                location: i.location,
+            }),
+            Res::Warn { item, msg } => Res::Warn {
+                item: Item {
+                    location: item.location,
+                    item: IntermediateRepresentation::Page(item.item),
+                },
+                msg,
+            },
+            Res::Warnings { item, msgs } => Res::Warnings {
+                item: Item {
+                    location: item.location,
+                    item: IntermediateRepresentation::Page(item.item),
+                },
+                msgs,
+            },
+            Res::Error { location, msg } => Res::Error { location, msg },
+        };
+
+        ir.push(res);
+    }
+
+...
+
+</div></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chicken Time</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Overarching goals with Scheme, implementing a dictionary and thoughts on generating code.">
+<meta name="keywords" content="chicken, scheme, lisp, macros, compiler">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.08_Config.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.11_DeploymentAndTechStack.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.10 - Chicken Time</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0931"  ><a  href="#0931"  >#</a>
+ 0931</h3>
+<div   ><p   >Taking a bit of a break from the <span   class="codeblockDark outlinedDark">blog_gen</span> project to learn Scheme. As mentioned earlier, I'm utilizing <a  href="https://www.call-cc.org/"  >Chicken Scheme</a>. The primary reason is that it is a C based compiler, which means it will be easily portable across new architectures.</p>
+<p   >I'm not sure I'll write programs natively in it however. One thing I want to experiment is utilizing the macro system to take existing programs and transpile code. The theory is that Scheme will allow me to churn out code quickly and cross compiling it so I can leverage technology that best suits the problem.</p>
+<p   >An example I'm toying with would be a game matchmaking module. The underlying tech would be an Elixir module generated from my Scheme code. My reasoning is that Elixir/Phoenix will be the primary tech for any servers I build out, with Rust NIF's for performance intensive code. </p>
+<p   >I've spent most of the morning playing with macros, attempting to generate a <span   class="codeblockDark outlinedDark">match</span> statement. I'm not quite at the level where I can figure it out on my own yet, so I've moved on to writing a dictionary. It's not optimal, but that's irrelevant to me. </p>
+<p   >My plan is to go from a bottom up approach, writing data types, structures and algorithms as needed. This will compromise a Scheme program, which gets transformed by macros to generate code in other languages. </p>
+<p   >The following is a basic dictionary. The underlying data structure is a list of key/value pairs.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+; Creates a new Dictionary
+(define (dictionary)
+    '())
+
+; Deletes a key/value from the dictionary
+(define (delete dict key)
+    (cond 
+        ((null? dict)
+            dict)
+        ((eq? key (car (car dict)))
+            (cdr dict))
+        (else 
+            (cons (car dict) (delete (cdr dict) key)))))
+
+; Retrieves a value from the dictionary. 
+; Returns '() if not found.
+(define (get dict key)
+    (cond 
+        ((null? dict)
+            '())
+        ((eq? key (car (car dict)))
+            (car (cdr (car dict))))
+        (else 
+            (get (cdr dict) key))))
+
+; Inserts the given value into the dictionary;
+; Overrides existing values.
+(define (insert dict key value)
+    (cons (list key value) (delete dict key)))
+</div>
+<p   >Perhaps I will boot up emacs again. I want to eventually write up some form of program that starts a Chicken REPL that hotreloads imports. While TDD would serve the same purpose, I'm trying out the REPL side of things.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

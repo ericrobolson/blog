@@ -1,0 +1,245 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Configuration</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Implementing a config.json file for theme, author and social media.">
+<meta name="keywords" content="theme, config, json, author, social, media, parser">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.07_MoreRoadmap.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.10_Chicken.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.08 - Configuration</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0630"  ><a  href="#0630"  >#</a>
+ 0630</h3>
+<div   ><p   >I'll be adding a <span   class="codeblockDark outlinedDark">config.json</span> file for settings today. First I'll wire up the <span   class="codeblockDark outlinedDark">Cargo.toml</span> to pull in <span   class="codeblockDark outlinedDark">Serde</span>.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+# Cargo.toml
+[package]
+name = "blog_gen"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["multithread"]
+multithread = ["rayon"]
+
+[dependencies]
+ansi_term = "0.12"
+html-escape = "0.2.9"
+rayon = {version = "1.5", optional = true}
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+walkdir = "2.3"
+</div>
+<p   >I'll add in a new <span   class="codeblockDark outlinedDark">config</span> module that contains the <span   class="codeblockDark outlinedDark">Config</span> struct.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// config.rs
+
+use crate::theme::Theme;
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Config {
+    pub author: String,
+    pub github: Option&lt;String>,
+    pub linked_in: Option&lt;String>,
+    #[serde(default)]
+    pub theme: Theme,
+    pub twitter: Option&lt;String>,
+}
+
+impl Config {
+    pub fn example_config() -> Self {
+        Self {
+            author: "Required: Your name goes here".into(),
+            github: Some("Optional github profile".into()),
+            linked_in: Some("Optional linked in profile".into()),
+            theme: Theme::default(),
+            twitter: Some("Optional twitter".into()),
+        }
+    }
+}
+</div>
+<p   >Next up will be wiring it to the <span   class="codeblockDark outlinedDark">env_args</span> module which parses the config + loads the directories.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// env_args.rs
+use std::{env, fs, sync::Arc};
+
+use super::{console, Context, Res};
+use crate::{config::Config, Directory, Item};
+
+pub fn parse() -> Option&lt;Res&lt;Arc&lt;Context>>> {
+    let env_args = {
+        let mut env_args: Vec&lt;String> = env::args().collect();
+        env_args.remove(0);
+        env_args
+    };
+
+    if env_args.is_empty() {
+        return Some(Res::Error {
+            location: None,
+            msg: "No valid args! Type 'help' to list all options".into(),
+        });
+    }
+
+    let mut warnings = vec![];
+
+    match Command::parse(env_args) {
+        Ok(command) => match command {
+            Command::Help => {
+                Command::list_help();
+                return None;
+            }
+            Command::Generate { input, output } => {
+                let config = match parse_config_file(input.clone()) {
+                    Res::Ok(c) => c,
+                    Res::Warn { item, msg } => {
+                        warnings.push((msg, None));
+                        item
+                    }
+                    Res::Warnings { item, mut msgs } => {
+                        warnings.append(&amp;mut msgs);
+                        item
+                    }
+                    Res::Error { location, msg } => return Some(Res::Error { location, msg }),
+                };
+
+                // TODO: wire up warnings
+                return Some(Res::Ok(Item {
+                    item: Arc::new(Context {
+                        config: config.item,
+                        input,
+                        output,
+                    }),
+                    location: None,
+                }));
+            }
+        },
+        Err(e) => Some(Res::Error {
+            location: None,
+            msg: e,
+        }),
+    }
+}
+
+fn parse_config_file(input_dir: Directory) -> Res&lt;Config> {
+    let dir = input_dir.to_string();
+    let dir = if dir.ends_with("/") {
+        dir
+    } else {
+        format!("{}/", dir)
+    };
+
+    let config_path = format!("{}config.json", dir);
+
+    let file = match fs::read_to_string(config_path) {
+        Ok(file) => file,
+        Err(e) => {
+            return Res::Error {
+                location: None,
+                msg: format!("Error loading config.json: \n\t\t{:?}.\n\tEnsure you have a config.json file at {:?}.", e, input_dir.to_string()),
+            }
+        }
+    };
+
+    let config: Config = match serde_json::from_str::&lt;Config>(&amp;file) {
+        Ok(c) => c,
+        Err(e) => return Res::Error {
+            location: None,
+            msg: format!(
+                "Error parsing config.json: \n\t\t{:?}. \n\tEnsure that you've got a well formed JSON file.",
+                e
+            ),
+        },
+    };
+
+    Res::Ok(Item {
+        item: config,
+        location: None,
+    })
+}
+
+enum Command {
+    Help,
+    Generate { input: Directory, output: Directory },
+}
+
+impl Command {
+    pub fn list_help() {
+        ...
+       
+        console::info(
+            "config.json",
+            &amp;format!(
+                "Example config.json file: \n\t{}",
+                serde_json::to_string(&amp;Config::example_config()).unwrap()
+            ),
+        );
+
+        ...
+    }
+
+    pub fn parse(mut args: Vec&lt;String>) -> Result&lt;Command, String> {
+        let first = args.remove(0);
+
+        match first.to_lowercase().as_str() {
+            "help" => Ok(Command::Help),
+            _ => {
+                let input_dir = first;
+                if args.is_empty() {
+                    return Err("Unable to parse output directory!".into());
+                }
+
+                let output_dir = args.remove(0);
+
+                if !args.is_empty() {
+                    console::warn(&amp;format!("Received unused CLI args: {:?}", args), None);
+                }
+
+                console::success(
+                    &amp;format!(
+                        "Parsed input '{}' and output '{}' directories.",
+                        input_dir, output_dir
+                    ),
+                    None,
+                );
+
+                Ok(Command::Generate {
+                    input: input_dir.into(),
+                    output: output_dir.into(),
+                })
+            }
+        }
+    }
+}
+</div>
+<p   >With that I can get an example file using the <span   class="codeblockDark outlinedDark">help</span> arg or errors when it's malformed. I won't show the refactor to utilize this as it is rote. I will show the usage of the github + other data later on.</p>
+<p   >Remaining tasks in no order:</p>
+<ul   class="listLight"><li><div   >Index page</div></li><li><div   >About Me page</div></li><li><div   >Fractal generator</div></li><li><div   >Side nav for non-mobile</div></li><li><div   >Index link</div></li><li><div   >STRETCH: 'UnescapedText' and 'EscapedText' for HTML</div></li><li><div   >STRETCH: Warnings + errors to lists and blocks</div></li></ul></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

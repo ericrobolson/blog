@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>CSS</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Statically generating CSS + stylesheets.">
+<meta name="keywords" content="Rust, stylesheet, css, starting, over, blog, generation, html, ir, generator, md">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.26_Html2.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.27_Ideas.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.27 - CSS</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0617"  ><a  href="#0617"  >#</a>
+ 0617</h3>
+<div   ><p   >Before I continue, I want to make one change. Compilation is taking a long time, and I think it's due to the inclusion of <span   class="codeblockDark outlinedDark">rayon</span>. This will be a dependency that is critical to everything, but I don't want to run it right now. </p>
+<p   >I'll update the <span   class="codeblockDark outlinedDark">Cargo.toml</span> file.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// Cargo.toml
+[features]
+multithread = ["rayon"]
+
+[dependencies]
+ansi_term = "0.12"
+rayon = {version = "1.5", optional = true}
+walkdir = "2.3"
+</div>
+<p   >I'll then update the areas where Rayon is called.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// main.rs
+
+...
+
+// Parse all intermediate representations
+
+let ir_results: Vec&lt;Res&lt;IntermediateRepresentation>> = crawl_files(crawled_files, &amp;context);
+
+let ir = match map_results(ir_results) {
+    Ok(ir) => ir,
+    Err(_) => return,
+};
+
+...
+
+fn crawl_files(
+    files: Vec&lt;Item&lt;crawler::File>>,
+    context: &amp;Arc&lt;Context>,
+) -> Vec&lt;Res&lt;IntermediateRepresentation>> {
+    #[cfg(feature = "multithread")]
+    {
+        use rayon::prelude::*;
+        return files
+            .par_iter()
+            .map(|f| parser::execute(f, context.clone()))
+            .collect();
+    }
+
+    files
+        .iter()
+        .map(|f| parser::execute(f, context.clone()))
+        .collect()
+}
+</div>
+<p   >Then update the <span   class="codeblockDark outlinedDark">generator</span> module with the same thing.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// generator/mod.rs
+
+...
+
+// Create all files
+generate_all(ir, &amp;context)
+
+...
+
+
+fn generate_all(ir: Vec&lt;Item&lt;IntermediateRepresentation>>, context: &amp;Arc&lt;Context>) -> Vec&lt;Res&lt;()>> {
+    #[cfg(feature = "multithread")]
+    {
+        use rayon::prelude::*;
+        return ir
+            .par_iter()
+            .map(|item| generate(item, context.clone()))
+            .collect();
+    }
+
+    ir.iter()
+        .map(|item| generate(item, context.clone()))
+        .collect()
+}
+
+...
+
+</div>
+<p   >Compilation is a bit faster now, but not terribly so.</p>
+<p   >The next thing I'll want to do before continuing is adding CSS Cards. I don't know what it'll look like yet so it's a very simplistic file that is littered with <span   class="codeblockDark outlinedDark">todo!()</span>s. </p>
+<p   >I'll wire that up to the <span   class="codeblockDark outlinedDark">generator</span> so I can generate it.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// generator/mod.rs
+
+pub fn execute(ir: Vec&lt;Item&lt;IntermediateRepresentation>>, context: Arc&lt;Context>) -> Vec&lt;Res&lt;()>> {
+    // Clear output directory
+    match fs::remove_dir_all(&amp;context.output.to_string()) {
+        Ok(_) => {}
+        Err(e) => match e.kind() {
+            std::io::ErrorKind::NotFound => {
+                // nothing to do here.
+            }
+            _ => {
+                return vec![Res::Error {
+                    location: Some(Location {
+                        column: 0,
+                        file: String::default(),
+                        line: 0,
+                        path: context.output.to_string(),
+                    }),
+                    msg: format!("{:?}", e.kind()),
+                }]
+            }
+        },
+    }
+
+    // Create new output directory
+    let output_dir = context.output.to_string();
+    match make_dir(&amp;output_dir) {
+        Ok(_) => {}
+        Err(e) => return e,
+    }
+
+    // Create assets directory
+    match make_dir(&amp;format!("{}{}", output_dir, ASSETS)) {
+        Ok(_) => {}
+        Err(e) => return e,
+    }
+
+    // Create any autogenerated files
+    let ir = {
+        let mut ir = ir;
+
+        let stylesheet = Stylesheet::new(&amp;context);
+
+        let css = IntermediateRepresentation::Css(Css {
+            contents: stylesheet.to_html().into_bytes(),
+            file_name: "styles.css".into(),
+        });
+
+        ir.push(Item {
+            item: css,
+            location: None,
+        });
+
+        ir
+    };
+
+    // Create all files
+    generate_all(ir, &amp;context)
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">Stylesheet</span> is now implemented. I'll utilize some various types to represent <span   class="codeblockDark outlinedDark">Selectors</span> and <span   class="codeblockDark outlinedDark">CSS</span>. It is very basic and will evolve as I get a better understanding of the domain.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet.rs
+use super::Html;
+use crate::{theme::Theme, Context};
+use std::sync::Arc;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Stylesheet {
+    classes: Vec&lt;Class>,
+    theme: Theme,
+}
+
+impl Stylesheet {
+    pub fn new(context: &amp;Arc&lt;Context>) -> Self {
+        Self {
+            classes: Class::all(),
+            theme: context.theme.clone(),
+        }
+    }
+}
+
+impl Html for Stylesheet {
+    fn to_html(&amp;self) -> String {
+        let generated_css = self
+            .classes
+            .iter()
+            .map(|c| c.css(&amp;self.theme))
+            .collect::&lt;Vec&lt;Css>>()
+            .iter()
+            .map(|css| css.to_str().into())
+            .collect::&lt;Vec&lt;String>>()
+            .join("\n");
+
+        format!("{}", generated_css)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Class {
+    Card,
+}
+
+impl Class {
+    pub fn all() -> Vec&lt;Self> {
+        vec![Self::Card]
+    }
+
+    pub fn css(&amp;self, theme: &amp;Theme) -> Css {
+        match self {
+            Class::Card => card(self, theme),
+        }
+    }
+
+    pub fn selector(&amp;self) -> Selector {
+        match self {
+            Class::Card => "card".into(),
+        }
+    }
+}
+
+fn card(class: &amp;Class, theme: &amp;Theme) -> Css {
+    let main_rules = vec![
+        "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2)".into(),
+        format!("background: {}", theme.fill_primary_light_mode.to_html()),
+        "display: flex".into(),
+        "flex-direction: column".into(),
+        "margin: 16px".into(),
+        "padding: 16px".into(),
+        "text-align: justify".into(),
+        "width: 100%".into(),
+        "max-width: initial".into(),
+        "word-wrap: normal".into(),
+    ];
+
+    let hover_rules: Vec&lt;String> = vec!["box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2)".into()];
+
+    let combine_rules = |rules: Vec&lt;String>| {
+        rules
+            .iter()
+            .map(|r| format!("{};", r))
+            .collect::&lt;Vec&lt;String>>()
+            .join("\n")
+    };
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(main_rules)
+    );
+
+    let hover_class = format!(
+        ".{}:hover {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(hover_rules)
+    );
+
+    format!("{}\n{}", main_class, hover_class).into()
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Css(String);
+
+impl Css {
+    pub fn to_str(&amp;self) -> &amp;str {
+        &amp;self.0
+    }
+}
+
+impl From&lt;&amp;'static str> for Css {
+    fn from(s: &amp;'static str) -> Self {
+        Self(s.into())
+    }
+}
+
+impl From&lt;String> for Css {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Selector(String);
+
+impl Selector {
+    pub fn to_str(&amp;self) -> &amp;str {
+        &amp;self.0
+    }
+}
+
+impl From&lt;&amp;'static str> for Selector {
+    fn from(s: &amp;'static str) -> Self {
+        Self(s.into())
+    }
+}
+</div>
+<p   >The generated results look like so:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// styles.css
+.card { box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+background: rgba(255,255,255,255);
+display: flex;
+flex-direction: column;
+margin: 16px;
+padding: 16px;
+text-align: justify;
+width: 100%;
+max-width: initial;
+word-wrap: normal; }
+.card:hover { box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2); }
+</div>
+<p   >I'll work on wiring this up to the intermediate representation after I get the basic <span   class="codeblockDark outlinedDark">body</span> and <span   class="codeblockDark outlinedDark">html</span> selectors added. I may also add a <span   class="codeblockDark outlinedDark">spacing_px</span> to the config to control all margins. One of the benefits of doing generated CSS is that you don't have to manually replace everything when updates are made.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

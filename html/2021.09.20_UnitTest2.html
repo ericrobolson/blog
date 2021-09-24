@@ -1,0 +1,189 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Unit Testing 2</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Extending the unit testing framework to recursively run all test files.">
+<meta name="keywords" content="chicken, scheme, unit, testing, recursive, file, parser, test, executor">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.19_UnitTests.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.21_StartingIndex.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.20 - Unit Testing 2</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0636"  ><a  href="#0636"  >#</a>
+ 0636</h3>
+<div   ><p   >I've written up the recursive file parser and test executor. I'll do a brief walkthrough of all the code that makes this module up.</p>
+<p   >First I'll import the file handlers and define an individual test case.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+(import scheme (chicken file))
+
+;; An individual test case.
+(define (test test-case actual expected)
+    (list 
+        ;; success or fail
+        (cond 
+            ;; check if both strings and equal
+            (
+                (and 
+                    (and (string? actual) (string? expected))
+                    (equal? actual expected)
+            ) 'success)
+            ((eq? actual expected) 'success)
+            (else 'fail))
+        test-case
+        actual 
+        expected))
+</div>
+<p   >Next I'll wire up a function to denote all tests for a given function. </p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+
+;; A test module.
+(define (testing method first . rest)
+    (print "----------------------------")
+    (print "Testing '" method "'")
+
+    (let ((cases (cons first rest)))
+        (map (lambda (case)
+            (let (
+                (result (car case))
+                (test-case (car (cdr case)))
+                (actual (car (cdr (cdr case))))
+                (expected (car (cdr (cdr (cdr case)))))
+                )
+                (cond 
+                    ((null? case) (error "you passed a null value!"))
+                    ((eq? result 'fail) 
+                        (print "\tfail - " test-case)
+                        (print "\t\t wanted: " expected)
+                        (print "\t\t actual: " actual)
+                        )
+                    (else (print "\tsuccess - " test-case)))
+                ))
+            cases))
+    (print "----------------------------"))
+</div>
+<p   >Next up is file traversal. This is done in a recursive fashion. A single <span   class="codeblockDark outlinedDark">crawl</span> method will kick it off at the current directory.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;; FILE TRAVERSAL  ;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Given a path, traverse and return all files in a recursive fashion.
+(define (traverse file) 
+    (cond
+        ((null? file) 
+            (map (lambda (f) (traverse f)) (directory)))
+        ((directory-exists? file) 
+            (map (lambda (f) (traverse (string-append file "/" f))) (directory file)))
+        (else file)))
+
+;; Recursively crawls all files + directories.
+(define (crawl) 
+    (flatten (traverse '())))
+</div>
+<p   >I wrote a few helper methods to determine the file suffix as well. This helps to find the tests that need to be ran.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;; HELPER METHODS ;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Checks if the given string ends with the given suffix
+(define (ends-with? string suffix)
+    (cond
+        ((and 
+            (string? string) 
+            (string? suffix) 
+            (>= (string-length string) (string-length suffix))
+            )
+            (let (
+                (end (substring string (- (string-length string) (string-length suffix)) (string-length string)))
+                )
+            (equal? suffix end))) 
+        (else #f)
+    ))
+
+;; Checks if the given file is a test file
+(define (is-test-file? file)
+    (cond
+        ((string? file) (ends-with? file ".test.scm" ))
+        (else #f)
+    ))
+</div>
+<p   >Here's some tests I dogfooded for those methods. It'll also serve as an example for how to write tests in the future.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;; TESTS ;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(testing ends-with? 
+    (test "non-string input returns #f"
+        (ends-with? 1 2) 
+        #f)
+    (test "'a test string' and 'foo' returns #f"
+        (ends-with? "a test string" "foo")
+        #f)
+    (test "'foo string' and 'foo' returns #f"
+        (ends-with? "foo string" "foo")
+        #f)
+    (test "'foo string' and 'string' returns #t"
+        (ends-with? "foo string" "string")
+        #t)
+)
+
+(testing is-test-file? 
+    (test "nil returns false"
+        (is-test-file? '()) 
+        #f)
+    (test "'regular-file.scm' returns false"
+        (is-test-file? "regular-file.scm") 
+        #f)
+    (test "non-string returns false"
+        (is-test-file? 1) 
+        #f)
+    (test "'passing-file.test.scm' returns true"
+        (is-test-file? "passing-file.test.scm") 
+        #t)
+)
+</div>
+<p   >Finally everything is kicked off.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;; EXECUTION ;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (execute-tests)
+    (map (lambda (f) (if (is-test-file? f) (load f)))
+        (crawl)))
+
+(execute-tests)
+
+</div>
+<p   >One thing I plan on looking into in the future is the ability to detect when a file was last modified, then rerun the tests if it was updated. Right now I'll utilize this since it works and I can add to it over time.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

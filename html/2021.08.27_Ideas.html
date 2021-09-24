@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Ideas</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Brainstorming architecture + online games.">
+<meta name="keywords" content="Rust, architecture, multiplayer, turn, based, elixir, underlords">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.27_Css.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.28_Css2.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.27 - Ideas</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1728"  ><a  href="#1728"  >#</a>
+ 1728</h3>
+<div   ><p   >I'm planning on writing a turn based multiplayer game. I've been playing mostly Rivals of Aether and Dota Underlords, and have been thinking of 40k, Infinity and Warmachine.</p>
+<p   >Idea:</p>
+<ul   class="listLight"><li><div   >Economy based, like Underlords</div></li><li><div   >Point based (rather than drafting) like 40k/Infinity</div></li><li><div   >More fine grained positioning like in 40k. E.g. no grid.</div></li><li><div   >More heavily starting position based. Use a larger starting area</div></li><li><div   >More terrain variety</div></li><li><div   >Autobattler where after position is locked in, it's automatically played. 30s tops</div></li></ul>
+<p   >Architecture:</p>
+<ul   class="listLight"><li><div   >Erlang-based backend</div></li><li><div   ><ul   class="listLight"><li><div   >Elixir for the 'glue' + db</div></li></ul></div></li><li><div   ><ul   class="listLight"><li><div   >Perhaps Rust as a NIF for game usage? The input is pulled from an ETS/redis, ran through Rust, then put back?</div></li></ul></div></li><li><div   >RabbitMQ for messaging</div></li><li><div   >GraphQL for networking</div></li><li><div   >Ratelimiting?</div></li><li><div   >Sockets/Channels</div></li><li><div   >Native clients that render some form of DSL to interact with the backend</div></li><li><div   ><ul   class="listLight"><li><div   >Stores results in a local db?</div></li></ul></div></li><li><div   ><ul   class="listLight"><li><div   >That enables offline usage?</div></li></ul></div></li></ul></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

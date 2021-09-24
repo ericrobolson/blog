@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Not Index</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Parsing an input file in Chicken.">
+<meta name="keywords" content="file, parsing, chicken, scheme, language, validator">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.17_TopNav.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.19_UnitTests.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.18 - Not Index</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0641"  ><a  href="#0641"  >#</a>
+ 0641</h3>
+<div   ><p   >Again, I do not want to work on the Index page for <span   class="codeblockDark outlinedDark">blog_gen</span>. I'll be playing around with Chicken some more.</p>
+<p   >One thing that I'm going to want to do a lot is load a scheme file and treat it as a list.</p>
+<p   >Here's some code that does that:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+;; Loads the given .scm file as a list
+(define (file->list file)
+    (let ((p (open-input-file (string-append file ".scm"))))
+    (let f ((x (read p)))
+        (if (eof-object? x)
+            (begin
+                (close-input-port p) '())
+            (cons x (f (read p)))))))
+</div>
+<p   >This will be valuable as I can then write functions which load source code, transform them, then spit out something else. For example a parser or validator of syntax.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

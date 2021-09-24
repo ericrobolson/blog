@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Tech stack, UDP and deployment</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Implementing a UDP module in Elixir.">
+<meta name="keywords" content="elixir, rust, client, server, udp, multiplayer, tech, stack, deployment, scheme">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.10_Chicken.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.12_CuttingScope.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.11 - Tech stack, UDP and deployment</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0849"  ><a  href="#0849"  >#</a>
+ 0849</h3>
+<div   ><p   >I do need to figure out deployment sometime soon. The blog posts are starting to build up and I'm wanting to move into more client/server based applications. Some other time I suppose. </p>
+<p   >Scheme is going to play a part in my tech stack, but I don't know how yet. Right now whatever I do will utilize the following:</p>
+<ul   class="listLight"><li><div   >Elixir/Phoenix for server infrastructure</div></li><li><div   ><ul   class="listLight"><li><div   >UDP for communication between clients + server</div></li></ul></div></li><li><div   ><ul   class="listLight"><li><div   >TCP/HTTP for fallback?</div></li></ul></div></li><li><div   >Rust libraries (NIFs + embedded) for shared client + server code</div></li><li><div   >Scheme for scripting/generating things</div></li></ul>
+<p   >For now I'll start focusing on the Elixir/Phoenix stack. I'll attempt to keep it modular to use hexagonal architecture. I keep harping on that a lot, but the ability to swap out communication protocols for functionality is going to be absolutely critical as I target different platforms and architectures.</p>
+<p   >The article I'll be playing with today is <a  href="https://bgmarx.com/2019/05/05/sending-and-receiving-udp/"  >this on Elixir and UDP</a>.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0920"  ><a  href="#0920"  >#</a>
+ 0920</h3>
+<div   ><p   >The approach I took was first learning how the underlying libraries worked, then abstracting my own implementation on top of that.  Specs is an option I'll dig into later, but for now I'm just utilizing structs for everything to ensure the proper data is passed along.</p>
+<p   >First I'll define an address struct. This will be used for sending and receiving data.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+defmodule Address do
+    @enforce_keys [:ip_address, :port]
+    defstruct [:ip_address, :port]
+end
+</div>
+<p   >As this will utilize Erlang's <span   class="codeblockDark outlinedDark">:gen_udp</span> module, I'll write a struct to wrap the socket that gets returned from there.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+defmodule Socket do
+    @enforce_keys [:socket]
+    defstruct [:socket]
+end
+</div>
+<p   >And finally I'll wire up the UDP code. I don't think this will be a viable solution long term as I'll want some form of state, but it will suffice for now.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+defmodule Udp do
+    import Address
+    import Socket
+
+    def close(%Socket{socket: socket}) do
+        :gen_udp.close(socket)
+    end
+
+    def open(port) do
+        with {:ok, socket} &lt;- :gen_udp.open(port)
+        do
+            {:ok, %Socket{socket: socket}}
+        else
+            e -> e
+        end
+    end
+
+    def send(%Socket{socket: socket}, %Address{ip_address: ip_address, port: port}, msg) do
+        :gen_udp.send(socket, ip_address, port, msg)
+    end    
+end
+</div>
+<p   >Here's an example of how it works.</p>
+<p   >First shell started:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+# iex shell 1
+
+Interactive Elixir (1.12.1) - press Ctrl+C to exit (type h() ENTER for help)
+iex(1)> c "Udp.ex"
+[Address, Socket, Udp]
+iex(2)> {:ok, socket} = Udp.open(8670)
+{:ok, %Socket{socket: #Port&lt;0.6>}}
+iex(3)>
+</div>
+<p   >Second shell gets started that sends a message:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+# iex shell 2
+Interactive Elixir (1.12.1) - press Ctrl+C to exit (type h() ENTER for help)
+iex(1)> c "Udp.ex"
+[Address, Socket, Udp]
+iex(2)> {:ok, socket} = Udp.open(8671)
+{:ok, %Socket{socket: #Port&lt;0.6>}}
+iex(3)> address = %Address{ip_address: {127,0,0,1}, port: 8670}
+%Address{ip_address: {127, 0, 0, 1}, port: 8670}
+iex(4)> Udp.send(socket, address, "Hello world!")
+:ok
+iex(5)>
+</div>
+<p   >Flushing the first shell prints out the message. </p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+# iex shell 1
+iex(3)> flush
+{:udp, #Port&lt;0.6>, {127, 0, 0, 1}, 8671, 'Hello world!'}
+:ok
+iex(4)>
+</div>
+<p   >With that I now have a simplified core for UDP communication.</p>
+<p   >It's going to change, as the UDP message was sent to the iex shell process. I can work on that later, but I suspect it will take a Genserver to iron it out.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

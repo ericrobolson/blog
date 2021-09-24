@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Rust Again</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Requirements for game design with Rust.">
+<meta name="keywords" content="Lisp, Rust, Deterministic, simulation, rollback, netcode, hexagonal, architecture">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.05_OnLispAgain.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.07_LispCompilation.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.06 - Rust Again</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0613"  ><a  href="#0613"  >#</a>
+ 0613</h3>
+<div   ><p   >Lisp is taking some getting used to. Progress is slow, but it's good to be learning a new language again. I'm not quite sure when I'll get the markdown to html converter up and running, but that's fine. For now I'm building a backlog of posts.</p>
+<p   >I do want to get back into game development with Rust. I think a bottom up approach with TDD would be an interesting experiment. There's several options I could take, but a hexagonal architecture will be key. While a generic engine would be dope, I'm unsure that is the proper approach. Simply building + releasing something would be ideal.</p>
+<p   >Requirements:</p>
+<ul   class="listLight"><li><div   >Deterministic simulation</div></li><li><div   >Lockstep or rollback netcode</div></li><li><div   >Synchronization of inputs</div></li><li><div   >Hexagonal architecture</div></li><li><div   >2d</div></li><li><div   >Real time</div></li><li><div   >Verlet physics</div></li></ul>
+<p   >That's a good starting point. Real time is simpler for me to grok, and simpler for me to implement. </p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0715"  ><a  href="#0715"  >#</a>
+ 0715</h3>
+<div   ><p   >I've started blocking out that project. Also added some tweaks to WITD so ignore directories could be specified so that it isn't reran whenever there are <span   class="codeblockDark outlinedDark">bin</span> or <span   class="codeblockDark outlinedDark">target</span> changes. I've added a simplistic MVP goal and a roadmap to see how it turns out. This may be too much to do for one person, but as usual I attempt to reach far. </p>
+<p   >Code name <span   class="codeblockDark outlinedDark">Chaostar</span>, but that's likely to change. Hope is a Nidhogg/Bushido Blade like fighting game where it's ragdoll based. Not intended to be competitive, but is intended to be ridiculous. </p>
+<p   >Focus will be 2d to really push what can be done on a GFX level and simulation level. While 3d is the trend these days, I will not be able to really push the physics as hard as I would like with rollback in a 3d plane. Perhaps a sequel would be 3d, but that's out of scope for now.</p>
+<p   >I may pull code from <span   class="codeblockDark outlinedDark">noiseless_mountain</span>, but that project is retired for now. Perhaps it will be revisited in the future.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

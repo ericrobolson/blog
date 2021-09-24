@@ -1,0 +1,1007 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Quotes, Cleaning and Validation</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Implementing quotes, breaking up blocks, doing validation and cleaning the tree.">
+<meta name="keywords" content="quotes, blocks, inject, md, paragraphs, cleaning, tree, validation">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.04_SummariesAndValidations.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.06_NewProject.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.05 - Quotes, Cleaning and Validation</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0658"  ><a  href="#0658"  >#</a>
+ 0658</h3>
+<div   ><p   >Spent this morning adding the ability to inject quotes in the mds.</p>
+<p   >This will follow the same sort of pattern as code blocks, but have <span   class="codeblockDark outlinedDark">quote</span> immediately after the triple tick.</p>
+<p   >Before I dive into that I want to add some more info to the <span   class="codeblockDark outlinedDark">help</span> arg for the tool. This will help me remember the various things that can be done.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// env_args.rs
+
+...
+
+impl Command {
+    pub fn list_help() {
+        console::info("{input_directory} {output_directory}", "Generates a static site based on an input directory, writing it to an output directory.");
+        console::info("help", "List all available commands.");
+        console::info(
+            "HTML",
+            "Use triple quotes like TRIPLE_TICKsome code TRIPLE_TICK for code blocks.",
+        );
+        console::info(
+            "HTML",
+            "Use triple quotes with 'quote' like TRIPLE_TICKquote some quoteTRIPLE_TICK for quotes.",
+        );
+        console::info(
+            "HTML",
+            "Use the following format for links: '[Description](url)'.",
+        );
+        console::info(
+            "HTML",
+            "Use the following format for images: '![Description](url)'.",
+        );
+        console::info(
+            "HTML",
+            "Use the following format for youtube: '![youtube](youtube_embedded_url)'.",
+        );
+        console::info(
+            "HTML",
+            "Use the following format for titles: '!!title Some Title terminated by newline'.",
+        );
+        console::info(
+            "HTML",
+            "Use the following format for keywords: '!!keywords a list of keywords terminated by newline'.",
+        );
+        console::info(
+            "HTML",
+            "Use the following format for the summary: '!!summary a list of keywords terminated by newline'.",
+        );
+        console::info(
+            "HTML",
+            "Use the following format for headers: '## a header!'.",
+        );
+    }
+
+    ...
+
+}
+
+...
+</div>
+<p   >I'll also add the ability to set the <span   class="codeblockDark outlinedDark">dark_mode</span> on card elements. The refactors will not be shown.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/element.rs
+
+...
+
+pub fn card(children: Vec&lt;Element>, dark_mode: bool) -> Element {
+    Element {
+        classes: vec![
+            Class::Card { dark_mode },
+            Class::HoverShadow,
+            Class::Outlined { dark_mode },
+            Class::Padded {
+                position: Position::Bottom,
+            },
+            Class::Padded {
+                position: Position::Top,
+            },
+            Class::Shadow,
+            Class::TextAlign {
+                alignment: Alignment::Left,
+            },
+        ],
+        id: None,
+        kind: Kind::Div { children },
+    }
+}
+
+...
+
+</div>
+<p   >I will also set the text color for the stylesheet class.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet/class.rs
+
+...
+
+fn card(class: &amp;Class, dark_mode: bool, theme: &amp;Theme) -> Css {
+    let background_color = match dark_mode {
+        true => theme.fill_primary_dark_mode.to_html(),
+        false => theme.fill_primary_light_mode.to_html(),
+    };
+
+    let text_color = match dark_mode {
+        true => theme.text_primary_dark_mode.to_html(),
+        false => theme.text_primary_light_mode.to_html(),
+    };
+
+    let main_rules = vec![
+        format!("background: {}", background_color),
+        format!("color: {}", text_color),
+        "display: flex".into(),
+        "flex-direction: column".into(),
+        "padding: 16px".into(),
+        "text-align: justify".into(),
+        "width: 100%".into(),
+        "word-wrap: normal".into(),
+    ];
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(main_rules)
+    );
+
+    main_class.into()
+}
+
+...
+
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">ContentIr::CodeBlock</span> was removed and replaced with a <span   class="codeblockDark outlinedDark">ContentIr::Block</span> kind.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/content_ir.rs
+
+...
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum BlockKind {
+    Code,
+    Quote,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum ContentIr {
+    Block {
+        contents: Box&lt;ContentIr>,
+        block_kind: BlockKind,
+    },
+    
+    ...
+
+}
+
+...
+
+impl HtmlElement for ContentIr {
+    fn to_element(&amp;self) -> Element {
+        // When modifying this, ensure all text is escaped.
+        match self {
+            ContentIr::Block {
+                contents,
+                block_kind,
+            } => match block_kind {
+                BlockKind::Code => element::code_block(contents.to_element().to_html()),
+                BlockKind::Quote => element::card(vec![contents.to_element()], true),
+            },
+            
+            ...
+
+        }
+    }
+}
+
+...
+
+</div>
+<p   >A new validation option is added to skip paragraph lengths. I don't want to have to deal with warnings on quotes. I'll skip the boilerplate changes where that is updated.</p>
+<p   >I also added a <span   class="codeblockDark outlinedDark">clean()</span> method which shakes the <span   class="codeblockDark outlinedDark">ContentIr</span> tree of all empty leafs. That will be covered shortly.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/mod.rs
+
+...
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Validations {
+    pub skip_code_block: bool,
+    pub skip_header: bool,
+    pub skip_inline_code: bool,
+    pub skip_link: bool,
+    pub skip_list: bool,
+    pub skip_metadata_display_title: bool,
+    pub skip_metadata_keywords: bool,
+    pub skip_metadata_summary: bool,
+    pub validate_paragraph_len: bool,
+}
+
+pub fn execute(
+    contents: String,
+    location: Location,
+    opts: Options,
+    validations: Option&lt;Validations>,
+) -> Res&lt;ContentIr> {
+    let mut warnings = vec![];
+
+    // Preprocess things to simplify parsing.
+    let contents = {
+        let mut contents = contents.replace("\r\n", "\n");
+
+        // Add a newline to ensure that it gets processed correctly
+        if !contents.ends_with("\n") {
+            contents.push('\n');
+        }
+
+        contents
+    };
+
+    let validations = validations.unwrap_or(Validations {
+        skip_code_block: false,
+        skip_header: false,
+        skip_inline_code: false,
+        skip_link: false,
+        skip_list: false,
+        skip_metadata_display_title: false,
+        skip_metadata_keywords: false,
+        skip_metadata_summary: false,
+        validate_paragraph_len: true,
+    });
+
+    // Since this is a recursive processor, executing until nothing remains, set it up so that nothing has
+    // been processed yet.
+    let mut ir = vec![ContentIr::Unparsed {
+        contents,
+        validations,
+    }];
+
+    // Continue processing + reprocessing all elements until there's nothing left.
+    loop {
+        let result = match parse(&amp;ir, &amp;location, opts) {
+            Res::Ok(item) => item.item,
+            Res::Warn { item, msg } => {
+                warnings.push((msg, item.location.clone()));
+                item.item
+            }
+            Res::Error { location, msg } => return Res::Error { location, msg },
+            Res::Warnings { item, mut msgs } => {
+                warnings.append(&amp;mut msgs);
+                item.item
+            }
+        };
+
+        let (new_elements, continue_running) = result;
+
+        ir = new_elements;
+
+        match continue_running {
+            ContinueRunning::Yes => {}
+            ContinueRunning::No => break,
+        }
+    }
+
+    // Map out paragraphs
+    let ir = if opts.make_paragraphs {
+        heirarchy::paragraphs(ir)
+    } else {
+        ir
+    };
+
+    // Map out headers
+    let contents = heirarchy::headers(ir);
+
+    // Clean the tree of all empty values
+    let contents = heirarchy::clean(contents);
+
+    if warnings.len() == 0 {
+        Res::Ok(Item {
+            item: ContentIr::Div { contents },
+            location: Some(location),
+        })
+    } else if warnings.len() == 1 {
+        Res::Warn {
+            item: Item {
+                item: ContentIr::Div { contents },
+                location: Some(location),
+            },
+            msg: warnings[0].clone().0,
+        }
+    } else {
+        Res::Warnings {
+            item: Item {
+                item: ContentIr::Div { contents },
+                location: Some(location),
+            },
+            msgs: warnings,
+        }
+    }
+}
+
+...
+
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">chomp::block()</span> method was updated to account for the new quote type.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/chomp/block.rs
+
+use crate::{
+    parser::md::{
+        parse_contents::{self, content_ir::BlockKind, Options, Validations},
+        ContentIr,
+    },
+    Location, Res,
+};
+
+pub fn block(
+    contents: &amp;String,
+    opts: Options,
+    validations: &amp;Validations,
+) -> Option&lt;Vec&lt;ContentIr>> {
+    // Try to split it on the large chunks.
+
+    let (start_idx, block_kind, start_token) = if let Some(idx) = contents.find("TRIPLE_TICK quote") {
+        (Some(idx), BlockKind::Quote, "TRIPLE_TICK quote")
+    } else if let Some(idx) = contents.find("TRIPLE_TICK") {
+        (Some(idx), BlockKind::Code, "TRIPLE_TICK")
+    } else {
+        (None, BlockKind::Code, "")
+    };
+
+    if let Some(start_idx) = start_idx {
+        let (before, code_start) = contents.split_at(start_idx);
+        let code_start = code_start.replacen(start_token, "", 1);
+
+        if let Some(end_idx) = code_start.find("TRIPLE_TICK") {
+            let (code, after) = code_start.split_at(end_idx);
+            let after = after.replacen("TRIPLE_TICK", "", 1);
+
+            let mut before_validations = validations.clone();
+            before_validations.skip_code_block = true;
+
+            let mut ir = vec![];
+
+            if before.len() > 0 {
+                ir.push(ContentIr::Unparsed {
+                    contents: before.into(),
+                    validations: before_validations,
+                });
+            }
+
+            if code.len() > 0 {
+                let contents = match block_kind {
+                    BlockKind::Code => ContentIr::Text { text: code.into() },
+                    BlockKind::Quote => {
+                        let quote_validations = {
+                            let mut validations = validations.clone();
+                            validations.validate_paragraph_len = false;
+                            validations
+                        };
+
+                        match parse_contents::execute(
+                            code.into(),
+                            Location {
+                                column: 0,
+                                file: String::default(),
+                                line: 0,
+                                path: String::default(),
+                            },
+                            opts,
+                            Some(quote_validations.clone()),
+                        ) {
+                            Res::Ok(contents) => contents.item,
+                            Res::Warn { item, msg } => {
+                                //TODO: How to handle warning in blocks?
+                                println!("Unhandled warning for blocks: {:?}", msg);
+                                item.item
+                            }
+                            Res::Warnings { item, msgs } => {
+                                //TODO: How to handle warnings in blocks?
+                                println!(
+                                    "Unhandled warnings for blocks: {:?}",
+                                    msgs.iter().map(|s| format!("\n{:?}", s))
+                                );
+                                ContentIr::Text { text: code.into() }
+                            }
+                            Res::Error { location, msg } => {
+                                //TODO: How to handle errors in blocks?
+                                println!("Unhandled errors for blocks: {:?}", msg);
+                                ContentIr::Text { text: code.into() }
+                            }
+                        }
+                    }
+                };
+
+                ir.push(ContentIr::Block {
+                    contents: Box::new(contents),
+                    block_kind,
+                });
+            }
+
+            if after.len() > 0 {
+                ir.push(ContentIr::Unparsed {
+                    contents: after.into(),
+                    validations: validations.clone(),
+                });
+            }
+
+            return Some(ir);
+        }
+    }
+
+    None
+}
+</div>
+<p   >And finally the <span   class="codeblockDark outlinedDark">clean()</span> method is added. This recursively processes all <span   class="codeblockDark outlinedDark">ContentIr</span>, removing any dead or empty nodes. It could be simplified but I don't expect much churn here so there's no need.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/hierarchy.rs
+
+...
+
+
+// Removes all empty elements
+pub fn clean(mut contents: Vec&lt;ContentIr>) -> Vec&lt;ContentIr> {
+    let mut cleaned = vec![];
+
+    while contents.len() > 0 {
+        let ir = contents.remove(0);
+
+        let ir = match &amp;ir {
+            ContentIr::Block {
+                block_kind,
+                contents,
+            } => {
+                let mut contents = clean(vec![contents.deref().clone()]);
+                if contents.is_empty() {
+                    None
+                } else {
+                    Some(ContentIr::Block {
+                        contents: Box::new(contents.remove(0)),
+                        block_kind: *block_kind,
+                    })
+                }
+            }
+            ContentIr::Card(contents) => {
+                let contents = clean(contents.clone());
+                if contents.is_empty() {
+                    None
+                } else {
+                    Some(ContentIr::Card(contents))
+                }
+            }
+            ContentIr::Div { contents } => {
+                let contents = clean(contents.clone());
+                if contents.is_empty() {
+                    None
+                } else {
+                    Some(ContentIr::Div { contents })
+                }
+            }
+            ContentIr::Header { text, .. } => {
+                if text.is_empty() {
+                    None
+                } else {
+                    Some(ir)
+                }
+            }
+            ContentIr::InlineCode(text) => {
+                if text.is_empty() {
+                    None
+                } else {
+                    Some(ir)
+                }
+            }
+            ContentIr::Link { .. } => Some(ir),
+            ContentIr::Metadata(_) => Some(ir),
+            ContentIr::OrderedList { items, numeric } => {
+                let items = clean(items.clone());
+                if items.is_empty() {
+                    None
+                } else {
+                    Some(ContentIr::OrderedList {
+                        items,
+                        numeric: *numeric,
+                    })
+                }
+            }
+            ContentIr::Paragraph { children } => {
+                let children = clean(children.clone());
+                if children.is_empty() {
+                    None
+                } else {
+                    Some(ContentIr::Paragraph { children })
+                }
+            }
+            ContentIr::Text { text } => {
+                if text.is_empty() {
+                    None
+                } else {
+                    Some(ir)
+                }
+            }
+            ContentIr::Unparsed { .. } => Some(ir),
+            ContentIr::UnorderedList { items } => {
+                let items = clean(items.clone());
+                if items.is_empty() {
+                    None
+                } else {
+                    Some(ContentIr::UnorderedList { items })
+                }
+            }
+        };
+
+        if let Some(ir) = ir {
+            cleaned.push(ir);
+        }
+    }
+
+    cleaned
+}
+
+
+</div>
+<p   >With that I now have a parse tree that only contains the elements that are needed, reducing processing that must be done at later stages.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0749"  ><a  href="#0749"  >#</a>
+ 0749</h3>
+<div   ><p   >For shits and giggles, I ran this on the M1. Here's the stats:</p>
+<p   >Windows (WSL):</p>
+<ul   class="listLight"><li><div   >Single threaded: 500ms</div></li><li><div   >Multithreaded: 200ms</div></li></ul>
+<p   >M1 Mac:</p>
+<ul   class="listLight"><li><div   >Single threaded: 185ms</div></li><li><div   >Multithreaded: 50ms</div></li></ul>
+<p   >I can't say that whether WSL has an impact, but the M1 is proving to be a nice machine.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1115"  ><a  href="#1115"  >#</a>
+ 1115</h3>
+<div   ><p   >The main change on this commit was the addition of a <span   class="codeblockDark outlinedDark">builder</span> module. This new module lowercases file names +  links and executes validation on the tree. </p>
+<p   >I've also added a new <span   class="codeblockDark outlinedDark">Link</span> type that can be validated and a new <span   class="codeblockDark outlinedDark">Navigation</span> struct that will be used in a later post to build navigation.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/mod.rs
+
+...
+
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Link(String);
+
+impl Link {
+    pub fn to_str(&amp;self) -> &amp;str {
+        &amp;self.0
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Md {
+    pub contents: Item&lt;ContentIr>,
+    pub date: String,
+    pub day: String,
+    pub default_title: String,
+    pub display_title: String,
+    pub html_file_name: Link,
+    pub keywords: Vec&lt;String>,
+    pub month: String,
+    pub navigation: Navigation,
+    pub path: String,
+    pub summary: String,
+    pub year: String,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Navigation {
+    pub next: Vec&lt;Link>,
+    pub previous: Vec&lt;Link>,
+}
+
+...
+
+</div>
+<p   >It gets populated like so:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/mod.rs
+...
+let item = Item {
+        item: IntermediateRepresentation::Md(Md {
+            contents,
+            date: date.clone(),
+            day: split[DAY_IDX].clone(),
+            default_title: default_title.clone(),
+            display_title,
+            html_file_name: Link(format!("{}_{}.html", date, default_title)),
+            keywords,
+            month: split[MONTH_IDX].clone(),
+            navigation: Navigation {
+                next: vec![],
+                previous: vec![],
+            },
+            summary,
+            path: path_string.clone(),
+            year: split[YEAR_IDX].clone(),
+        }),
+        location: Some(location),
+    };
+...
+</div>
+<p   >The new <span   class="codeblockDark outlinedDark">builder</span> module is added to the <span   class="codeblockDark outlinedDark">main</span> method.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// main.rs
+
+fn main() {
+    let start = std::time::Instant::now();
+
+    let author = "Eric Olson".to_string();
+
+    // Source the context for this session
+    let context = match env_args::parse(author) {
+        Some(res) => match res {
+            Res::Ok(item) => item.item,
+            Res::Warn { item, msg } => {
+                console::warn(&amp;msg, item.location);
+                item.item
+            }
+            Res::Error { location, msg } => {
+                console::error(&amp;msg, location);
+                return;
+            }
+            Res::Warnings { item, msgs } => {
+                for (warning, location) in msgs.iter() {
+                    console::warn(warning, location.clone());
+                }
+
+                item.item
+            }
+        },
+        // Nothing available, so simply return
+        None => return,
+    };
+
+    // Traverse the input directory
+    let crawled_files = match map_results(crawler::execute(context.input.clone())) {
+        Ok(results) => results,
+        Err(_) => return,
+    };
+
+    console::success(
+        &amp;format!("Crawled all files at '{}'.", context.input.to_string()),
+        None,
+    );
+
+    // Parse all intermediate representations
+    let ir = match map_results(crawl_files(crawled_files, &amp;context)) {
+        Ok(ir) => ir,
+        Err(_) => return,
+    };
+
+    // Build the IR + analyze it
+    let analyzed_ir = match map_results(builder::execute(ir)) {
+        Ok(ir) => ir,
+        Err(_) => return,
+    };
+
+    // Finally generate all code
+    match map_results(generator::execute(analyzed_ir, context.clone())) {
+        Ok(_) => {
+            let msg = format!("Success! Took {:?}.", std::time::Instant::now() - start);
+
+            console::success(&amp;msg, None)
+        }
+        Err(_) => {
+            return;
+        }
+    }
+}
+</div>
+<p   >The builder module is a bit... complicated. I'll go over it in chunks to make it easier to grok.</p>
+<p   >The following is the 'main' computing chunk. Like the other sections, it has a single entry point with the <span   class="codeblockDark outlinedDark">execute</span> function. It splits out everything into one <span   class="codeblockDark outlinedDark">Arc&lt;BuildContext></span> which will be shared across threads. </p>
+<p   >A further optimization could be splitting out file names so into hash tables.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// builder/mod.rs
+
+use crate::{
+    parser::{ContentIr, Css, Img, IntermediateRepresentation, LinkType, Md},
+    Item, Location, Res,
+};
+use std::sync::Arc;
+
+struct BuildContext {
+    pub css: Vec&lt;(Option&lt;Location>, Css)>,
+    pub img: Vec&lt;(Option&lt;Location>, Img)>,
+    pub md: Vec&lt;(Option&lt;Location>, Md)>,
+}
+
+pub fn execute(
+    mut ir: Vec&lt;Item&lt;IntermediateRepresentation>>,
+) -> Vec&lt;Res&lt;IntermediateRepresentation>> {
+    let build_context = {
+        let mut build_context = BuildContext {
+            css: vec![],
+            img: vec![],
+            md: vec![],
+        };
+
+        while ir.len() > 0 {
+            let i = ir.remove(0);
+            let location = i.location;
+
+            match i.item {
+                IntermediateRepresentation::Css(item) => build_context.css.push((location, item)),
+                IntermediateRepresentation::Img(item) => build_context.img.push((location, item)),
+                IntermediateRepresentation::Md(item) => build_context.md.push((location, item)),
+            }
+        }
+
+        // Preprocess all file names for css
+        for (_, css) in build_context.css.iter_mut() {
+            css.file_name = css.file_name.to_lowercase();
+        }
+
+        // Preprocess all file names for imgs
+        for (_, img) in build_context.img.iter_mut() {
+            img.file_name = img.file_name.to_lowercase();
+        }
+
+        Arc::new(build_context)
+    };
+
+    // Build out the MDs
+    let mds = build_mds(&amp;build_context);
+
+    // Build the final IR
+    let mut ir = vec![];
+
+    for (location, css) in build_context.css.iter() {
+        ir.push(Res::Ok(Item {
+            location: location.clone(),
+            item: IntermediateRepresentation::Css(css.clone()),
+        }));
+    }
+
+    for (location, img) in build_context.img.iter() {
+        ir.push(Res::Ok(Item {
+            location: location.clone(),
+            item: IntermediateRepresentation::Img(img.clone()),
+        }));
+    }
+
+    for res in mds {
+        let res = match res {
+            Res::Ok(i) => Res::Ok(Item {
+                item: IntermediateRepresentation::Md(i.item),
+                location: i.location,
+            }),
+            Res::Warn { item, msg } => Res::Warn {
+                item: Item {
+                    location: item.location,
+                    item: IntermediateRepresentation::Md(item.item),
+                },
+                msg,
+            },
+            Res::Warnings { item, msgs } => Res::Warnings {
+                item: Item {
+                    location: item.location,
+                    item: IntermediateRepresentation::Md(item.item),
+                },
+                msgs,
+            },
+            Res::Error { location, msg } => Res::Error { location, msg },
+        };
+
+        ir.push(res);
+    }
+
+    ir
+}
+
+...
+
+
+</div>
+<p   >The next section is for multithreading. What I've done in other areas is abstract this function so that I can easily toggle between <span   class="codeblockDark outlinedDark">Rayon</span>'s multithreaded iterators and a single threaded version. This is done to reduce compile time.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+...
+
+fn build_mds(build_context: &amp;Arc&lt;BuildContext>) -> Vec&lt;Res&lt;Md>> {
+    #[cfg(feature = "multithread")]
+    {
+        use rayon::prelude::*;
+        return build_context
+            .md
+            .par_iter()
+            .enumerate()
+            .map(|(idx, (location, md))| {
+                build_md(idx, location.clone(), md.clone(), build_context.clone())
+            })
+            .collect();
+    }
+
+    build_context
+        .md
+        .iter()
+        .enumerate()
+        .map(|(idx, (location, md))| {
+            build_md(idx, location.clone(), md.clone(), build_context.clone())
+        })
+        .collect()
+}
+
+...
+</div>
+<p   >The next portion is the building of an individual MD file. This adds to the <span   class="codeblockDark outlinedDark">Navigation</span> struct and kicks off validation.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+...
+
+fn build_md(
+    index: usize,
+    location: Option&lt;Location>,
+    mut md: Md,
+    build_context: Arc&lt;BuildContext>,
+) -> Res&lt;Md> {
+    // Build out the links
+    if build_context.md.len() > 0 {
+        // Previous
+        if index != 0 {
+            md.navigation
+                .previous
+                .push(build_context.md[index - 1].1.html_file_name.clone());
+        }
+
+        // Next
+        if index &lt; build_context.md.len() - 1 {
+            md.navigation
+                .next
+                .push(build_context.md[index + 1].1.html_file_name.clone());
+        }
+    }
+
+    let mut warnings = vec![];
+
+    match validate_md(&amp;md.contents.item, &amp;md.contents.location, &amp;build_context) {
+        Res::Ok(_) => {}
+        Res::Warn { item, msg } => {
+            warnings.push((msg, item.location.clone()));
+        }
+        Res::Warnings { mut msgs, .. } => {
+            warnings.append(&amp;mut msgs);
+        }
+        Res::Error { location, msg } => return Res::Error { location, msg },
+    };
+
+    let item = Item { location, item: md };
+    if warnings.is_empty() {
+        Res::Ok(item)
+    } else if warnings.len() == 1 {
+        Res::Warn {
+            item,
+            msg: warnings[0].0.clone(),
+        }
+    } else {
+        Res::Warnings {
+            item,
+            msgs: warnings,
+        }
+    }
+}
+
+...
+</div>
+<p   >Finally validation is written up. This behaves in a recursive fashion.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+...
+
+
+fn validate_md(
+    content: &amp;ContentIr,
+    location: &amp;Option&lt;Location>,
+    build_context: &amp;Arc&lt;BuildContext>,
+) -> Res&lt;()> {
+    let mut warnings: Vec&lt;(String, Option&lt;Location>)> = vec![];
+    let mut errors: Vec&lt;Res&lt;()>> = vec![];
+
+    let mut map_results = |res: Res&lt;()>| match res {
+        Res::Ok(_) => {}
+        Res::Warn { item, msg } => warnings.push((msg, item.location)),
+        Res::Warnings { mut msgs, .. } => warnings.append(&amp;mut msgs),
+        Res::Error { location, msg } => errors.push(Res::Error::&lt;()> { location, msg }),
+    };
+
+    match &amp;content {
+        ContentIr::Block { contents, .. } => {
+            map_results(validate_md(contents.as_ref(), location, build_context))
+        }
+        ContentIr::Card(content) => content
+            .iter()
+            .for_each(|c| map_results(validate_md(c, location, build_context))),
+        ContentIr::Div { contents } => contents
+            .iter()
+            .for_each(|c| map_results(validate_md(c, location, build_context))),
+        ContentIr::Header { .. } => {}
+        ContentIr::InlineCode(_) => {}
+        ContentIr::Link { url, link_type, .. } => {
+            // validate the various links
+            match link_type {
+                LinkType::Iframe => {
+                    // not validating external links
+                }
+                LinkType::LocalImage => {
+                    // Only validate local images
+                    const ASSETS_FOLDER: &amp;'static str = "assets/";
+                    if url.starts_with(ASSETS_FOLDER) {
+                        let mut found = false;
+                        let raw_url = url.replace(ASSETS_FOLDER, "");
+                        for img in build_context.img.iter() {
+                            if raw_url == img.1.file_name {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if !found {
+                            errors.push(Res::Error {
+                                location: location.clone(),
+                                msg: format!("Unlinked image with raw url: {:?}!", raw_url),
+                            })
+                        }
+                    }
+                }
+                LinkType::Regular => {
+                    // not validating external links
+                }
+                LinkType::Youtube => {
+                    // not validating external links
+                }
+            }
+        }
+        ContentIr::Metadata(_) => {}
+        ContentIr::OrderedList { items, .. } => items
+            .iter()
+            .for_each(|c| map_results(validate_md(c, location, build_context))),
+        ContentIr::Paragraph { children } => children
+            .iter()
+            .for_each(|c| map_results(validate_md(c, location, build_context))),
+        ContentIr::Text { .. } => {}
+        ContentIr::Unparsed { .. } => todo!(),
+        ContentIr::UnorderedList { items } => items
+            .iter()
+            .for_each(|c| map_results(validate_md(c, location, build_context))),
+    };
+
+    if errors.len() > 0 {
+        return errors.remove(0);
+    }
+
+    let item = Item {
+        location: location.clone(),
+        item: (),
+    };
+
+    if warnings.is_empty() {
+        Res::Ok(item)
+    } else if warnings.len() == 1 {
+        Res::Warn {
+            item,
+            msg: warnings[0].0.clone(),
+        }
+    } else {
+        Res::Warnings {
+            item,
+            msgs: warnings,
+        }
+    }
+}
+
+</div>
+<p   >While not terribly complicated, it is a lot of code. </p>
+<p   >With that I've crossed a few things off the roadmap:</p>
+<ul   class="listLight"><li><div   >Lowercasing all file names for images</div></li><li><div   >Analyzing IR for valid images</div></li><li><div   >Started on navigation</div></li></ul>
+<p   >Remaining:</p>
+<ul   class="listLight"><li><div   >Navigation continued</div></li><li><div   >Fractal generation</div></li><li><div   >Index page</div></li><li><div   >Series tag</div></li><li><div   >Utilizing folders to separate blog entries + images</div></li><li><div   >Config.json</div></li></ul>
+<p   >There's more, but that is the minimum I want to get done before moving to other projects.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

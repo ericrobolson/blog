@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Blog Generation 2</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Continued: Starting a blog generator/compiler. Thoughts on VR.">
+<meta name="keywords" content="rust, compiler, blog, generation, markdown, virtual, reality">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.15_BlogGen.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.17_Finishing.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.16 - Blog Generation 2</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0633"  ><a  href="#0633"  >#</a>
+ 0633</h3>
+<div   ><p   >I'll be adding in headers. I find that a recursive descent parser to be extremely useful. While I am sure that there are downsides, it was relatively easy to get up and running. That ease enabled me to get this tool up and running within a day. </p>
+<p   >There are a few things that need to be done before I move on:</p>
+<ol  type="1" class="listLight"><li><div   > Headers</div></li><li><div   > Text formatting</div></li><li><div   > Menu generation</div></li><li><div   > Searching?</div></li><li><div   > Keywords</div></li><li><div   > Lists</div></li></ol>
+<p   >From there I can switch to another project. I still can't decide whether to keep moving forward with the verlet integrator or to ditch it. That's for another day I suppose.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0730"  ><a  href="#0730"  >#</a>
+ 0730</h3>
+<div   ><p   >My generated HTML is very ugly:</p>
+<p   ><a  href="assets/2021.08.16_0731.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.08.16_0731.png" alt="State of things" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p>
+<p   >I'll be tweaking the CSS as time goes on. Things are coming together nicely. One of the good things is now when I add new file types, I get an error. This allows me to iteratively develop my solution as time goes on.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1200"  ><a  href="#1200"  >#</a>
+ 1200</h3>
+<div   ><p   >Pistol Whip dropped a new patch recently and I booted it up today. Holy shit, it's awesome. It makes me want to get into VR again. Some notes:</p>
+<ol  type="1" class="listLight"><li><div   > High refresh rate is not compromisable. 90hz seems weak, but 120hz or greater seems like it is an absolute must. </div></li><li><div   > Locomotion is hard. The most successful ones have been either stationary (Beatsaber, Star Wars Squadrons), fixed movement (Pistol Whip, Swarm) or teleportation. I'll be giving teleportation another shot soon. One idea I have is teleportation, except your character walks forward. Joystick based movement is vomit inducing and not feasible. </div></li></ol>
+<p   >I'm installing Skyrim VR, Fallout 4 VR, Squadrons, Raw Data, The Forrest, Killing Floor Incursion as well as the other VR games I have on my Quest 2. Expect some notes from each of these and possibly reviews. </p>
+<p   >To summarize, I want to try movement based teleportation, where your character moves in a straight line like Pistol Whip. I also want to do virtual based vehicles, where you control a virtual joystick or virtual wheel + stick shift. </p>
+<p   >The trick will be do do some form of cross platform development. Is there a way to easily do PC, VR, and mobile dev? Open source clients would be my preference, but that may not always be feasible. </p>
+<p   >One area I struggle with is design vs technical details. In the past I've gotten hung up on the technical details, meaning that I don't get past the technical side of things and progress to the design phase. </p>
+<p   >If I do go back to Noiseless Mountain, Ill will be an inspiration. </p>
+<p   ><div   class="aspectRatio16x9ContainerLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"><iframe  
+                        src="https://www.youtube.com/embed/Bp33UdI50ko" 
+                        title="YouTube video player" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen class="aspectRatio16x9InnerLight"></iframe></div></p>
+<p   >Interestingly enough, I can directly embed HTML in here and it works. I'll keep it limited though.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="2035"  ><a  href="#2035"  >#</a>
+ 2035</h3>
+<div   ><p   >I do appreciate frameworks like Angular and React more now. Writing a generator for this is time consuming. One bit of advice I read recently was 'Write one to throw away.' Another was 'The data is all that matters.' </p>
+<p   >Perhaps I will write my own custom blog format, and essentially write a compiler which forces everything to be well formed. From there I can utilize my generator to spit out HTML. Doing a tailor made version may be more useful than parsing .md files. </p>
+<p   >I could make it relatively simplistic, where it parses the content line by line. If a code block is detected, it switches to code parsing. Or I could keep changing it as time goes on, adding unit tests once I have the basic version up. </p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

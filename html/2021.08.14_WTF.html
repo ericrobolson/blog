@@ -1,0 +1,276 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WTF</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Restarting since things don't draw with the switchover to 2d.">
+<meta name="keywords" content="rust, verlet, integrator, 2d, rain, world, deterministic, starting, over, 3d, pixel, art">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.13_2dSwitchover.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.15_BlogGen.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.14 - WTF</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0721"  ><a  href="#0721"  >#</a>
+ 0721</h3>
+<div   ><p   >WTF. With my switchover to i32's and a more 2d methodology, all the meshes aren't drawing. I'm getting a blank screen. Something went very, very wrong. I really have no idea what happened. On the bright side, I did figure out what the issue was with my 3d verlet integrator. </p>
+<p   >I had a z value of 1 on a mesh, meaning that it oriented itself in that direction. Well. Rather annoying, but I'm going to add back in the 3d code I previously had with fixed point ints. Plan:</p>
+<ol  type="1" class="listLight"><li><div   > Add in deleted + removed code, while keeping the new types I have added in.</div></li><li><div   > Ensure that meshes are rendering again. This is most critical.</div></li><li><div   > SLOWLY port over the code to a 2d physics simulation, testing along the way at each time. This will help pinpoint exactly what went wrong.</div></li></ol>
+<p   >Here goes.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0751"  ><a  href="#0751"  >#</a>
+ 0751</h3>
+<div   ><p   >I'm trying something new. A lot of the types are things like IVec2, Vec2, DVec2 so I'm utilizing macros to generate boiler plate code. One could argue generics are the 'proper' way to do this, but that's annoying. I do not need a robust physics library or math crate that will handle everything, I have a small subset of requirements. </p>
+<p   >I can easily split it out if need be, but that's not required for now. The main thing is to have a consistent API and usage between types, as well as minimalizing the boilerplate I need to write. The plan is to primarily use macros for generating data structures, and not expressions. This should help keep compile times low.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0815"  ><a  href="#0815"  >#</a>
+ 0815</h3>
+<div   ><p   >I've figured the issue out. I was setting my <span   class="codeblockDark outlinedDark">unit_y()</span> for Vectors to <span   class="codeblockDark outlinedDark">(0,0,0)</span>....</p>
+<p   >Things are rendering now, so I was able to play around a bit with how 2d int based vec2's works. It's not ideal. It works well enough, but the lerping is non-existent and the camera rework for the speed is suboptimal. I'll go ahead and do what I did for Vec3's and macros with Vec2's. </p>
+<p   >Based on my preferences, I think pure pixel art isn't gonna fly, but instead I'll end up with some form of hybrid solution where it's still 2d, but lerpable and has far more precise movement + rotations. </p>
+<p   >This should give me a more unique and modern feel than what current 2d pixel art games have. Perhaps SVG's will be the way forward? There's crates to raster those, so I may end up doing that.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0909"  ><a  href="#0909"  >#</a>
+ 0909</h3>
+<div   ><p   >Switchover has been completed. I'm now using DVec2's in the simulation. It's not super fantastic on a M1 Mac, but it's certainly useable. I think it's the refresh rate. I'll check it out on the main workhorse later. </p>
+<p   >For now I'll clean up the code, merge it to main, then restart the 2d verlet integration. Otherwise my MR's will get insane. This one is already something like 4k lines, but perhaps 300-500 is these posts.</p>
+<p   >I'm looking forward to implementing the verlet system. I'm already brainstorming what can be done with it and how I'll implement things. Here's a gif of what I've currently got:</p>
+<p   ><a  href="assets/2021.08.14_0924.gif" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.08.14_0924.gif" alt="Moving Triangles" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1352"  ><a  href="#1352"  >#</a>
+ 1352</h3>
+<div   ><p   >A productive day so far. I've added the ability to make a 'chain' of particles and move it around. This looks like a snake:</p>
+<p   ><a  href="assets/2021.08.14_1414.gif" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.08.14_1414.gif" alt="Moving Chain" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p>
+<p   >The following sections are some random thoughts I've had.</p>
+<p   >The experience feels far worse on a m1. I am noting it now but will have to address it later. I need profiling tools to start determining where and why it needs to be optimized. I'm running everything on a single thread and will increase the simulation by at least a hundredfold. </p>
+<p   >At this point it's not worth doing any sort of optimization as I do not have the core structure in place. With that said, I'm trying to keep everything simplistic and 'data oriented' to enable me to iterate on the specifics now, and then go dig deeper later when I hit walls.</p>
+<p   >I'm toying with the idea of writing the blog generator in Rust. It's a language I am familiar with, and as such I can hack things quickly. It will treat everything in a idempotent fashion, meaning I can ensure that old post data is kept up to date with new post data and that they follow the same rules. </p>
+<p   >This will essentially be a new compiler for my purposes. I think throwing it in the <span   class="codeblockDark outlinedDark">_opensource</span> folder is an excellent idea.</p>
+<p   >I am going to need to automate my deployment pipeline soon. I want to wait a little longer and hack on this before I start marketing. The sooner the better, but I want to get ragdolls in place first. That will the absolute core of my engine and I need that to work on the cosmetics and gameplay.</p>
+<p   >I've completed Section 4 in <a  href="https://www.cs.cmu.edu/afs/cs/academic/class/15462-s13/www/lec_slides/Jakobsen.pdf"  >Advanced Character Physics.</a> Ragdolls will be next for the verlet integrator. Doing it in 2d does not simplify the math and utilizing fixed point ints makes things explode randomly. </p>
+<p   >I've found myself adding in quite a lot of checks or things to 'interpolate' the simulation to prevent overflows. The idea is it is better to take many smaller steps towards the solution than it is to take a giant leap. An example would be in Section 4 there is this code to solve the constraint in a C/C++ language:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// Pseudo-code to satisfy (C2)
+delta = x2-x1;
+deltalength = sqrt(delta*delta);
+diff = (deltalength-restlength)
+/(deltalength*(invmass1+invmass2));
+x1 -= invmass1*delta*diff;
+x2 += invmass2*delta*diff;
+</div>
+<p   >Here's my version coded in Rust:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+let length = *length;
+
+let idx_a = particle_a.0;
+let idx_b = particle_b.0;
+
+let x1 = self.m_x[idx_a];
+let x2 = self.m_x[idx_b];
+
+let delta = x2 - x1;
+
+let dx = {
+    let rest_len_sqrd = length * length;
+
+    delta
+        * (rest_len_sqrd / (delta.len_sqrd() + rest_len_sqrd)
+            - DNumber::frac(2))
+};
+
+// Ensure that the delta doesn't explode by clamping to an arbitrary number.
+// In this case it's half of the length to prevent absurd jerkiness/slowdown.
+let l = length * DNumber::frac(2);
+let dx = dx.clamp(-l, l);
+
+self.m_x[idx_a] -= dx;
+self.m_x[idx_b] += dx;
+</div>
+<p   >For now I am focusing on keeping it fast and taking small steps towards the final solution at a macro (strategic, design + product) and micro (tactical, coding) level. The above example be what I classify at a micro level, the decision to move from 3d to 2d would be at a macro level.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1428"  ><a  href="#1428"  >#</a>
+ 1428</h3>
+<div   ><p   >This will likely end up as a longer than usual entry since I have more time to dedicate to this project today. </p>
+<p   >One thing I noticed from the <span   class="codeblockDark outlinedDark">2021.08.13_2dSwitchover.md</span> are some notes on the types. Things look a bit different now, so I'll give a overview of them:</p>
+<ul   class="listLight"><li><div   ><span   class="codeblockDark outlinedDark">DVec2</span>
+ - A fixed-point deterministic vec2 type.</div></li><li><div   ><span   class="codeblockDark outlinedDark">IVec2</span>
+ - A int32 based vec2 type. Not sure there's a lot of value here yet.</div></li><li><div   ><span   class="codeblockDark outlinedDark">Vec2</span>
+ - A f32 based vec2 type. No use yet.</div></li><li><div   ><span   class="codeblockDark outlinedDark">DVec3</span>
+ - A fixed-point deterministic vec3 type.</div></li><li><div   ><span   class="codeblockDark outlinedDark">Vec3</span>
+ - A f32 non-deterministic vec3 type.</div></li><li><div   ><span   class="codeblockDark outlinedDark">DNumber</span>
+ - A wrapper around a fixed-point number. This ensures I can utilize a separate crate, but control the API I interact with.</div></li><li><div   ><span   class="codeblockDark outlinedDark">Mat4</span>
+ - A f32 based 4x4 matrix for rendering.</div></li><li><div   ><span   class="codeblockDark outlinedDark">Quaternion</span>
+ - A f32 type to represent rotations for rendering.</div></li><li><div   ><span   class="codeblockDark outlinedDark">Transform</span>
+ - A f32 based transform used for rendering and calculations within the core.</div></li><li><div   ><span   class="codeblockDark outlinedDark">DTransform2d</span>
+ - A 
+<span   class="codeblockDark outlinedDark">DNumber</span>
+ based transform strictly for 2d. Utilizes degrees instead of 
+<span   class="codeblockDark outlinedDark">Quaternions</span>
+. No real reason degrees are used.</div></li></ul>
+<p   >Many of these types are generated using macros. I'll show the code for Vec2's. The code will be truncated (75%) to reduce boilerplate and convey main concepts.</p>
+<p   >First I have a macro and module defined:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+macro_rules! make_vec2 {
+    ($id:ident, $n:ty, $from_i32:expr) => {
+        #[derive(Copy, Clone, Debug, Default, PartialEq)]
+        pub struct $id {
+            pub x: $n,
+            pub y: $n,
+        }
+
+        impl $id {
+            pub fn len_sqrd(&amp;self) -> $n {
+                self.x * self.x + self.y * self.y
+            }
+
+            pub fn clamp(&amp;self, min: $n, max: $n) -> Self {
+                Self {
+                    x: self.x.clamp(min, max),
+                    y: self.y.clamp(min, max),
+                }
+            }
+        }
+
+        impl From&lt;[i32; 2]> for $id {
+            fn from([x, y]: [i32; 2]) -> Self {
+                Self {
+                    x: $from_i32(x),
+                    y: $from_i32(y),
+                }
+            }
+        }
+        
+        impl std::ops::Add for $id {
+            type Output = Self;
+            fn add(self, rhs: Self) -> Self {
+                Self {
+                    x: self.x + rhs.x,
+                    y: self.y + rhs.y,
+                }
+            }
+        }
+
+        #[cfg(test)]
+        mod tests {
+            use super::*;
+
+            #[test]
+            fn from_array() {
+                let x = 23;
+                let y = -99;
+
+                let expected = $id {
+                    x: $from_i32(x),
+                    y: $from_i32(y),
+                };
+                let actual: $id = [x, y].into();
+
+                assert_eq!(expected, actual);
+            }
+            #[test]
+            fn add() {
+                let x1 = 12;
+                let y1 = -3;
+                let x2 = 34;
+                let y2 = 84;
+
+                let expected = $id {
+                    x: $from_i32(x1) + $from_i32(x2),
+                    y: $from_i32(y1) + $from_i32(y2),
+                };
+
+                let a: $id = (x1, y1).into();
+                let b: $id = (x2, y2).into();
+
+                let actual = a + b;
+                assert_eq!(expected, actual);
+            }
+        }
+    };
+}
+
+mod dvec2;
+mod ivec2;
+mod vec2;
+
+pub use dvec2::DVec2;
+pub use ivec2::IVec2;
+pub use vec2::Vec2;
+</div>
+<p   >These tests and functions are covering critical paths, or things I want to ensure are set in stone. I do my best to ensure I ship code that is simple and has room to grow. If it's a critical area, unit testing is utilized far more for edge cases. Manual testing is done extensively at the end before shipping. </p>
+<p   >Here's what the modules for the different vec types look like:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// dvec2.rs
+use crate::math::DNumber;
+
+fn from_i32(i: i32) -> DNumber {
+    DNumber::whole(i)
+}
+
+make_vec2!(DVec2, DNumber, from_i32);
+
+impl From&lt;DNumber> for DVec2 {
+    fn from(n: DNumber) -> Self {
+        Self { x: n, y: n }
+    }
+}
+
+impl std::ops::Add&lt;DNumber> for DVec2 {
+    type Output = Self;
+
+    fn add(self, rhs: DNumber) -> Self::Output {
+        Self {
+            x: self.x + rhs,
+            y: self.y + rhs,
+        }
+    }
+}
+
+impl std::ops::Mul&lt;DNumber> for DVec2 {
+    type Output = Self;
+
+    fn mul(self, rhs: DNumber) -> Self::Output {
+        Self {
+            x: self.x * rhs,
+            y: self.y * rhs,
+        }
+    }
+}
+</div>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// ivec2.rs
+fn from_i32(i: i32) -> i32 {
+    i
+}
+
+make_vec2!(IVec2, i32, from_i32);
+</div>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// vec2.rs
+fn from_i32(i: i32) -> f32{
+    i as f32
+}
+
+make_vec2!(Vec2, f32, from_i32);
+</div>
+<p   >You'll note that these are not as extensively tested or verbose as the macro. While an argument could be made to ensure 100% coverage, it's a fine line to walk as ensuring 100% coverage could cause progress to halt. </p>
+<p   >Typically my first pass at something may be light on unit tests. As edge cases come into play, I may add more edge case tests. If I'm working on legacy code, I'll write a unit test that triggers the bug and then fix it. Sometimes the other cases in the method must be covered before progressing. </p>
+<p   >There's no hard guidelines for this. All I can recommend is that if something is core and must provide the current behavior for a long time and is unlikely to churn large amounts, add some unit tests. If it's not churning any more, add some unit tests. If you aren't going to address a particular edge case, add logging so when you come back you can.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

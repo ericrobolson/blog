@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Project Generation</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Generating a page for projects I've worked on.">
+<meta name="keywords" content="project, github, repo, rust, blog_gen">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.14_AboutMe.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.15_WTF.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.15 - Project Generation</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0637"  ><a  href="#0637"  >#</a>
+ 0637</h3>
+<div   ><p   >Today I'll be adding in a Projects page that contains a list of all Github projects I want. </p>
+<p   >There's a new <span   class="codeblockDark outlinedDark">projects</span> section under the config that contains a list of all projects I want displayed. This was added a while back.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// config.rs
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Config {
+    pub about_me: String,
+    pub about_me_keywords: Vec&lt;String>,
+    pub about_me_summary: String,
+    pub author: String,
+    pub github: Option&lt;String>,
+    pub index_keywords: Vec&lt;String>,
+    pub index_summary: String,
+    pub index_title: String,
+    pub linked_in: Option&lt;String>,
+    pub projects: Vec&lt;Project>,
+    #[serde(default)]
+    pub theme: Theme,
+    pub twitter: Option&lt;String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Project {
+    pub title: String,
+    pub description: String,
+    pub url: String,
+}
+
+...
+
+</div>
+<p   >Then in the <span   class="codeblockDark outlinedDark">builder</span> module I added a new method to generate a project page, exactly like the About Me page.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// builder/projects_page.rs
+
+use crate::{
+    parser::{ContentIr, LinkType, Page},
+    Context, Item,
+};
+use std::sync::Arc;
+
+pub fn build(context: &amp;Arc&lt;Context>) -> Page {
+    let projects = ContentIr::section(
+        "Projects".into(),
+        vec![
+            ContentIr::Text {
+                text: "A collection of various projects I've worked on over the years.".into(),
+            },
+            map_projects(context),
+        ],
+    );
+
+    let page_contents = vec![
+        ContentIr::title("Projects".into(), "projects".into()),
+        projects,
+    ];
+
+    Page {
+        contents: Item {
+            location: None,
+            item: ContentIr::Div {
+                contents: page_contents,
+            },
+        },
+        file_name: "projects.html".into(),
+        keywords: map_keywords(context),
+        summary: "A collection of projects I've worked on over the years.".into(),
+        title: "Projects".into(),
+    }
+}
+
+fn map_projects(context: &amp;Arc&lt;Context>) -> ContentIr {
+    let projects = context
+        .config
+        .projects
+        .iter()
+        .map(|p| {
+            ContentIr::section(
+                p.title.clone(),
+                vec![
+                    ContentIr::text(p.description.clone()),
+                    ContentIr::Link {
+                        description: "Check it out".into(),
+                        url: p.url.clone(),
+                        link_type: LinkType::Regular,
+                    },
+                ],
+            )
+        })
+        .collect();
+
+    ContentIr::Div { contents: projects }
+}
+
+fn map_keywords(context: &amp;Arc&lt;Context>) -> Vec&lt;String> {
+    let mut keywords = vec![
+        "github".into(),
+        "collection".into(),
+        "various".into(),
+        "projects".into(),
+    ];
+
+    context.config.projects.iter().for_each(|p| {
+        keywords.append(
+            &amp;mut p
+                .description
+                .split_ascii_whitespace()
+                .map(|c| c.to_lowercase().replace(".", "").to_string())
+                .filter(|c| {
+                    c != "and" &amp;&amp; c != "that" &amp;&amp; c != "the" &amp;&amp; c != "a" &amp;&amp; c != "for" &amp;&amp; c != "in"
+                })
+                .collect(),
+        )
+    });
+
+    keywords.dedup();
+
+    keywords
+}
+
+</div>
+<p   >What it does is iterates over all the projects I've added, making a bunch of sections, combining the descriptions to make keywords and spits out a page. </p>
+<p   >It isn't the sexiest, but it will suffice for now. At this stage in the game I'm getting antsy to work on deploying it, so I'll be focusing on wrapping things up as fast as possible to do that.</p>
+<p   >Here's the final render:</p>
+<p   ><a  href="assets/2021.09.15_0659.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.09.15_0659.png" alt="Final render" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,353 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>CSS 3</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Extending CSS and adding new classes.">
+<meta name="keywords" content="Rust, css, cards, new, classes, padding">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.28_Ideas2.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.30_Cards.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.29 - CSS 3</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0901"  ><a  href="#0901"  >#</a>
+ 0901</h3>
+<div   ><p   >I'll make one more change before starting on some basic parsing by adding a <span   class="codeblockDark outlinedDark">ContentWrapper</span> class. All this will do is add a 16px padding around the blog content to ensure it looks pretty.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet/class.rs
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Class {
+    Card { dark_mode: bool },
+    ContentWrapper,
+    Outlined { dark_mode: bool },
+    Page,
+}
+
+...
+
+impl Class {
+
+...
+
+  pub fn css(&amp;self, theme: &amp;Theme) -> Css {
+        match self {
+            Class::Card { dark_mode } => card(self, *dark_mode, theme),
+            Class::ContentWrapper => content_wrapper(self),
+            Class::Outlined { dark_mode } => outline(self, *dark_mode, theme),
+            Class::Page => page(self),
+        }
+    }
+
+...
+
+}
+
+...
+
+
+fn content_wrapper(class: &amp;Class) -> Css {
+    format!(
+        ".{} {{ 
+            padding: 16px;
+        }}        
+        ",
+        class.selector().to_str()
+    )
+    .into()
+}
+
+</div>
+<p   >That gets wired up to the <span   class="codeblockDark outlinedDark">Page</span>:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/page.rs
+
+impl Html for Page {
+    fn to_html(&amp;self) -> String {
+        format!(
+            "
+&lt;!DOCTYPE html>
+&lt;html>
+    &lt;head>
+        &lt;title>{}&lt;/title>
+        &lt;!-- metadata -->
+        {}
+        &lt;!-- css -->
+        {}
+    &lt;/head>
+    &lt;body>
+        &lt;!-- page class -->
+        &lt;div class={}>
+            &lt;!-- content wrapper -->
+            &lt;div class={}>
+                &lt;!-- content -->
+                {}
+            &lt;/div>
+        &lt;/div>
+    &lt;/body>
+&lt;/html>
+",
+            self.title,
+            self.metadata.to_html(),
+            self.css.to_html(),
+            stylesheet::Class::Page.selector().to_str(),
+            stylesheet::Class::ContentWrapper.selector().to_str(),
+            self.content.to_html()
+        )
+    }
+}
+</div>
+<p   ><a  href="assets/2021.08.29_0914.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.08.29_0914.png" alt="Results of Content Wrapper" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p>
+<p   >With that done, parsing can begin. I'll sketch out the basic outline now and fill it in later.</p>
+<p   >First I'll add a new trait, <span   class="codeblockDark outlinedDark">HtmlElement</span>. This will enable the generation of elements from <span   class="codeblockDark outlinedDark">ContentIr</span>.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/mod.rs
+mod css_link;
+pub mod element;
+mod metadata;
+mod page;
+mod stylesheet;
+
+pub use css_link::CssLink;
+pub use element::Element;
+pub use metadata::Metadata;
+pub use page::Page;
+pub use stylesheet::Stylesheet;
+
+pub trait Html {
+    fn to_html(&amp;self) -> String;
+}
+
+pub trait HtmlElement {
+    fn to_element(&amp;self) -> Element;
+}
+</div>
+<p   >I'll stub a new function to return a <span   class="codeblockDark outlinedDark">CodeBlock</span> element. This will be filled in when I get through parsing.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/element.rs
+
+pub fn code_block(s: &amp;str) -> Element {
+    todo!()
+}
+</div>
+<p   >A new <span   class="codeblockDark outlinedDark">parse_contents</span> module is added under the <span   class="codeblockDark outlinedDark">parser</span>. The core of it will be an <span   class="codeblockDark outlinedDark">execute()</span> method. I stubbed it out as well to get the scaffolding in place.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/mod.rs
+mod content_ir;
+
+use crate::{Item, Location, Res};
+pub use content_ir::ContentIr;
+
+pub fn execute(contents: String, location: Location) -> Res&lt;ContentIr> {
+    Res::Ok(Item {
+        item: ContentIr::Text(contents),
+        location: Some(location),
+    })
+}
+</div>
+<p   >A new IR type is added for the content.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/content_ir.rs
+use crate::html::{element, Element, HtmlElement};
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum ContentIr {
+    Codeblock(String),
+    Text(String),
+}
+
+impl HtmlElement for ContentIr {
+    fn to_element(&amp;self) -> Element {
+        match self {
+            ContentIr::Codeblock(text) => element::code_block(text),
+            ContentIr::Text(text) => element::text(text),
+        }
+    }
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">md</span> parser is now updated to reflect these changes.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/mod.rs
+mod filename;
+mod parse_contents;
+
+use super::IntermediateRepresentation;
+use crate::{Item, Location, Res};
+pub use parse_contents::ContentIr;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Md {
+    pub contents: Item&lt;ContentIr>,
+    pub date: String,
+    pub day: String,
+    pub default_title: String,
+    pub display_title: String,
+    pub html_file_name: String,
+    pub keywords: Vec&lt;String>,
+    pub month: String,
+    pub path: String,
+    pub summary: String,
+    pub year: String,
+}
+
+pub fn parse(file_path: String, location: Location) -> Res&lt;IntermediateRepresentation> {
+    let path = std::path::Path::new(&amp;file_path);
+    let path_string = String::from(path.to_str().unwrap_or("".into()));
+    let file_name = path.file_name().unwrap().to_str().unwrap_or("").to_string();
+
+    match filename::validate(&amp;file_name, &amp;path_string) {
+        Ok(_) => {}
+        Err(e) => {
+            return Res::Error {
+                location: Some(location),
+                msg: e,
+            }
+        }
+    }
+
+    const DATE_LEN: usize = 10;
+
+    let date = &amp;file_name[..DATE_LEN].to_string().replace(".", "_");
+
+    let default_title = &amp;file_name[DATE_LEN..]
+        .to_string()
+        .replace("_", "")
+        .replace(".md", "");
+
+    let date = date.clone().replace("_", ".");
+
+    let split: Vec&lt;String> = date.split(".").map(|m| m.to_string()).collect();
+    const YEAR_IDX: usize = 0;
+    const MONTH_IDX: usize = 1;
+    const DAY_IDX: usize = 2;
+
+    let contents = match std::fs::read_to_string(path) {
+        Ok(s) => s,
+        Err(e) => {
+            return Res::Error {
+                location: Some(location),
+                msg: format!("{:#?}", e),
+            }
+        }
+    };
+
+    let mut warning = None;
+
+    let contents = match parse_contents::execute(contents, location.clone()) {
+        Res::Ok(item) => item,
+        Res::Warn { item, msg } => {
+            warning = Some(msg);
+            item
+        }
+        Res::Error { location, msg } => return Res::Error { location, msg },
+    };
+
+    let display_title = "TODO: Display Title".to_string();
+    let keywords = vec!["A".into(), "Test".into(), "Value".into()];
+    let summary = "TODO: Summary".to_string();
+
+    let item = Item {
+        item: IntermediateRepresentation::Md(Md {
+            contents,
+            date: date.clone(),
+            day: split[DAY_IDX].clone(),
+            default_title: default_title.clone(),
+            display_title,
+            html_file_name: format!("{}_{}.html", date, default_title),
+            keywords,
+            month: split[MONTH_IDX].clone(),
+            summary,
+            path: path_string.clone(),
+            year: split[YEAR_IDX].clone(),
+        }),
+        location: Some(location),
+    };
+
+    if let Some(warning) = warning {
+        Res::Warn { item, msg: warning }
+    } else {
+        Res::Ok(item)
+    }
+}
+</div>
+<p   >And finally the <span   class="codeblockDark outlinedDark">generator</span> is updated to include this.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// generator/mod.rs
+
+...
+
+fn generate(ir: &amp;Item&lt;IntermediateRepresentation>, context: Arc&lt;Context>) -> Res&lt;()> {
+    let output_dir = context.output.to_string();
+    let path;
+    let contents;
+
+    let css_link: CssLink = format!("{}/{}", ASSETS, "styles.css").into();
+
+    match &amp;ir.item {
+        IntermediateRepresentation::Css(css) => {
+            path = format!("{}assets/{}", output_dir, css.file_name);
+            contents = css.contents.clone();
+        }
+        IntermediateRepresentation::Img(img) => {
+            path = format!("{}assets/{}", output_dir, img.file_name);
+            contents = img.contents.clone();
+        }
+        IntermediateRepresentation::Md(md) => {
+            path = format!("{}{}", output_dir, md.html_file_name);
+
+            let page = Page {
+                content: md.contents.item.to_element(),
+                css: css_link,
+                file_name: md.html_file_name.clone(),
+                metadata: Metadata {
+                    author: context.author.clone(),
+                    keywords: md.keywords.clone(),
+                    summary: md.summary.clone(),
+                },
+                title: md.display_title.clone(),
+            };
+
+            contents = page.to_html().as_bytes().to_vec();
+        }
+    }
+
+    match fs::write(path, contents) {
+        Ok(_) => Res::Ok(Item {
+            item: (),
+            location: None,
+        }),
+        Err(e) => Res::Error {
+            msg: format!("{:#?}", e),
+            location: ir.location.clone(),
+        },
+    }
+}
+
+...
+
+</div>
+<p   >With all the scaffolding in place I can move on to the fun parts.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

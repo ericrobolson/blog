@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Input Mapping</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Input polling, input mapping and LOVR.">
+<meta name="keywords" content="Rust, input, polling, lover, vr, chaostar">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.09_Transforms.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.11_GreenerGrass.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.10 - Input Mapping</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0657"  ><a  href="#0657"  >#</a>
+ 0657</h3>
+<div   ><p   >Added a basic input mapper. Actions are wired up, then when input occurs it's checked to see if it's active. I don't particularly like the implementation right now, so I am going to convert it to an input poller that then gets queried by the system. While events may be preferable, I don't really care as polling is simpler to implement. </p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0722"  ><a  href="#0722"  >#</a>
+ 0722</h3>
+<div   ><p   >Input polling has been added to Chaostar. While it's not the most elegant, it serves the purpose and will enable me to progress with other things. I could easily add ranges later on or perhaps triggers, but that's not necessary. I still want to work on IceCream, but that can wait a bit. </p>
+<p   >I do like the idea of utilizing the React model for game UI's, and perhaps writing a compiler in Lisp that spits out code (JS, bytecode, Xamarin, Monogame, whatever) across multiple platforms to ensure I can easily write cross platform apps. Primary goal is to ship something in Rust, even if it is not the game I'd want. </p>
+<p   > </p>
+<p   >I'd also like to experiment with <a  href="https://lovr.org/"  >LOVR</a>. Terrible name that makes me thing it is a VR porn framework, but alas. Perhaps it can also be wired up using IceCream? I may never get to the quality of Resident Evil 8's renderer, but that may not be necessary. If I can generate products easily that do not require maintenance, or are easily portable, perhaps I can leverage that.</p>
+<p   >For work and personal tasks, I've been using a 'roadmap'. This is a simple checkbox list of tasks that must be wrapped up. The nice part is for large projects, as things get knocked out the momentum builds up. </p>
+<p   >Multiple players have been added as well as the start of systems in this engine. It's relatively simple, but I'm starting to like how it is coming together.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

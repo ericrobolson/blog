@@ -1,0 +1,373 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Second Start</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Starting over on blog generation to build a better product.">
+<meta name="keywords" content="Rust, starting, over, blog, generation">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.21_Roadmap.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.23_Crawling.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.22 - Second Start</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0643"  ><a  href="#0643"  >#</a>
+ 0643</h3>
+<div   ><p   >Here we go again.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+cargo new blog_gen
+
+</div>
+<p   >I'll start by fleshing out the main loop. While I mentioned starting bottom up in the past, I want the core structure written then will fill in the blanks. My dependencies are already known:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+[dependencies]
+
+# Used for cmd line messages
+ansi_term = "0.12"
+
+# Used for parallelization
+rayon = "1.5"
+
+# Used for directory traversal
+walkdir = "2.3"
+</div>
+<p   >Before getting into the guts, I'll start by writing a module to output messages. The name of the module may change over time once I have a better grasp on the use cases.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight"> 
+// console.rs
+
+use crate::Location;
+use ansi_term::Colour;
+
+pub fn error(msg: &amp;str, location: Option&lt;Location>) {
+    let location = pretty_print_loc(location);
+    let colour = Colour::Red;
+
+    println!("{}{}: {}", colour.paint("Error"), location, msg);
+}
+
+pub fn warn(msg: &amp;str, location: Option&lt;Location>) {
+    let location = pretty_print_loc(location);
+    let colour = Colour::Yellow;
+
+    println!("{}{}: {}", colour.paint("Warning"), location, msg);
+}
+
+pub fn success(msg: &amp;str, location: Option&lt;Location>) {
+    let location = pretty_print_loc(location);
+    let colour = Colour::Green;
+
+    println!("{}{}: {}", colour.paint("Success"), location, msg);
+}
+
+fn pretty_print_loc(location: Option&lt;Location>) -> String {
+    match location {
+        Some(loc) => format!(
+            " at path '{}', ln {}, col {}",
+            loc.path, loc.line, loc.column
+        ),
+        None => String::new(),
+    }
+}
+</div>
+<p   >That results in this output:</p>
+<p   ><a  href="assets/2021.08.22_0709.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.08.22_0709.png" alt="Example console output" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p>
+<p   >The following is the main loop so far. I usually start by defining types to hold the data I'll be working with, then various functions that consume those types and output different types.</p>
+<p   >I'll fill in the blanks as time goes on and splitting everything out into separate modules as things get larger.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// main.rs
+
+pub mod console;
+
+use rayon::prelude::*;
+
+fn main() {
+    // Source the context for this session
+    let context = match parse_env_args() {
+        Res::Ok(item) => item.item,
+        Res::Warn { item, msg } => {
+            console::warn(&amp;msg, Some(item.location.clone()));
+            item.item
+        }
+        Res::Error { location, msg } => {
+            console::error(&amp;msg, Some(location));
+            return;
+        }
+    };
+
+    // Traverse the input directory
+    let crawled_files = match map_results(crawl(context.input.clone())) {
+        Ok(results) => results,
+        Err(_) => return,
+    };
+
+    // Parse all intermediate representations
+    let ir_results: Vec&lt;Res&lt;IntermediateRepresentation>> =
+        crawled_files.par_iter().map(|f| parse(f)).collect();
+
+    let ir = match map_results(ir_results) {
+        Ok(ir) => ir,
+        Err(_) => return,
+    };
+
+    // Analyze it for any errors
+    let analyzed_ir = match map_results(analyze_ir(ir)) {
+        Ok(ir) => ir,
+        Err(_) => return,
+    };
+
+    // Finally generate all code
+    match map_results(generate(analyzed_ir)) {
+        Ok(_) => console::success("Success!", None),
+        Err(_) => {
+            return;
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Context {
+    pub input: Directory,
+    pub output: Directory,
+}
+
+pub struct CrawledFile;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Directory(String);
+
+pub struct Item&lt;T> {
+    pub item: T,
+    location: Location,
+}
+
+impl&lt;T> Item&lt;T> {
+    pub fn location(&amp;self) -> Location {
+        self.location.clone()
+    }
+}
+
+pub struct IntermediateRepresentation;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Location {
+    pub column: u32,
+    pub file: String,
+    pub line: u32,
+    pub path: String,
+}
+
+pub enum Res&lt;T> {
+    Ok(Item&lt;T>),
+    Warn { item: Item&lt;T>, msg: String },
+    Error { location: Location, msg: String },
+}
+
+pub fn analyze_ir(
+    ir: Vec&lt;Item&lt;IntermediateRepresentation>>,
+) -> Vec&lt;Res&lt;IntermediateRepresentation>> {
+    todo!()
+}
+
+pub fn crawl(dir: Directory) -> Vec&lt;Res&lt;CrawledFile>> {
+    todo!()
+}
+
+pub fn generate(ir: Vec&lt;Item&lt;IntermediateRepresentation>>) -> Vec&lt;Res&lt;()>> {
+    todo!()
+}
+
+/// Maps all results from a given collection.
+pub fn map_results&lt;T>(items: Vec&lt;Res&lt;T>>) -> Result&lt;Vec&lt;Item&lt;T>>, ()> {
+    let mut results = vec![];
+    let mut warnings = vec![];
+    let mut errors = vec![];
+
+    for file in items {
+        match file {
+            Res::Ok(item) => results.push(item),
+            Res::Warn { item, msg } => {
+                warnings.push((msg, Some(item.location())));
+                results.push(item);
+            }
+            Res::Error { location, msg } => {
+                errors.push((msg, Some(location)));
+            }
+        }
+    }
+
+    // Print all warnings
+    for (msg, location) in warnings {
+        console::warn(&amp;msg, location);
+    }
+
+    // Print all errors
+    let exit = !errors.is_empty();
+    for (msg, location) in errors {
+        console::warn(&amp;msg, location);
+    }
+
+    if exit {
+        return Err(());
+    }
+
+    Ok(results)
+}
+
+pub fn parse(file: &amp;Item&lt;CrawledFile>) -> Res&lt;IntermediateRepresentation> {
+    todo!()
+}
+
+pub fn parse_env_args() -> Res&lt;Context> {
+    todo!()
+}
+</div>
+<p   >The parsing of env args is next, then crawling files. Last time I hacked things together quickly, this time I'll focus on keeping it data oriented and structured.</p>
+<p   >As I go back and read this, I noticed a few bugs. I strongly recommend having a merge request or pull request open for the branch you are working on. This allows you to view the code in a different way from your editor and helps catch errors. Things like</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// Print all errors
+let exit = !errors.is_empty();
+for (msg, location) in errors {
+    console::warn(&amp;msg, location);
+}
+</div>
+<p   >can be caught ahead of time before executing. </p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// Print all errors
+let exit = !errors.is_empty();
+for (msg, location) in errors {
+    console::error(&amp;msg, location);
+}
+</div>
+<p   >Another thing I like to do in Rust is liberal usage of the <span   class="codeblockDark outlinedDark">todo!()</span> macro. This enables one to rush ahead, getting things to compile, then going back and fixing it as the application progresses.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1336"  ><a  href="#1336"  >#</a>
+ 1336</h3>
+<div   ><p   >Started on the CLI part of the application. This is a new <span   class="codeblockDark outlinedDark">env_args</span> module. There's one entry point, <span   class="codeblockDark outlinedDark">parse()</span>, which creates a command from the input. From there it will be executed.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// env_args.rs
+
+use std::env;
+
+use super::{console, Context, Res};
+use crate::{Directory, Item};
+
+pub fn parse() -> Option&lt;Res&lt;Context>> {
+    let env_args = {
+        let mut env_args: Vec&lt;String> = env::args().collect();
+        env_args.remove(0);
+        env_args
+    };
+
+    if env_args.is_empty() {
+        return Some(Res::Error {
+            location: None,
+            msg: "No valid args! Type 'help' to list all options".into(),
+        });
+    }
+
+    match Command::parse(env_args) {
+        Ok(command) => match command {
+            Command::Help => {
+                Command::list_help();
+                return None;
+            }
+            Command::Generate { input, output } => {
+                return Some(Res::Ok(Item {
+                    item: Context { input, output },
+                    location: None,
+                }))
+            }
+        },
+        Err(e) => Some(Res::Error {
+            location: None,
+            msg: e,
+        }),
+    }
+}
+
+enum Command {
+    Help,
+    Generate { input: Directory, output: Directory },
+}
+
+impl Command {
+    pub fn list_help() {
+        console::info("{input_directory} {output_directory}", "Generates a static site based on an input directory, writing it to an output directory.");
+        console::info("help", "List all available commands.");
+    }
+
+    pub fn parse(mut args: Vec&lt;String>) -> Result&lt;Command, String> {
+        let first = args.remove(0);
+
+        match first.to_lowercase().as_str() {
+            "help" => Ok(Command::Help),
+            _ => {
+                let input_dir = first;
+                if args.is_empty() {
+                    return Err("Unable to parse output directory!".into());
+                }
+
+                let output_dir = args.remove(0);
+
+                console::warn(&amp;format!("Received unused CLI args: {:?}", args), None);
+
+                Ok(Command::Generate {
+                    input: input_dir.into(),
+                    output: output_dir.into(),
+                })
+            }
+        }
+    }
+}
+</div>
+<p   >There was an addition to the <span   class="codeblockDark outlinedDark">console</span> module to display information:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// console.rs
+
+pub fn info(info: &amp;str, msg: &amp;str) {
+    let colour = Colour::Cyan;
+
+    println!("{}: {}", colour.paint(info), msg);
+}
+</div>
+<p   >I split the <span   class="codeblockDark outlinedDark">Directory</span> type into its own module to simplify things.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// directory.rs
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Directory(String);
+
+impl From&lt;String> for Directory {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+</div>
+<p   >The only other change was the <span   class="codeblockDark outlinedDark">location</span> field on <span   class="codeblockDark outlinedDark">Item&lt;T></span> is now optional.</p>
+<p   >The next stage will be crawling all files, determining the types, and rejecting anything not whitelisted. The intent is to ensure only supported functionality is utilized.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1607"  ><a  href="#1607"  >#</a>
+ 1607</h3>
+<div   ><p   >After playing <a  href="https://store.steampowered.com/app/651670/Star_Renegades/"  >Star Renegades</a> I'm inspired by their art style. Guilty Gear Strive as well. </p>
+<p   >Gave <a  href="https://store.steampowered.com/app/1546500/Warplanes_WW1_Fighters/"  >Warplanes: WW1 Fighters</a> a shot. I prefer space games, but the controls are great. Instead of using a controller (xbox1) or HOTAS, this game has you control a virtual flight stick + throttle. If I make a space game this would be the route.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Rendering</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Transforms, Lerping and determinism.">
+<meta name="keywords" content="Rust, transforms, camera, orthographic, perspective, lerp, determinism">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.08_Rendering.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.10_InputMapping.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.09 - Rendering</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0702"  ><a  href="#0702"  >#</a>
+ 0702</h3>
+<div   ><p   >Transforms have been wrapped up. Lerping is more or less complete, an orthographic and perspective camera was added with the ability to lerp, a barebones table based data driven pattern has been established, a deterministic number has been created and meshes are a WIP. </p>
+<p   >It's slowly coming together, and now I'm at a point where I can either go full 3d or start fleshing out a 2d game. It depends on if I want to go with an IK based approach or not, but I think I shall. </p>
+<p   >One thing I am concerned about is the speed of the main loop. The m1 mac lags a bit/stutters graphically, but I'm not doing anything at all there. Perhaps it's just a trash GPU. My main pc runs it like a champ, and lerping works rather nicely. </p>
+<p   >One major change I would like to do is swap to a task based system, or a better threaded approach. I think keeping the renderer + input handling on the main thread is the approach I want to take, with a separate thread running the simulation. </p>
+<p   >For now it will stay single threaded, but when I start noticing dips in responsiveness it's an upgrade I will have to take. I'll clean up my branch then merge it in. Next up will be a deterministic number, a player concept and input handling. Perhaps I'll make pong then go from there.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1701"  ><a  href="#1701"  >#</a>
+ 1701</h3>
+<div   ><p   >Deterministic numbers have been completed. One thing I plan on doing is wrapping other libraries wherever possible. <span   class="codeblockDark outlinedDark">cgmath</span> is utlized for quaternions, mat4's; <span   class="codeblockDark outlinedDark">image</span> will be used for image processing, <span   class="codeblockDark outlinedDark">fixed</span> is utilized for fixed point numbers. By utilizing these I get all the benefits; by wrapping them I get the advantage of swapping it out if the need arises. </p>
+<p   >Some things like <span   class="codeblockDark outlinedDark">wgpu</span> aren't really feasible to swap out, but as such it is utilized at the shell level. The next major piece of functionality that will be completed is the addition of local players. While remote playes is on the road map, I will have to get a server up and running. </p>
+<p   >The plan on that end is a simple unranked matchmaking server that can pair players and set the initial parameters for matches. P2P is a goal, but I may be able to simply forward inputs from the server to all players and not deal with that yet. </p>
+<p   >Something like Battlestate or Riot may be the ideal target where I do not have to compromise with a 3rd party yet. Keeping it in house means faster release cycles as well as more money for bootstrapping. F2P will be another target. At this point it is just dreams.</p>
+<p   >For now Pong is next, then perhaps that gets spat into it's own repo and published. </p>
+<p   >Low poly with cosmetics? Perhaps.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1715"  ><a  href="#1715"  >#</a>
+ 1715</h3>
+<div   ><p   >I'll experiment more in type-driven-development in generating the input mapper. This input mapper is attached to an entity. Typically this is treated as a 'hardware player' component. </p>
+<p   >While players may exist without this (a player has a state of actions that may be executed), it is only used for local players. Do a deep dive at some point in the future about this.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="2017"  ><a  href="#2017"  >#</a>
+ 2017</h3>
+<div   ><p   >I toy with the idea of a React like framework. Something like Elm, or Haskell. Something with the power of Lisp. Perhaps Lisp is easier to start with. The main driver is 'native' client based apps that behave similar to web. </p>
+<p   >Doing a simplistic Gacha type game may be simpler than a IK driven combat game. Perhaps something inspired by Infinity, Warmachine, or 40k? MtG? Poker? Ideally it would be a thin client. I've taken to naming my projects after songs for vinyl I have. <span   class="codeblockDark outlinedDark">IceCream</span>. Guess the band?</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

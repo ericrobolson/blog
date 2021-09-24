@@ -1,0 +1,533 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>CSS 2</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Statically generating CSS + stylesheets.">
+<meta name="keywords" content="Rust, stylesheet, css, starting, over, blog, generation, html, ir, generator, md">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.27_Ideas.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.28_Ideas2.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.28 - CSS 2</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0634"  ><a  href="#0634"  >#</a>
+ 0634</h3>
+<div   ><p   >I'll start today by wiring up the body + card CSS. Once I have the basic layouts done I'll ensure that they work on mobile.</p>
+<p   >A new <span   class="codeblockDark outlinedDark">body()</span> function to generate the HTML body class is added and wired up.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet.rs
+...
+fn body(theme: &amp;Theme) -> Css {
+    let rules = vec![
+        format!("background: {}", theme.fill_secondary_light_mode.to_html()),
+        format!("color: {}", theme.text_primary_light_mode.to_html()),
+        "font-family: Arial, Helvetica, sans-serif".into(),
+        "font-size: 18pt".into(),
+        "font-weight: 400".into(),
+        "height: 100%".into(),
+        "margin: 0".into(),
+        "max-width: 100vw".into(),
+        "min-height: 100vh".into(),
+        "padding: 0".into(),
+        "text-align: center".into(),
+        "width: 100%".into(),
+    ];
+    let selector = "body";
+
+    let main_class = format!("{} {{ {} }}", selector, combine_rules(rules));
+
+    let classes = vec![main_class];
+
+    classes.join("\n").into()
+}
+
+...
+
+impl Html for Stylesheet {
+    fn to_html(&amp;self) -> String {
+        let mut generated = self
+            .classes
+            .iter()
+            .map(|c| c.css(&amp;self.theme))
+            .collect::&lt;Vec&lt;Css>>();
+
+        generated.push(body(&amp;self.theme));
+
+        let generated_css = generated
+            .iter()
+            .map(|css| css.to_str().into())
+            .collect::&lt;Vec&lt;String>>()
+            .join("\n");
+
+        format!("{}", generated_css)
+    }
+}
+</div>
+<p   >I'll now add the basic <span   class="codeblockDark outlinedDark">Card</span> class to all text. I suspect this will evolve as time goes on.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/element.rs
+use super::{stylesheet::Class, Html};
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Element {
+    pub classes: Vec&lt;Class>,
+    pub kind: Kind,
+}
+
+impl Html for Element {
+    fn to_html(&amp;self) -> String {
+        let class = {
+            if self.classes.is_empty() {
+                String::default()
+            } else {
+                format!(
+                    "class=\"{}\"",
+                    self.classes
+                        .iter()
+                        .map(|c| c.selector().to_str().into())
+                        .collect::&lt;Vec&lt;String>>()
+                        .join(" ")
+                )
+            }
+        };
+
+        let selector;
+        let children;
+
+        match &amp;self.kind {
+            Kind::Card(contents) => {
+                selector = String::from("div");
+                children = contents.clone();
+            }
+        }
+
+        format!("&lt;{} {}>{}&lt;/{}>", selector, class, children, selector)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Kind {
+    Card(String),
+}
+
+pub fn text(s: &amp;str) -> Element {
+    Element {
+        classes: vec![Class::Card],
+        kind: Kind::Card(s.into()),
+    }
+}
+</div>
+<p   >Here's the result:</p>
+<p   ><a  href="assets/2021.08.29_0655.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.08.29_0655.png" alt="Simple card render" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0733"  ><a  href="#0733"  >#</a>
+ 0733</h3>
+<div   ><p   >I've done quite a bit of rework. <span   class="codeblockDark outlinedDark">box-sizing: border-box</span> took me by suprise, as I didn't realize that <span   class="codeblockDark outlinedDark">margin</span> wasn't included in this. That resulted in a 16px offset on the right side, meaning the page overflowed regardless of <span   class="codeblockDark outlinedDark">max-width: 100vw</span>. The following is the most up to date code:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/element.rs
+use super::{stylesheet::Class, Html};
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Element {
+    pub classes: Vec&lt;Class>,
+    pub kind: Kind,
+}
+
+impl Html for Element {
+    fn to_html(&amp;self) -> String {
+        let class = {
+            if self.classes.is_empty() {
+                String::default()
+            } else {
+                format!(
+                    "class=\"{}\"",
+                    self.classes
+                        .iter()
+                        .map(|c| c.selector().to_str().into())
+                        .collect::&lt;Vec&lt;String>>()
+                        .join(" ")
+                )
+            }
+        };
+
+        let selector;
+        let children;
+
+        match &amp;self.kind {
+            Kind::Card(contents) => {
+                selector = String::from("div");
+                children = contents.clone();
+            }
+        }
+
+        format!("&lt;{} {}>{}&lt;/{}>", selector, class, children, selector)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Kind {
+    Card(String),
+}
+
+pub fn text(s: &amp;str) -> Element {
+    Element {
+        classes: vec![
+            Class::Outlined { dark_mode: false },
+            Class::Card { dark_mode: false },
+        ],
+        kind: Kind::Card(s.into()),
+    }
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">Page</span> generation was modified as well. I wanted it to be easier to understand when generating the HTML and wanted to enforce a constant size.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/page.rs
+use crate::html::stylesheet;
+
+use super::{CssLink, Element, Html, Metadata};
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Page {
+    pub content: Element,
+    pub css: CssLink,
+    pub file_name: String,
+    pub metadata: Metadata,
+    pub title: String,
+}
+
+impl Html for Page {
+    fn to_html(&amp;self) -> String {
+        format!(
+            "
+&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+&lt;title>{}&lt;/title>
+&lt;!-- metadata -->
+{}
+&lt;!-- css -->
+{}
+&lt;/head>
+&lt;body>
+&lt;!-- page class -->
+&lt;div class={}>
+&lt;!-- content -->
+{}
+&lt;div>
+&lt;/body>
+&lt;/html>
+",
+            self.title,
+            self.metadata.to_html(),
+            self.css.to_html(),
+            stylesheet::Class::Page.selector().to_str(),
+            self.content.to_html()
+        )
+    }
+}
+</div>
+<p   >I also split out the <span   class="codeblockDark outlinedDark">Css</span> and <span   class="codeblockDark outlinedDark">Selector</span> classes to make the <span   class="codeblockDark outlinedDark">stylesheet</span> module smaller.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet/css.rs
+#[derive(Debug, Clone, PartialEq)]
+pub struct Css(String);
+
+impl Css {
+    pub fn to_str(&amp;self) -> &amp;str {
+        &amp;self.0
+    }
+}
+
+impl From&lt;&amp;'static str> for Css {
+    fn from(s: &amp;'static str) -> Self {
+        Self(s.into())
+    }
+}
+
+impl From&lt;String> for Css {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+...
+
+// html/stylesheet/selector.rs
+#[derive(Debug, Clone, PartialEq)]
+pub struct Selector(String);
+
+impl Selector {
+    pub fn to_str(&amp;self) -> &amp;str {
+        &amp;self.0
+    }
+}
+
+impl From&lt;&amp;'static str> for Selector {
+    fn from(s: &amp;'static str) -> Self {
+        Self(s.into())
+    }
+}
+
+impl From&lt;String> for Selector {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+</div>
+<p   >I broke out the <span   class="codeblockDark outlinedDark">Class</span> enum for the stylesheet as well.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet/class.rs
+use super::Html;
+use super::*;
+use crate::theme::Theme;
+pub use css::Css;
+pub use selector::Selector;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Class {
+    Card { dark_mode: bool },
+    Outlined { dark_mode: bool },
+    Page,
+}
+
+impl Class {
+    pub fn all() -> Vec&lt;Self> {
+        vec![
+            Self::Card { dark_mode: false },
+            Self::Card { dark_mode: true },
+            Self::Outlined { dark_mode: false },
+            Self::Outlined { dark_mode: true },
+            Self::Page,
+        ]
+    }
+
+    pub fn css(&amp;self, theme: &amp;Theme) -> Css {
+        match self {
+            Class::Card { dark_mode } => card(self, *dark_mode, theme),
+            Class::Outlined { dark_mode } => outline(self, *dark_mode, theme),
+            Class::Page => page(self),
+        }
+    }
+
+    pub fn dark_mode(&amp;self) -> bool {
+        match self {
+            Class::Card { dark_mode } => *dark_mode,
+            Class::Outlined { dark_mode } => *dark_mode,
+            Class::Page => false,
+        }
+    }
+
+    pub fn selector(&amp;self) -> Selector {
+        let prefix = match self {
+            Class::Card { .. } => "card",
+            Class::Outlined { .. } => "outlined",
+            Class::Page => "page",
+        };
+
+        let post_fix = match self.dark_mode() {
+            false => "Light",
+            true => "Dark",
+        };
+
+        format!("{}{}", prefix, post_fix).into()
+    }
+}
+
+pub fn body(theme: &amp;Theme) -> Css {
+    let rules = vec![
+        format!("background: {}", theme.fill_secondary_light_mode.to_html()),
+        format!("color: {}", theme.text_primary_light_mode.to_html()),
+        "font-family: Arial, Helvetica, sans-serif".into(),
+        "font-size: 18pt".into(),
+        "font-weight: 400".into(),
+        "height: 100%".into(),
+        "margin: auto".into(),
+        "max-width: 100vw".into(),
+        "min-height: 100vh".into(),
+        "padding: 0".into(),
+        "text-align: center".into(),
+        "width: 100vw".into(),
+    ];
+    let selector = "body";
+
+    let main_class = format!("{} {{ {} }}", selector, combine_rules(rules));
+
+    let classes = vec![main_class];
+
+    classes.join("\n").into()
+}
+
+fn card(class: &amp;Class, dark_mode: bool, theme: &amp;Theme) -> Css {
+    let color = match dark_mode {
+        true => theme.fill_primary_dark_mode.to_html(),
+        false => theme.fill_primary_light_mode.to_html(),
+    };
+
+    let main_rules = vec![
+        "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2)".into(),
+        format!("background: {}", color),
+        "display: flex".into(),
+        "flex-direction: column".into(),
+        "padding: 16px".into(),
+        "text-align: justify".into(),
+        "width: 100%".into(),
+        "word-wrap: normal".into(),
+    ];
+
+    let hover_rules: Vec&lt;String> = vec!["box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2)".into()];
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(main_rules)
+    );
+
+    let hover_class = format!(
+        ".{}:hover {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(hover_rules)
+    );
+
+    format!("{}\n{}", main_class, hover_class).into()
+}
+
+pub fn html() -> Css {
+    // Ensure it doesn't have a horizontal scroll bar
+    String::from(
+        "
+html {
+    box-sizing: border-box;
+    height: 100%;
+}
+
+*,
+*:before,
+*:after {
+    box-sizing: inherit;
+}
+
+",
+    )
+    .into()
+}
+
+fn outline(class: &amp;Class, dark_mode: bool, theme: &amp;Theme) -> Css {
+    let color = match dark_mode {
+        true => theme.fill_secondary_dark_mode.to_html(),
+        false => theme.fill_secondary_light_mode.to_html(),
+    };
+
+    let main_rules = vec![
+        "border: 1px solid".into(),
+        format!("border-color: {}", color).into(),
+        "border-radius: 12px".into(),
+    ];
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(main_rules)
+    );
+
+    format!("{}", main_class).into()
+}
+
+fn page(class: &amp;Class) -> Css {
+    format!(
+        "
+.{} {{
+    align-content: center;            
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 100vw;
+    width: 100vw;
+}}",
+        class.selector().to_str()
+    )
+    .into()
+}
+
+fn combine_rules(rules: Vec&lt;String>) -> String {
+    rules
+        .iter()
+        .map(|r| format!("{};", r))
+        .collect::&lt;Vec&lt;String>>()
+        .join("\n")
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">stylesheet</span> module is what ties the above together. I broke that into a separate folder as the file was getting a bit large.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet/mod.rs
+mod class;
+mod css;
+mod selector;
+
+use super::Html;
+use crate::{theme::Theme, Context};
+pub use class::Class;
+pub use css::Css;
+pub use selector::Selector;
+use std::sync::Arc;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Stylesheet {
+    classes: Vec&lt;Class>,
+    theme: Theme,
+}
+
+impl Stylesheet {
+    pub fn new(context: &amp;Arc&lt;Context>) -> Self {
+        Self {
+            classes: Class::all(),
+            theme: context.theme.clone(),
+        }
+    }
+}
+
+impl Html for Stylesheet {
+    fn to_html(&amp;self) -> String {
+        let mut generated = self
+            .classes
+            .iter()
+            .map(|c| c.css(&amp;self.theme))
+            .collect::&lt;Vec&lt;Css>>();
+
+        generated.push(class::body(&amp;self.theme));
+        generated.push(class::html());
+
+        let generated_css = generated
+            .iter()
+            .map(|css| css.to_str().into())
+            .collect::&lt;Vec&lt;String>>()
+            .join("\n");
+
+        format!("{}", generated_css)
+    }
+}
+</div>
+<p   >Some things I'll need to do in the next stages:</p>
+<ul   class="listLight"><li><div   >Add padding to content</div></li><li><div   >Add footer + side nav</div></li><li><div   >Add top nav?</div></li><li><div   >Make elements collapse on mobile</div></li><li><div   >Parsing IR</div></li></ul></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

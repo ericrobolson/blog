@@ -1,0 +1,322 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Top Navigation</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Generating the top navigation to link pages and thoughts on Elixir.">
+<meta name="keywords" content="generation, blog, links, top, nav, elixir, rust">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.16_Catalog.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.18_NotIndex.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.17 - Top Navigation</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0624"  ><a  href="#0624"  >#</a>
+ 0624</h3>
+<div   ><p   >Last night I spent some time playing around with Elixir again. Even though I use it at work, we've been doing some major reworks on the front end so I haven't had much time to spend with it. </p>
+<p   >It was rather nice, I got a basic file crawler up and running within 45m. I skipped a lot of things like GenServers and just used processes, but it should be fairly simple to extend that functionality. The REPL loop was a nice touch and I get the feeling that leveraging that in Scheme would be the ideal. </p>
+<p   >I've been slowly getting up to speed with Emacs, but haven't really dived in. If I were to do so I'd use nothing else. Not quite there yet.</p>
+<p   >Back to <span   class="codeblockDark outlinedDark">blog_gen</span>. Not really feeling like working on the Index page so I'll start with the top nav. This will be simple, nearly the same as the footer. </p>
+<p   >I've added a new <span   class="codeblockDark outlinedDark">Links</span> struct to the <span   class="codeblockDark outlinedDark">Context</span> to ensure consistency.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// main.rs
+
+...
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Context {
+    pub config: Config,
+    pub input: Directory,
+    pub links: Links,
+    pub output: Directory,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Links {
+    about_me_link: String,
+    catalog_link: String,
+    index_link: String,
+    projects_link: String,
+}
+
+...
+</div></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0727"  ><a  href="#0727"  >#</a>
+ 0727</h3>
+<div   ><p   >Top nav has been done. Looking back, the navigation should have been handled differently by making the body overflow auto, but it's not worth changing at this point. I just want to move to something else.</p>
+<p   >I've done some reworking on the <span   class="codeblockDark outlinedDark">ContentIr::Navigation {}</span> data type to build out a top or bottom nav.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/content_ir.rs
+
+...
+
+Navigation {
+    links: Links,
+    next: Option&lt;Link>,
+    previous: Option&lt;Link>,
+},
+
+...
+
+
+impl HtmlElement for ContentIr {
+    fn to_element(&amp;self) -> Element {
+        ...
+        ContentIr::Navigation {
+                links,
+                next,
+                previous,
+        } => {
+            let map = |s: &amp;Option&lt;Link>| match s {
+                Some(link) => Some(link.to_str().to_string()),
+                None => None,
+            };
+
+            let bottom_nav = element::bottom_nav(map(previous), map(next));
+            let top_nav = element::top_nav(links.clone());
+
+            element::div(vec![bottom_nav, top_nav])
+        }
+        ...
+    }
+}
+
+...
+
+</div>
+<p   >I also wired that bit to all new generated pages I've been working on.</p>
+<p   >Inside the <span   class="codeblockDark outlinedDark">element</span> module I added a new <span   class="codeblockDark outlinedDark">top_nav</span> method and modified the <span   class="codeblockDark outlinedDark">bottom_nav</span> method. I refactored the <span   class="codeblockDark outlinedDark">class</span> module to simplify navigation generation which will be shown shortly.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/element.rs
+
+...
+
+pub fn bottom_nav(previous: Option&lt;String>, next: Option&lt;String>) -> Element {
+    let previous = make_link(previous, "🡄 Previous".into(), "previous_page_link".into());
+    let next = make_link(next, "Forward 🡆".into(), "next_page_link".into());
+
+    Element {
+        classes: vec![Class::Navigation {
+            position: Position::Bottom,
+        }],
+        id: None,
+        kind: Kind::Div {
+            children: vec![previous, next],
+        },
+    }
+}
+
+...
+
+// private helper method to make links
+fn make_link(url: Option&lt;String>, description: String, id: String) -> Element {
+    let disabled = url.is_none();
+    let url = url.unwrap_or_default();
+
+    match disabled {
+        true => text(&amp;description),
+        false => link(Some(id), description, url, true),
+    }
+}
+
+...
+
+
+pub fn top_nav(links: Links) -> Element {
+    let children = {
+        let about_me = make_link(
+            Some(links.about_me_link),
+            "About Me".into(),
+            "aboutMeNav".into(),
+        );
+
+        let catalog = make_link(
+            Some(links.catalog_link),
+            "Catalog".into(),
+            "catalogNav".into(),
+        );
+
+        let index = make_link(Some(links.index_link), "Home".into(), "homeNav".into());
+
+        let projects = make_link(
+            Some(links.projects_link),
+            "Projects".into(),
+            "projectsNav".into(),
+        );
+
+        vec![index, catalog, projects, about_me]
+    };
+
+    Element {
+        classes: vec![Class::Navigation {
+            position: Position::Top,
+        }],
+        id: None,
+        kind: Kind::Div { children },
+    }
+}
+
+...
+
+</div>
+<p   >The last changes are within the <span   class="codeblockDark outlinedDark">class</span> file. There were quite a few, such as the addition of a <span   class="codeblockDark outlinedDark">media_query</span> method that changes styling based on screen sizes.</p>
+<p   >First I removed the <span   class="codeblockDark outlinedDark">BottomNav</span> element from the <span   class="codeblockDark outlinedDark">Class</span> data type and added a new <span   class="codeblockDark outlinedDark">Navigation</span> type.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet/class.rs
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Class {
+    AspectRatio16x9Container,
+    AspectRatio16x9Inner,
+    Card { dark_mode: bool },
+    Codeblock,
+    ContentWrapper,
+    FullImg,
+    HoverShadow,
+    List,
+    Navigation { position: Position },
+    Outlined { dark_mode: bool },
+    Padded { position: Position },
+    Page,
+    Shadow,
+    TextAlign { alignment: Alignment },
+}
+</div>
+<p   >I won't show the boilerplate changes with the <span   class="codeblockDark outlinedDark">Class</span> implementation.</p>
+<p   >Next I modified the <span   class="codeblockDark outlinedDark">body</span> class method to take into account screen size. Looking back, I should have reorganized the page itself and not used floating divs for the nav components, but that is not a change I want to make right now. It's tech debt.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet/class.rs
+...
+
+
+pub fn body(theme: &amp;Theme) -> Css {
+    let nav_padding = "64px";
+    let mobile_top_nav_padding = "128px";
+
+    let rules = vec![
+        format!("background: {}", theme.fill_secondary_light_mode.to_html()),
+        format!("color: {}", theme.text_primary_light_mode.to_html()),
+        "font-family: Arial, Helvetica, sans-serif".into(),
+        "font-size: 18pt".into(),
+        "font-weight: 400".into(),
+        "margin: auto".into(),
+        "max-width: 100vw".into(),
+        format!("padding: {} 0 {} 0", nav_padding, nav_padding),
+        "text-align: center".into(),
+    ];
+    let selector = "body";
+
+    let main_class = format!("{} {{ {} }}", selector, combine_rules(rules));
+
+    media_screen_query(
+        main_class,
+        false,
+        selector,
+        TOP_NAV_COLUMN_PX_LIMIT,
+        vec![format!(
+            "padding: {} 0 {} 0",
+            mobile_top_nav_padding, nav_padding
+        )],
+    )
+}
+
+...
+</div>
+<p   >Next is the <span   class="codeblockDark outlinedDark">media_screen_query</span> method that applies styling based on a maximum screen size. I ran into an issue where the top nav was formatted strangely, cutting off the page for mobile. As mentioned above, change the page layout with an overflow component for the body would be the optimal fix.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet/class.rs
+...
+
+fn media_screen_query(
+    main_class: String,
+    is_custom_class: bool,
+    id: &amp;str,
+    max_width_pixels: u32,
+    media_rules: Vec&lt;String>,
+) -> Css {
+    let size_rules = format!("(max-width: {}px)", max_width_pixels);
+
+    let prefix = if is_custom_class { "." } else { "" };
+
+    let media_class = format!("{}{} {{ {} }}", prefix, id, combine_rules(media_rules));
+
+    let media_class = format!("@media screen and {} {{ {} }}", size_rules, media_class);
+
+    format!("{}\n{}", main_class, media_class).into()
+}
+...
+</div>
+<p   >And last but not least is the new nav class. This will generate either the top or bottom nav. It also changes the <span   class="codeblockDark outlinedDark">flex-direction</span> from <span   class="codeblockDark outlinedDark">row</span> to <span   class="codeblockDark outlinedDark">column</span> when the screen size shrinks.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet/class.rs
+...
+
+pub fn nav(class: &amp;Class, position: &amp;Position, theme: &amp;Theme) -> Css {
+    let rules = vec![
+        "align-content: center".into(),
+        format!("background: {}", theme.fill_secondary_light_mode.to_html()),
+        match position {
+            Position::Top => "top: 0",
+            Position::Bottom | _ => "bottom: 0",
+        }
+        .into(),
+        "display: flex".into(),
+        "flex-direction: row".into(),
+        "justify-content: space-evenly".into(),
+        "left: 0".into(),
+        "padding: 16px".into(),
+        "position: fixed".into(),
+        "width: 100%".into(),
+    ];
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(rules)
+    );
+
+    if *position == Position::Top {
+        media_screen_query(
+            main_class,
+            true,
+            class.selector().to_str(),
+            TOP_NAV_COLUMN_PX_LIMIT,
+            vec!["flex-direction: column".into()],
+        )
+    } else {
+        main_class.into()
+    }
+}
+...
+</div>
+<p   >Here's the example with the mobile/phone styling applied:</p>
+<p   ><a  href="assets/2021.09.17_0739.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.09.17_0739.png" alt="Minimal Screen" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p>
+<p   >And here's the example with the normal styling applied:</p>
+<p   ><a  href="assets/2021.09.17_0740.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.09.17_0740.png" alt="Normal Screen" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p>
+<p   >I don't think a side nav is necessary at this point so I'll cut scope. </p>
+<p   >Remaining items: </p>
+<ul   class="listLight"><li><div   >Index page containing most recent posts</div></li><li><div   >Series page?</div></li><li><div   >JS search?</div></li><li><div   >Return error code for errors when generating code? That way it can be wired up to deployment script.</div></li></ul>
+<p   >One of the next projects I need to do is deployment. That may be as simple as writing something that generates a manifest, notes the changed files, and only updates those which were modified. Perhaps I can get away with a full upload to start with. Regardless, this is nearing completion which I am extremely happy about.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>2d Verlet Integration</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Switching to a 2d Verlet Integrator, deterministic numbers and Rain World.">
+<meta name="keywords" content="rust, verlet, integrator, 2d, rain, world, deterministic, 3d, pixel, art">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.12_Verlet.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.14_WTF.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.13 - 2d Verlet Integration</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0618"  ><a  href="#0618"  >#</a>
+ 0618</h3>
+<div   ><p   >I've started implementing a 2d Verlet integrator. This will be far more simplistic than the 3d one, as it will utilize int32 based vectors. I don't quite know how the math will shake out, and I strongly suspect the renderer will need to be switch up.</p>
+<p   >That's fine though, as this should theoretically reduce the math required to implenment a working solution and reduce the issues I ran into with strange behaviour.</p>
+<p   >The GDC on Rain World's animations system brought up a good point: If you can fake it, do so. I care more about the visuals and general effects of an IK + ragdoll system, I do not care about the 'trueness' to reality of it. I want something fun, something sexy, and something that is fast.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0719"  ><a  href="#0719"  >#</a>
+ 0719</h3>
+<div   ><p   >Generics were a good idea, but complicate things. I'll be removing all generics I have regarding rendering + simulation numbers and not looking back. There will be separate types for physics + rendering, so I can use a determinisitc number (i32s) for physics and a non-deterministic one (f32s) for rendering. </p>
+<p   >I can't really take the time to deal with all trait inconsistencies and implementations, so I will burn it down and move on. I can't take too much time for each feature as otherwise the game won't come together.</p>
+<p   >It's not a easy process, but I think it will reduce the complexity of my engine and enable me to iterate quicker. There's now several core types with different purposes:</p>
+<p   >Simulation:</p>
+<p   >- IVec2 - A <span   class="codeblockDark outlinedDark">X,Y</span> i32 vector for 2d physics</p>
+<p   >- IDegrees - A i16 based type that represents degrees used for physics rotations</p>
+<p   >Rendering:</p>
+<p   >- Mat4 - A 4x4 f32 matrix for transforms in the GFX world</p>
+<p   >- Quaternion - A f32 type used for 3d rotations</p>
+<p   >- Vec3 - A <span   class="codeblockDark outlinedDark">X,Y,Z</span> f32 type used for positions</p>
+<p   >These should cover my needs for a 2d engine, and allow a 3d expansion over time. I'd have to figure out a 3d simulation that's deterministic but that is out of scope.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1832"  ><a  href="#1832"  >#</a>
+ 1832</h3>
+<div   ><p   >I've got a memory leak somewhere. When your app hits 42gb of application memory when you're attempting to draw a triangle, something went terribly wrong. </p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,232 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Navigation + New Project</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="On burning out, keeping it maintainable and navigation.">
+<meta name="keywords" content="lisp, navigation, burning, out, projects, maintainable">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.05_Quotes.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.07_MoreRoadmap.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.06 - Navigation + New Project</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0638"  ><a  href="#0638"  >#</a>
+ 0638 </h3>
+<div   ><p   >Yesterday I started a new project. This one is a Lisp like language. I've primarily been writing out types + basic structures to compose everything, then will write an interpreter, then finally bootstrap a compiler. It's not ready yet so I'll hold off on writing any posts. The primary reason I've started is a bit of burnout on the blog gen. </p>
+<p   >I don't believe in powering through things, but instead adjusting so that the goal can be achieved with minimal stress + burnout. Perhaps that means I'll take a brief break, I'll do smaller chunks daily or I'll power through in one sitting. Not sure yet, but I don't think my interest will hold for much longer than a week.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0822"  ><a  href="#0822"  >#</a>
+ 0822</h3>
+<div   ><p   >There aren't a large amount of changes, but it took a lot of tweaking of CSS to get it exactly right. </p>
+<p   >There's a new <span   class="codeblockDark outlinedDark">ContentIr::Navigation</span> type.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/content_ir.rs
+
+...
+
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum ContentIr {
+    ...
+    
+    Navigation {
+        previous: Option&lt;Link>,
+        next: Option&lt;Link>,
+    },
+    
+    ...
+}
+
+...
+
+
+impl HtmlElement for ContentIr {
+    fn to_element(&amp;self) -> Element {
+        // When modifying this, ensure all text is escaped.
+        match self {
+            ...
+
+            ContentIr::Navigation { previous, next } => {
+                let map = |s: &amp;Option&lt;Link>| match s {
+                    Some(link) => Some(link.to_str().to_string()),
+                    None => None,
+                };
+
+                element::bottom_nav(map(previous), map(next))
+            }
+
+            ...
+        }
+    }
+}
+
+</div>
+<p   >A new <span   class="codeblockDark outlinedDark">bottom_nav</span> method that generates the HTML.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/element.rs
+
+...
+
+pub fn bottom_nav(previous: Option&lt;String>, next: Option&lt;String>) -> Element {
+    let make_link = |l: Option&lt;String>, description: String, id| {
+        let disabled = l.is_none();
+        let url = l.unwrap_or_default();
+
+        match disabled {
+            true => text(&amp;description),
+            false => link(Some(id), description, url, true),
+        }
+    };
+
+    let previous = make_link(previous, "🡄 Previous".into(), "previous_page_link".into());
+    let next = make_link(next, "Forward 🡆".into(), "next_page_link".into());
+
+    Element {
+        classes: vec![Class::BottomNav],
+        id: None,
+        kind: Kind::Div {
+            children: vec![previous, next],
+        },
+    }
+}
+
+...
+</div>
+<p   >A new style class.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/stylesheet/class.rs
+
+...
+
+pub fn bottom_nav(class: &amp;Class, theme: &amp;Theme) -> Css {
+    let rules = vec![
+        "align-content: center".into(),
+        format!("background: {}", theme.fill_secondary_light_mode.to_html()),
+        "bottom: 0".into(),
+        "display: flex".into(),
+        "flex-direction: row".into(),
+        "justify-content: space-evenly".into(),
+        "left: 0".into(),
+        "padding: 16px".into(),
+        "position: fixed".into(),
+        "width: 100%".into(),
+    ];
+
+    let main_class = format!(
+        ".{} {{ {} }}",
+        class.selector().to_str(),
+        combine_rules(rules)
+    );
+
+    main_class.into()
+}
+
+...
+</div>
+<p   >And finally it's wired up in the <span   class="codeblockDark outlinedDark">builder</span> module since the navigation has already been calculated.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// builder/mod.rs
+
+...
+
+fn build_md(
+    index: usize,
+    location: Option&lt;Location>,
+    mut md: Md,
+    build_context: Arc&lt;BuildContext>,
+) -> Res&lt;Md> {
+    // Build out the links
+    if build_context.md.len() > 0 {
+        // Previous
+        if index != 0 {
+            md.navigation
+                .previous
+                .push(build_context.md[index - 1].1.html_file_name.clone());
+        }
+
+        // Next
+        if index &lt; build_context.md.len() - 1 {
+            md.navigation
+                .next
+                .push(build_context.md[index + 1].1.html_file_name.clone());
+        }
+    }
+
+    let mut warnings = vec![];
+
+    match validate_md(&amp;md.contents.item, &amp;md.contents.location, &amp;build_context) {
+        Res::Ok(_) => {}
+        Res::Warn { item, msg } => {
+            warnings.push((msg, item.location.clone()));
+        }
+        Res::Warnings { mut msgs, .. } => {
+            warnings.append(&amp;mut msgs);
+        }
+        Res::Error { location, msg } => return Res::Error { location, msg },
+    };
+
+    // Build out navigation
+    let md = {
+        let navigation = ContentIr::Navigation {
+            next: match md.navigation.next.first() {
+                Some(s) => Some(s.clone()),
+                None => None,
+            },
+            previous: match md.navigation.previous.last() {
+                Some(s) => Some(s.clone()),
+                None => None,
+            },
+        };
+
+        md.contents = Item {
+            item: ContentIr::Div {
+                contents: vec![navigation, md.contents.item],
+            },
+            location: md.contents.location,
+        };
+        md
+    };
+
+    let item = Item { location, item: md };
+    if warnings.is_empty() {
+        Res::Ok(item)
+    } else if warnings.len() == 1 {
+        Res::Warn {
+            item,
+            msg: warnings[0].0.clone(),
+        }
+    } else {
+        Res::Warnings {
+            item,
+            msgs: warnings,
+        }
+    }
+}
+
+...
+</div>
+<p   >With that the roadmap is as follows:</p>
+<ul   class="listLight"><li><div   >Fractal generator</div></li><li><div   >Utilize folders</div></li><li><div   >Series tag</div></li><li><div   >Index</div></li><li><div   >config.json</div></li><li><div   >Share links</div></li><li><div   >STRETCH: Warnings + errors on lists and blocks</div></li><li><div   >STRETCH: Share on 'X' links</div></li><li><div   >STRETCH: HTML escaped types</div></li></ul></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

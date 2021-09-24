@@ -1,0 +1,142 @@
+{
+    "about_me": "Senior software engineer based out of the Pacific Northwest with a love for spicy food, vinyl, metal, DnB and hacking on things. I like game dev, web dev, distributed systems, GPU programming and architecture. I approach things from a holistic application perspective, not zeroing in on any one domain. It's not worth it if it's not shipped. Welcome to the blog!",
+    "about_me_keywords": [
+        "senior software engineer",
+        "dnb",
+        "metal",
+        "rust",
+        "elixir",
+        "erlang",
+        "gpu",
+        "game",
+        "lisp",
+        "distributed",
+        "concurrent"
+    ],
+    "about_me_summary": "Dev with a passion for language design, building things and random sh!t.",
+    "author": "Eric Olson",
+    "github": "https://github.com/ericrobolson",
+    "index_keywords": [
+        "blog",
+        "senior",
+        "software",
+        "lisp",
+        "elixir",
+        "erlang",
+        "rust",
+        "c",
+        "c#",
+        "language design",
+        "compilers",
+        "gpu",
+        "game dev"
+    ],
+    "index_title": "GGezBB",
+    "linked_in": "https://www.linkedin.com/in/eric-olson-1b7b37b0/",
+    "projects": [
+        {
+            "title": "blog_gen",
+            "description": "A compiler which transforms a collection of markdown files into a static website.",
+            "url": "https://github.com/ericrobolson/blog_gen"
+        },
+        {
+            "title": "blog",
+            "description": "A collection of thoughts and project updates.",
+            "url": "https://github.com/ericrobolson/blog"
+        },
+        {
+            "title": "Heimdall",
+            "description": "A hot reloading crate for Rust.",
+            "url": "https://github.com/ericrobolson/heimdall"
+        },
+        {
+            "title": "Realtime CPU Raytracer",
+            "description": "A real time CPU raytracer that dynamically scales the image based on frame rate.",
+            "url": "https://github.com/ericrobolson/realtime-cpu-raytracer"
+        },
+        {
+            "title": "das_ubershader",
+            "description": "Stack based image manipulation program.",
+            "url": "https://github.com/ericrobolson/das_ubershader"
+        },
+        {
+            "title": "GoForthAndProsper",
+            "description": "A minimal example for a Forth compiler written in Rust.",
+            "url": "https://github.com/ericrobolson/GoForthAndProsper"
+        },
+        {
+            "title": "ToyPaymentEngine",
+            "description": "A toy payment engine built for a code challenge. Written in Rust and parses a CSV.",
+            "url": "https://github.com/ericrobolson/ToyPaymentEngine"
+        }
+    ],
+    "theme": {
+        "accent_blue": {
+            "r": 30,
+            "g": 71,
+            "b": 246,
+            "a": 255
+        },
+        "accent_green": {
+            "r": 104,
+            "g": 159,
+            "b": 57,
+            "a": 255
+        },
+        "accent_red": {
+            "r": 204,
+            "g": 0,
+            "b": 0,
+            "a": 255
+        },
+        "fill_primary_dark_mode": {
+            "r": 37,
+            "g": 37,
+            "b": 37,
+            "a": 255
+        },
+        "fill_primary_light_mode": {
+            "r": 255,
+            "g": 255,
+            "b": 255,
+            "a": 255
+        },
+        "fill_secondary_dark_mode": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 255
+        },
+        "fill_secondary_light_mode": {
+            "r": 224,
+            "g": 224,
+            "b": 224,
+            "a": 255
+        },
+        "text_primary_dark_mode": {
+            "r": 255,
+            "g": 255,
+            "b": 255,
+            "a": 255
+        },
+        "text_primary_light_mode": {
+            "r": 3,
+            "g": 3,
+            "b": 3,
+            "a": 255
+        },
+        "text_secondary_dark_mode": {
+            "r": 162,
+            "g": 162,
+            "b": 162,
+            "a": 255
+        },
+        "text_secondary_light_mode": {
+            "r": 96,
+            "g": 96,
+            "b": 96,
+            "a": 255
+        }
+    },
+    "twitter": "https://twitter.com/_EricOlson_"
+}

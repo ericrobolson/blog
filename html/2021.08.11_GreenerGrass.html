@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Greener Grass</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="On different languages, the appeal of the new shiny and Verlet integration.">
+<meta name="keywords" content="Rust, chaostar, verlet, greener, grass, gltf">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.10_InputMapping.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.12_Verlet.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.11 - Greener Grass</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0632"  ><a  href="#0632"  >#</a>
+ 0632</h3>
+<div   ><p   >Well, the grass is always greener on the other side. There's really nothing more to say about that, other than it is a real struggle. Constantly bombarded by new languages, designs, ideas, frameworks, it's hard to stick to one thing. </p>
+<p   >I'm starting to get the feeling that it isn't necessarily a crucial idea, it's execution. This includes the grind. Really, that's the hardest part right now. </p>
+<p   >I have a roadmap for Chaostar, and though I have other ideas, I think I need to see it through. I don't want to spend ages on it as I want to do other things, but I do need to release something. </p>
+<p   >Next up on the road map is going to be a Verlet integrator. <a  href="https://www.cs.cmu.edu/afs/cs/academic/class/15462-s13/www/lec_slides/Jakobsen.pdf"  >See this paper for reference.</a> I am not sure whether to do 2d or 3d, as it will impact performance greatly. </p>
+<p   >An idea is to use generics, with an <span   class="codeblockDark outlinedDark">impl Trait</span> for all parts. Then depending on the engine, I can execute it and go from there. I can flesh out the primitives using debug shapes, which will be expanded upon. After I can add in 3d mesh file loader and replace the primitives with actual meshes. </p>
+<p   >Which format to utilize? Well, there's GLTF and OBJ. OBJ is faster to get running, but GLTF has more possibilities. Animations, PBR, etc. I will absolutely not utilize all features of the format, but perhaps as time goes on I will..</p>
+<p   >Back to physics. The branch has been made and code will start. I will use a separate crate for this, and possibly do a mix of test driven development and type driven development.</p>
+<p   >I am not sold on utilizing multiplayer quite yet. There's several avenues:</p>
+<ol  type="1" class="listLight"><li><div   > Pivot to 2d single player Metroidvania like Rainworld </div></li><li><div   > Pivot to 3d FPS combat sim that's a cross between Escape from Tarkov and Chivalry/Mordhau. Possibly multiplayer, or a roguelike to start? Sequel contains MP?</div></li><li><div   > Pivot to a single player RE8 clone with Deadspace physics (dismemberment)</div></li></ol>
+<p   >An option is to pick a non-multiplayer option, build it with the potential to add multiplayer, and then add it in a sequel or spin off.</p>
+<p   >One thing I am doing is adding a <span   class="codeblockDark outlinedDark">hack.sh</span> script to each project. This typically will start WatcherInTheDeep with <span   class="codeblockDark outlinedDark">cargo test</span>. Having a feedback loop like this is extremely nice, as I just have to save a file and it runs everything. </p>
+<p   >For the Verlet implementation, I am basically copying the code verbatim (to an extent, it's C and I'm using Rust), then renaming + refactoring it to meet my needs. Once the algorithm is implemented I can move on to changing it to fit my needs. I am not sure what to unit test here, for now I will implement it and wire it up to the simulation. </p>
+<p   >I'm wondering if I should implement some sort of serialization layer so I can tweak config files rather than recompile. That may be an excellent goal to do after this part of the code is wrapped up.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1200"  ><a  href="#1200"  >#</a>
+ 1200</h3>
+<div   ><p   ><a  href="https://www.youtube.com/watch?v=sVntwsrjNe4"  >This is the reason why I'm doing Verlet.</a></p>
+<p   ><a  href="https://www.youtube.com/watch?v=sVntwsrjNe4"  >This is another inspiration.</a></p>
+<p   ><a  href="https://www.youtube.com/watch?v=sVntwsrjNe4"  >To watch</a></p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1712"  ><a  href="#1712"  >#</a>
+ 1712</h3>
+<div   ><p   >It's ironic how stupid mistakes can bring a simulation to a screeching halt. I'm referring to arithmetic overflow due to a mixup between a <span   class="codeblockDark outlinedDark">+</span> and a <span   class="codeblockDark outlinedDark">*</span> symbol. It compiles, so it works, right? </p>
+<p   >For the blog generator, I would like to start adding gifs to them. How, I'm not entirely sure, but I think it would be a good thing to start doing when I get more visual elements going. Hell, it may be worth doing now. The idea is I'd embed a gif in the readme, then the website generator would link it in. </p>
+<p   >Perhaps a project that tweets when I release one of these?</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="2202"  ><a  href="#2202"  >#</a>
+ 2202</h3>
+<div   ><p   >One idea would be an image classifier. You load images into an app, and it goes through them. You can swipe images in 4 directions, 2 are categories, 1 is add a new category, and 1 is categorize later. From there it builds up albums of images you can then browse. Canidate for Lisp?</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

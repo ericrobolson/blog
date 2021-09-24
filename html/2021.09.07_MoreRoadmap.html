@@ -1,0 +1,247 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>More Blog Gen and a dash of Chicken</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Recursive folders, series and more. Some Chicken is made.">
+<meta name="keywords" content="series, blog, gen, parsing, folders, chicken">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.06_NewProject.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.08_Config.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.07 - More Blog Gen and a dash of Chicken</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0621"  ><a  href="#0621"  >#</a>
+ 0621</h3>
+<div   ><p   >I got an easy win today. Was planning on seeing what it would take to restructure everything into folders and it turns out it was flawless. The only thing I'm not sure about is putting images in the same directories as posts.</p>
+<p   >I'll add a 'series' tag for posts as well. This will be done to easily group posts together and will follow the same approach as metadata.</p>
+<p   >A new <span   class="codeblockDark outlinedDark">Metadata</span> enum value is added.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/content_ir.rs
+
+...
+
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Metadata {
+    DisplayTitle(String),
+    Keywords(Vec&lt;String>),
+    Series(Vec&lt;String>),
+    Summary(String),
+}
+
+...
+</div>
+<p   >A new <span   class="codeblockDark outlinedDark">chomp</span> method is added to the <span   class="codeblockDark outlinedDark">metadata</span> module.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/chomp/metadata.rs
+
+...
+
+
+pub fn metadata_series(contents: &amp;String, validations: &amp;Validations) -> Option&lt;Vec&lt;ContentIr>> {
+    // This should only be parsed once, at the very top of the file.
+    let mut validations = validations.clone();
+    validations.skip_metadata_series = true;
+
+    // Try to split it on the large chunks.
+    const START: &amp;'static str = "!!series";
+    if let Some(start_idx) = contents.find(START) {
+        let (before, start) = contents.split_at(start_idx);
+        let start = start.replacen(START, "", 1);
+
+        if let Some(end_idx) = start.find("\n") {
+            let (content, after) = start.split_at(end_idx);
+            let after = after.replacen("\n", "", 1);
+
+            let mut ir = vec![];
+
+            if before.len() > 0 {
+                ir.push(ContentIr::Unparsed {
+                    contents: before.into(),
+                    validations: validations.clone(),
+                });
+            }
+
+            ir.push(ContentIr::Metadata(Metadata::Series(
+                content
+                    .trim()
+                    .split_ascii_whitespace()
+                    .map(|s| s.to_string())
+                    .collect(),
+            )));
+
+            if after.len() > 0 {
+                ir.push(ContentIr::Unparsed {
+                    contents: after.into(),
+                    validations: validations.clone(),
+                });
+            }
+
+            return Some(ir);
+        }
+    }
+
+    None
+}
+...
+</div>
+<p   >It all gets wired up to the <span   class="codeblockDark outlinedDark">Md</span> parser.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/mod.rs
+
+...
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Md {
+    pub contents: Item&lt;ContentIr>,
+    pub date: String,
+    pub day: String,
+    pub default_title: String,
+    pub display_title: String,
+    pub html_file_name: Link,
+    pub keywords: Vec&lt;String>,
+    pub month: String,
+    pub navigation: Navigation,
+    pub path: String,
+    pub series: Vec&lt;String>,
+    pub summary: String,
+    pub year: String,
+}
+
+...
+
+// parse()
+
+
+    let series = match get_series(&amp;contents) {
+        Res::Ok(words) => words.item,
+        Res::Warn { item, msg } => {
+            warnings.push((msg, item.location.clone()));
+            item.item
+        }
+        Res::Warnings { item, mut msgs } => {
+            warnings.append(&amp;mut msgs);
+            item.item
+        }
+        Res::Error { location, msg } => return Res::Error { location, msg },
+    };
+
+...
+
+
+fn get_series(contents: &amp;Item&lt;ContentIr>) -> Res&lt;Vec&lt;String>> {
+    match &amp;contents.item {
+        ContentIr::Div {
+            contents: content_ir,
+        } => {
+            for ir in content_ir.iter() {
+                let item = Item {
+                    location: contents.location.clone(),
+                    item: ir.clone(),
+                };
+
+                let result = get_series(&amp;item);
+                match result {
+                    Res::Error { .. } => {
+                        // skip over to parse the next
+                    }
+                    _ => return result,
+                }
+            }
+        }
+        ContentIr::Metadata(m) => match m {
+            Metadata::Series(words) => {
+                return Res::Ok(Item {
+                    location: contents.location.clone(),
+                    item: words.clone(),
+                });
+            }
+            _ => {}
+        },
+        _ => {}
+    }
+
+    Res::Error {
+        location: contents.location.clone(),
+        msg: "Series not found! Start each page with '!!series SERIES_TITLE' ended with newline."
+            .into(),
+    }
+}
+
+...
+
+</div>
+<p   >Nothing uses this yet, but when I build out the index page (or a series page) I can leverage that data.</p>
+<p   >Remaining work:</p>
+<ul   class="listLight"><li><div   >Fractal/icon generator</div></li><li><div   >Index page, series page and perhaps a page for each month?</div></li><li><div   >Config.json for settings</div></li><li><div   >'Share on X' button</div></li></ul></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1258"  ><a  href="#1258"  >#</a>
+ 1258</h3>
+<div   ><p   >I've been playing a bit with <a  href=""  >Chicken Scheme</a> lately, it's rather nice. I do want to experiment with Lisps, but Common Lisp is not for me. Dr. Racket is a good one, but I wanted something that was C based. </p>
+<p   >Here's what I wrote today:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+(import (chicken file))
+
+;; This is a test to see if I could override language functions.
+;; The answer is yes and I do not recommend doing this.
+(define-syntax +
+    (syntax-rules ()
+        ((+ a)
+            (print a))
+        ((+ a b)    
+                (print a b "yolo"))))
+
+(+ 1 2)
+(+ 1)
+
+(print (file-exists? "hello-world.md"))
+</div>
+<p   >The compiler is much friendlier than SBCL. The fact that I can override language constructs or other functions, while horrid, means that I can write a transpiler with this. </p>
+<p   >A few projects I'd be interested in:</p>
+<ul   class="listLight"><li><div   >Bytecode generator</div></li><li><div   >JSON (or other DTO) generator</div></li></ul></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1631"  ><a  href="#1631"  >#</a>
+ 1631</h3>
+<div   ><p   >This is rather insane. By overriding the syntax of Scheme itself, you can do things like this:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+(define (print2 c) (print c))
+
+(define-syntax print 
+    (syntax-rules ()
+        ((print content)
+            (string-append "println!(\"{:?}\"," content ");"))))
+
+(define-syntax define 
+    (syntax-rules ()
+        ((define a b)
+            (string-append "pub fn " (symbol->string (car 'a)) "()" "{" b "}"))))
+
+(print2 
+    (define (main) (print "hello world!"))
+)
+</div>
+<p   >What does that result in? Some ill-formed Rust code.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">pub fn main(){println!("{:?}",hello world!);}</div>
+<p   >This example is trivial but hopefully hints at how easily the parse tree can be transformed into something entirely different.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

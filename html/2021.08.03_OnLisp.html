@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>On Lisp</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Postponing Lisp, Slime and Emacs.">
+<meta name="keywords" content="Emacs, VS, Code, Lisp, Slime, CICD, TDD">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.02_BottomUp.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.04_Witd.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.03 - On Lisp</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0800"  ><a  href="#0800"  >#</a>
+ 0800</h3>
+<div   ><p   >I think I'm going to retire Lisp + Slime + Emacs. The tooling is just not good. Perhaps Rust, C# and JS has spoiled me. Regardless, Common Lisp is not worth diving into right now. It's slow going and not something I can devote time to if I want to ship stuff. </p>
+<p   >One thing I would like to do is a better TDD approach, using that to drive development. I would still like to explore bottom up design and utilize that. Cross platform clients appeal to me, but I can't be sure that's the right approach. </p>
+<p   >For now I'll go back to Rust as my daily driver. Several projects I would like to see are the following:</p>
+<ol  type="1" class="listLight"><li><div   > Listener that can watch a directory for file changes, then executes a system command. Such as watching a 
+<span   class="codeblockDark outlinedDark">src</span>
+ directory in Rust and executing 
+<span   class="codeblockDark outlinedDark">cargo test</span>
+. Ideally this would be language agnostic. </div></li><li><div   > DTO generator. Data would be specified and then generated in multiple languages. Serialization formats would also be enabled such as JSON or Protobufs. The intent is to easily share code between clients and servers.</div></li><li><div   > CICD manager. E.g. when a 
+<span   class="codeblockDark outlinedDark">main</span>
+ branch in Github gets merged to, it executes a variety of commands such as packaging files, pushing to other repos, deploying to DO, etc. I don't think this would be terribly difficult to do as it's automating a lot of manual tasks.</div></li></ol>
+<p   >RIP CL. </p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

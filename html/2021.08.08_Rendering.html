@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Rendering</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Implementing a 3d Renderer in Rust.">
+<meta name="keywords" content="Rust, vertices, 3d, camera, meshes, orthographic">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.08.07_LispCompilation.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.08.09_Transforms.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.08.08 - Rendering</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0700"  ><a  href="#0700"  >#</a>
+ 0700</h3>
+<div   ><p   >I suppose I'm at a bit of a crossroads. The engine can spit out meshes, though the transforms are not in effect yet. There are several ways I could go:</p>
+<ol  type="1" class="listLight"><li><div   > Implement a full blown 3d solution</div></li><li><div   > Implement a mechanism that utilizes the 3d solution, but only does 2d triangles for now</div></li><li><div   > Implement the bare minimum to get something drawing</div></li><li><div   > Some other thing I'm missing</div></li></ol>
+<p   >I'm leaning towards #1 with an option to either do orthographic or a perspective camera. This will get added to over time, but it will at least allow me to go forward with a solution that doesn't bite me in the ass down the road. </p>
+<p   >While I don't think Chaostar will be full blown 3d with meshes + GLTFs, it should allow me to do sprites. There will likely be a mapping system to convert the in game simulation coordinates to a 3d system, but that is acceptable. </p>
+<p   >Here's the plan:</p>
+<ol  type="a" class="listLight"><li><div   > Add a camera class</div></li><li><div   > Add a 'set camera' render message</div></li><li><div   > Upload view projection matrix uniform calculated from camera to GPU</div></li><li><div   > Add a uniform for the mesh transform and upload to GPU</div></li><li><div   > Modify verts by the two uniforms</div></li></ol>
+<p   >This should enable me to start prototyping a simulation with debug shapes. From there I can gradually replace it with sprites, then theoretically full 3d meshes. </p>
+<p   >The main thing is to get to a point where I can 'grey box' it, e.g. prototype things without the actual art. Since this will be combat driven with IK, I don't need good visuals yet. Most things will be done with primitives.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0858"  ><a  href="#0858"  >#</a>
+ 0858</h3>
+<div   ><p   >Camera transform has been added. The code is sort of messy, but it works so whatever. Next up will be a model transform. My plan is to get a crappy version working that's relatively simple, and I'll add abstractions as necessary. </p>
+<p   >The renderer will be relatively simple, resulting in a single uber shader. This is done for simplicity, and may change as time goes on. For now getting something running is priority number one.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1046"  ><a  href="#1046"  >#</a>
+ 1046</h3>
+<div   ><p   >Added mesh transforms. Only have one wired up, but this should now enable drawing of entities. I'll add in an orthographic camera eventually, but next up is wiring up a single moveable entity, then multiple ones. That way I can get ready to either start on netcode or the simulation.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1628"  ><a  href="#1628"  >#</a>
+ 1628</h3>
+<div   ><p   >I'll be utilizing branches more. I like to add comments on PRs and suggestions, so it'll be a good way to ensure code quality stays high will getting things done.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1738"  ><a  href="#1738"  >#</a>
+ 1738</h3>
+<div   ><p   >I'm not gonna lie, the grass always seems greener on the other side. There's endless options out there that seem better than this one. Perhaps just releasing something with this project will be good enough. I am aggressive at cutting scope at work, perhaps the same should be applied here. </p>
+<p   >Don't focus on perfection, focus on something that works and can easily be adjusted later on. Do the minimum, nothing more nothing less. Focus no harder projects later. VR is not this title. Perhaps later. PBR realistic GFX are not in this title. Animations are perhaps not in this title. I may be able to get away with IK + static files. </p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

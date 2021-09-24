@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Starting Index</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Starting the Index generation and a brief intro to Generative Adversarial Networks.">
+<meta name="keywords" content="generation, blog, catalog, html, index, page, generative, adversarial, network">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.20_UnitTest2.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.22_Sustainability.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.21 - Starting Index</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0604"  ><a  href="#0604"  >#</a>
+ 0604</h3>
+<div   ><p   >I've been reading a bit about <a  href="https://en.wikipedia.org/wiki/Generative_adversarial_network"  >GAN's</a>. These are machine learning frameworks that function by implementing two AIs if you will, a generator and discriminator. The generator attempts to generate outputs that pass the discriminator, the discriminator attempts to detect fake outputs. There are quite a few use cases I can think of for these, so I'll work on experimenting with it later on.</p>
+<p   >I'll start on the Index page for <span   class="codeblockDark outlinedDark">blog_gen</span> today. Not sure what it will look like, so it'll end up being iterative.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0648"  ><a  href="#0648"  >#</a>
+ 0648</h3>
+<div   ><p   >Ok, rough version of the Index page is done. I'm not sure what I want yet for the total layout, but this will get me started.</p>
+<p   >Like the Catalog, Projects and About Me, I'll add a new module to the <span   class="codeblockDark outlinedDark">builder</span> module.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// builder/index.r
+
+use super::BuildContext;
+use crate::{
+    parser::{ContentIr, LinkType, Page},
+    Context, Item,
+};
+use std::sync::Arc;
+
+pub(crate) fn build(
+    html_filename: String,
+    build_context: &amp;Arc&lt;BuildContext>,
+    context: &amp;Arc&lt;Context>,
+) -> Page {
+    let file_name = html_filename;
+
+    let description = {
+        ContentIr::Div {
+            contents: vec![ContentIr::text(context.config.index_summary.clone())],
+        }
+    };
+
+    let contents = ContentIr::section(context.config.index_title.clone(), vec![description]);
+
+    let mut page_contents = vec![
+        ContentIr::title("Home".into(), "indexTitle".into()),
+        contents,
+    ];
+
+    let mut content = vec![
+        ContentIr::section("Recent Posts".into(), recent_posts(build_context)),
+        last_post(build_context),
+        // TODO: Series calculations
+        // ContentIr::section("Series".into(), vec![]),
+    ];
+
+    page_contents.append(&amp;mut content);
+
+    Page {
+        contents: Item {
+            location: None,
+            item: ContentIr::Div {
+                contents: page_contents,
+            },
+        },
+        file_name,
+        keywords: context.config.index_keywords.clone(),
+        summary: context.config.index_summary.clone(),
+        title: context.config.index_title.clone(),
+    }
+}
+
+fn last_post(build_context: &amp;Arc&lt;BuildContext>) -> ContentIr {
+    let (_, md) = build_context.md.iter().last().unwrap();
+
+    md.contents.item.clone()
+}
+
+const RECENT_POST_COUNT: usize = 7;
+
+fn recent_posts(build_context: &amp;Arc&lt;BuildContext>) -> Vec&lt;ContentIr> {
+    vec![ContentIr::UnorderedList {
+        items: build_context
+            .md
+            .iter()
+            .rev()
+            .take(RECENT_POST_COUNT)
+            .map(|(_, md)| ContentIr::Div {
+                contents: vec![
+                    ContentIr::Link {
+                        description: format!("{}: {}", md.date, md.display_title),
+                        url: md.html_file_name.to_str().into(),
+                        link_type: LinkType::Regular,
+                    },
+                    ContentIr::text(format!(" - {}", md.summary)),
+                ],
+            })
+            .collect(),
+    }]
+}
+
+</div>
+<p   >The various sections are generated and mapped out, with the possibility of a Series page being added. I think that will be the next task I work on. </p>
+<p   >Here's a render of what it all looks like:</p>
+<p   ><a  href="assets/2021.09.21_0650.png" target="_blank" rel="noreferrer noopener" ><img  src="assets/2021.09.21_0650.png" alt="Initial Render" class="fullImgLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"></img></a></p>
+<p   >While I did want to add some more features, this is nearly done. The only thing I want to do now is add a 'Series' page which groups content together. Searching through all the other pages is something I can add next time I do one of these projects.</p>
+<p   >I really need to figure out a better way for keeping track of projects to work on.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

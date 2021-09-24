@@ -1,0 +1,1372 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Fragment Generation + Metadata</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Adding in fragment links to headers and generating metadata.">
+<meta name="keywords" content="Rust, fragment, generation, links, metadata">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.02_Images.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.03_Ideas3.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.03 - Fragment Generation + Metadata</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0628"  ><a  href="#0628"  >#</a>
+ 0628</h3>
+<div   ><p   >I've added fragments to headers. </p>
+<p   >First I modified <span   class="codeblockDark outlinedDark">header.rs</span> to require an id.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/chomp/header.rs
+use crate::parser::md::{parse_contents::Validations, ContentIr};
+
+pub fn header(contents: &amp;String, validations: &amp;Validations) -> Option&lt;Vec&lt;ContentIr>> {
+    let chars: Vec&lt;char> = contents.chars().collect();
+
+    if chars.len() == 0 {
+        return None;
+    }
+
+    let mut start_idx = None;
+    let mut header_size = 0;
+    let mut end_idx = chars.len() - 1;
+    let mut stop = false;
+
+    for i in 0..chars.len() {
+        if stop == true {
+            break;
+        }
+
+        let c = chars[i];
+
+        let can_start_header = {
+            if i == 0 {
+                true
+            } else {
+                chars[i - 1] == '\n'
+            }
+        };
+
+        if can_start_header &amp;&amp; c == '#' {
+            header_size += 1;
+            stop = true;
+            start_idx = Some(i);
+            let mut continuous = true;
+
+            for j in i..chars.len() {
+                if chars[j] == '#' &amp;&amp; continuous {
+                    header_size += 1;
+                } else {
+                    continuous = false;
+                }
+
+                end_idx = j;
+
+                if chars[j] == '\n' {
+                    break;
+                }
+            }
+        }
+    }
+
+    if let Some(start_idx) = start_idx {
+        let (before, after) = contents.split_at(end_idx);
+        let (before, header) = before.split_at(start_idx);
+        let mut before_validations = validations.clone();
+        before_validations.skip_header = true;
+
+        let mut ir = vec![];
+        if before.len() > 0 {
+            ir.push(ContentIr::Unparsed {
+                contents: before.into(),
+                validations: before_validations,
+            });
+        }
+
+        let header: String = header.replace("#", "").into();
+        if header.len() > 0 {
+            ir.push(ContentIr::Header {
+                id: header.replace(" ", ""),
+                header_size,
+                text: header,
+            });
+        }
+
+        if after.len() > 0 {
+            ir.push(ContentIr::Unparsed {
+                contents: after.into(),
+                validations: validations.clone(),
+            })
+        }
+
+        return Some(ir);
+    }
+
+    None
+}
+
+</div>
+<p   >This will enable me to link to it in the next step. </p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/content_ir.rs
+use crate::html::{
+    element::{self, ListType},
+    Element, HtmlElement,
+};
+
+use super::Validations;
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum ContentIr {
+    Card(Vec&lt;ContentIr>),
+    Codeblock(String),
+    Div {
+        contents: Vec&lt;ContentIr>,
+    },
+    Header {
+        header_size: u32,
+        id: String,
+        text: String,
+    },
+    InlineCode(String),
+    Link {
+        description: String,
+        url: String,
+        link_type: LinkType,
+    },
+    OrderedList {
+        items: Vec&lt;ContentIr>,
+        numeric: bool,
+    },
+    Text {
+        text: String,
+    },
+    Unparsed {
+        contents: String,
+        validations: Validations,
+    },
+    UnorderedList {
+        items: Vec&lt;ContentIr>,
+    },
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum LinkType {
+    Iframe,
+    LocalImage,
+    Regular,
+    Youtube,
+}
+
+impl HtmlElement for ContentIr {
+    fn to_element(&amp;self) -> Element {
+        // When modifying this, ensure all text is escaped.
+
+        match self {
+            ContentIr::Card(children) => {
+                element::card(children.iter().map(|ir| ir.to_element()).collect())
+            }
+            ContentIr::Codeblock(text) => element::code_block(escape(text)),
+            ContentIr::Div { contents } => {
+                element::div(contents.iter().map(|ir| ir.to_element()).collect())
+            }
+            ContentIr::Header {
+                header_size,
+                id,
+                text,
+            } => {
+                let fragment = element::link(None, "#".into(), format!("#{}", id), true);
+
+                element::header(
+                    *header_size,
+                    Some(id.clone()),
+                    vec![fragment, element::text(&amp;escape(text))],
+                )
+            }
+            ContentIr::InlineCode(code) => element::inline_code(escape(&amp;code)),
+            ContentIr::Link {
+                description,
+                url,
+                link_type,
+            } => match link_type {
+                LinkType::Iframe => element::iframe(description.clone(), url.clone()),
+                LinkType::LocalImage => element::image(None, description.clone(), url.clone()),
+                LinkType::Regular => element::link(None, description.clone(), url.clone(), true),
+                LinkType::Youtube => element::youtube(url.clone()),
+            },
+            ContentIr::OrderedList { items, numeric } => element::list(
+                items.iter().map(|i| i.to_element()).collect(),
+                if *numeric {
+                    ListType::OrderedNumeric
+                } else {
+                    ListType::OrderedAlpha
+                },
+            ),
+            ContentIr::Text { text } => element::text(&amp;escape(text)),
+            ContentIr::Unparsed { .. } => {
+                todo!("Attempted to convert unparsed content to an element!")
+            }
+            ContentIr::UnorderedList { items } => element::list(
+                items.iter().map(|i| i.to_element()).collect(),
+                ListType::Unordered,
+            ),
+        }
+    }
+}
+
+fn escape(s: &amp;str) -> String {
+    let mut output = String::new();
+    html_escape::encode_text_minimal_to_string(s, &amp;mut output);
+
+    output
+}
+</div>
+<p   >I modified the <span   class="codeblockDark outlinedDark">Element</span> for the header to accept non-strings as children. This means that I can pass links as a header child.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// html/element.rs
+use crate::html::stylesheet::Alignment;
+
+use super::{
+    stylesheet::{Class, Position},
+    Html,
+};
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Element {
+    pub classes: Vec&lt;Class>,
+    pub id: Option&lt;String>,
+    pub kind: Kind,
+}
+
+impl Html for Element {
+    fn to_html(&amp;self) -> String {
+        let class = {
+            if self.classes.is_empty() {
+                String::default()
+            } else {
+                format!(
+                    "class=\"{}\"",
+                    self.classes
+                        .iter()
+                        .map(|c| c.selector().to_str().into())
+                        .collect::&lt;Vec&lt;String>>()
+                        .join(" ")
+                )
+            }
+        };
+
+        let selector;
+        let mut children = String::new();
+        let mut attributes: Option&lt;String> = None;
+
+        match &amp;self.kind {
+            Kind::Card(contents) => {
+                selector = String::from("div");
+                children = contents.clone();
+            }
+            Kind::Codeblock(text) => {
+                selector = String::from("div");
+                children = text.clone();
+            }
+            Kind::Div {
+                children: child_elements,
+            } => {
+                selector = String::from("div");
+                children = child_elements
+                    .iter()
+                    .map(|c| c.to_html())
+                    .collect::&lt;Vec&lt;String>>()
+                    .join("\n");
+            }
+            Kind::Header {
+                header_size,
+                children: child_elements,
+            } => {
+                selector = format!("h{}", header_size);
+                children = child_elements
+                    .iter()
+                    .map(|c| c.to_html())
+                    .collect::&lt;Vec&lt;String>>()
+                    .join("\n");
+            }
+            Kind::List { items, list_type } => {
+                let (s, attr) = match list_type {
+                    ListType::OrderedAlpha => (String::from("ol"), Some("type=\"a\"".into())),
+                    ListType::OrderedNumeric => (String::from("ol"), Some("type=\"1\"".into())),
+                    ListType::Unordered => (String::from("ul"), None),
+                };
+
+                attributes = attr;
+                children = items
+                    .iter()
+                    .map(|e| e.to_html())
+                    .map(|e| format!("&lt;li>{}&lt;/li>", e))
+                    .collect();
+                selector = s;
+            }
+            Kind::Link {
+                description,
+                redirect,
+                url,
+            } => {
+                let redirect_text = if *redirect {
+                    ""
+                } else {
+                    "target=\"_blank\" rel=\"noreferrer noopener\""
+                };
+
+                selector = String::from("a");
+                children = description.clone();
+                attributes = Some(format!("href=\"{}\" {}", url, redirect_text));
+            }
+            Kind::Iframe { description, url } => {
+                selector = String::from("iframe");
+                attributes = Some(
+                    format!("
+                        src=\"{}\" 
+                        title=\"{}\" 
+                        frameborder=\"0\" 
+                        allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" 
+                        allowfullscreen",
+                        url, description));
+            }
+            Kind::Image { description, url } => {
+                selector = String::from("img");
+                attributes = Some(format!("src=\"{}\" alt=\"{}\"", url, description));
+            }
+            Kind::Span { children: c } => {
+                selector = String::from("span");
+                children = c.iter().map(|e| e.to_html()).collect();
+            }
+            Kind::Text(text) => return text.clone(),
+            Kind::Youtube { url } => {
+                selector = String::from("iframe");
+                attributes = Some(
+                    format!("
+                        src=\"{}\" 
+                        title=\"YouTube video player\" 
+                        frameborder=\"0\" 
+                        allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" 
+                        allowfullscreen",
+                        url));
+            }
+        }
+
+        let attributes = match attributes {
+            Some(s) => s,
+            None => String::default(),
+        };
+
+        let id = match &amp;self.id {
+            Some(id) => format!("id=\"{}\"", id),
+            None => String::default(),
+        };
+
+        format!(
+            "&lt;{} {} {} {}>{}&lt;/{}>",
+            selector, id, attributes, class, children, selector
+        )
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Kind {
+    Card(String),
+    Codeblock(String),
+    Div {
+        children: Vec&lt;Element>,
+    },
+    Header {
+        header_size: u32,
+        children: Vec&lt;Element>,
+    },
+    Iframe {
+        description: String,
+        url: String,
+    },
+    Image {
+        description: String,
+        url: String,
+    },
+    Link {
+        description: String,
+        redirect: bool,
+        url: String,
+    },
+    List {
+        items: Vec&lt;Element>,
+        list_type: ListType,
+    },
+    Span {
+        children: Vec&lt;Element>,
+    },
+    Text(String),
+    Youtube {
+        url: String,
+    },
+}
+
+...
+
+pub fn header(header_size: u32, id: Option&lt;String>, children: Vec&lt;Element>) -> Element {
+    Element {
+        classes: vec![],
+        id,
+        kind: Kind::Header {
+            children,
+            header_size,
+        },
+    }
+}
+
+...
+
+</div></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0730"  ><a  href="#0730"  >#</a>
+ 0730</h3>
+<div   ><p   >Started on metadata generation, parsing and warnings.</p>
+<p   >First I'll update the <span   class="codeblockDark outlinedDark">Res</span> enum to allow multiple warnings to be returned.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// main.rs
+
+...
+
+fn main() {
+    let start = std::time::Instant::now();
+
+    let author = "Eric Olson".to_string();
+
+    // Source the context for this session
+    let context = match env_args::parse(author) {
+        Some(res) => match res {
+            Res::Ok(item) => item.item,
+            Res::Warn { item, msg } => {
+                console::warn(&amp;msg, item.location);
+                item.item
+            }
+            Res::Error { location, msg } => {
+                console::error(&amp;msg, location);
+                return;
+            }
+            Res::Warnings { item, msgs } => {
+                for (warning, location) in msgs.iter() {
+                    console::warn(warning, location.clone());
+                }
+
+                item.item
+            }
+        },
+        // Nothing available, so simply return
+        None => return,
+    };
+
+    ...
+
+}
+
+...
+
+pub enum Res&lt;T> {
+    Ok(Item&lt;T>),
+    Warn {
+        item: Item&lt;T>,
+        msg: String,
+    },
+    Warnings {
+        item: Item&lt;T>,
+        msgs: Vec&lt;(String, Option&lt;Location>)>,
+    },
+    Error {
+        location: Option&lt;Location>,
+        msg: String,
+    },
+}
+
+...
+
+/// Maps all results from a given collection.
+pub fn map_results&lt;T>(items: Vec&lt;Res&lt;T>>) -> Result&lt;Vec&lt;Item&lt;T>>, ()> {
+    let mut results = vec![];
+    let mut warnings = vec![];
+    let mut errors = vec![];
+
+    for file in items {
+        match file {
+            Res::Ok(item) => results.push(item),
+            Res::Warn { item, msg } => {
+                warnings.push((msg, item.location.clone()));
+                results.push(item);
+            }
+            Res::Warnings { item, mut msgs } => {
+                warnings.append(&amp;mut msgs);
+                results.push(item);
+            }
+            Res::Error { location, msg } => {
+                errors.push((msg, location));
+            }
+        }
+    }
+
+    // Print all warnings
+    for (msg, location) in warnings {
+        console::warn(&amp;msg, location);
+    }
+
+    // Print all errors
+    let exit = !errors.is_empty();
+    for (msg, location) in errors {
+        console::error(&amp;msg, location);
+    }
+
+    if exit {
+        return Err(());
+    }
+
+    Ok(results)
+}
+</div>
+<p   >I'll add the new <span   class="codeblockDark outlinedDark">ContentIr</span> types to represent the metadata as well. Since these will be handled at a different level, I'll make them return a new <span   class="codeblockDark outlinedDark">Element::Nil</span> type which does not output any HTML.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/content_ir.rs
+
+...
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum ContentIr {
+    
+    ...
+   
+    Metadata(Metadata),
+  
+    ...
+  
+}
+
+...
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Metadata {
+    DisplayTitle(String),
+    Keywords(Vec&lt;String>),
+    Summary(String),
+}
+
+impl HtmlElement for ContentIr {
+    fn to_element(&amp;self) -> Element {
+        // When modifying this, ensure all text is escaped.
+
+        match self {
+           
+            ...
+
+            ContentIr::Metadata(_) => element::nil(),
+        }
+    }
+}
+</div>
+<p   >A new <span   class="codeblockDark outlinedDark">metadata</span> module for <span   class="codeblockDark outlinedDark">chomp</span>ing is added. I've only implemented the <span   class="codeblockDark outlinedDark">DisplayTitle</span> for now.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">use crate::parser::md::{parse_contents::Validations, ContentIr, Metadata};
+
+pub fn metadata_display_title(
+    contents: &amp;String,
+    validations: &amp;Validations,
+) -> Option&lt;Vec&lt;ContentIr>> {
+    // This should only be parsed once, at the very top of the file.
+    let mut validations = validations.clone();
+    validations.skip_metadata_display_title = true;
+
+    // Try to split it on the large chunks.
+    const START: &amp;'static str = "!!title";
+    if let Some(start_idx) = contents.find(START) {
+        let (before, start) = contents.split_at(start_idx);
+        let start = start.replacen(START, "", 1);
+
+        if let Some(end_idx) = start.find("\n") {
+            let (content, after) = start.split_at(end_idx);
+            let after = after.replacen("\n", "", 1);
+
+            let mut before_validations = validations.clone();
+            before_validations.skip_metadata_display_title = true;
+
+            let mut ir = vec![];
+
+            if before.len() > 0 {
+                ir.push(ContentIr::Unparsed {
+                    contents: before.into(),
+                    validations: before_validations,
+                });
+            }
+
+            ir.push(ContentIr::Metadata(Metadata::DisplayTitle(
+                content.trim().into(),
+            )));
+
+            if after.len() > 0 {
+                ir.push(ContentIr::Unparsed {
+                    contents: after.into(),
+                    validations: validations.clone(),
+                });
+            }
+
+            return Some(ir);
+        }
+    }
+
+    None
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">parse_contents</span> module is updated to account for the <span   class="codeblockDark outlinedDark">Warnings</span> and <span   class="codeblockDark outlinedDark">Metadata</span> changes. Again, only <span   class="codeblockDark outlinedDark">DisplayTitle</span> is implemented.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/parse_contents/mod.rs
+mod chomp;
+mod content_ir;
+
+use crate::{Item, Location, Res};
+pub use content_ir::{ContentIr, Metadata};
+
+pub(crate) enum ContinueRunning {
+    No,
+    Yes,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Options {
+    pub make_cards: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Validations {
+    pub skip_code_block: bool,
+    pub skip_header: bool,
+    pub skip_inline_code: bool,
+    pub skip_link: bool,
+    pub skip_list: bool,
+    pub skip_metadata_display_title: bool,
+}
+
+pub fn execute(contents: String, location: Location, opts: Options) -> Res&lt;ContentIr> {
+    let mut warnings = vec![];
+
+    // Preprocess things to simplify parsing.
+    let contents = {
+        let mut contents = contents.replace("\r\n", "\n");
+
+        // Add a newline to ensure that it gets processed correctly
+        if !contents.ends_with("\n") {
+            contents.push('\n');
+        }
+
+        contents
+    };
+
+    // Since this is a recursive processor, executing until nothing remains, set it up so that nothing has
+    // been processed yet.
+    let mut ir = vec![ContentIr::Unparsed {
+        contents,
+        validations: Validations {
+            skip_code_block: false,
+            skip_header: false,
+            skip_inline_code: false,
+            skip_link: false,
+            skip_list: false,
+            skip_metadata_display_title: false,
+        },
+    }];
+
+    // Continue processing + reprocessing all elements until there's nothing left.
+    loop {
+        let result = match parse(&amp;ir, &amp;location, opts) {
+            Res::Ok(item) => item.item,
+            Res::Warn { item, msg } => {
+                warnings.push((msg, item.location.clone()));
+                item.item
+            }
+            Res::Error { location, msg } => return Res::Error { location, msg },
+            Res::Warnings { item, mut msgs } => {
+                warnings.append(&amp;mut msgs);
+                item.item
+            }
+        };
+
+        let (new_elements, continue_running) = result;
+
+        ir = new_elements;
+
+        match continue_running {
+            ContinueRunning::Yes => {}
+            ContinueRunning::No => break,
+        }
+    }
+
+    // Do any hierarchal mappings
+    let mut contents = vec![];
+    let mut processing_header = None;
+    let mut header_collection = vec![];
+
+    while ir.len() > 0 {
+        let i = ir.remove(0);
+
+        match &amp;i {
+            ContentIr::Header {
+                header_size,
+                id,
+                text,
+            } => {
+                // Push the previous header on to the contents
+                if let Some(header) = processing_header {
+                    let header_children = ContentIr::Div {
+                        contents: header_collection,
+                    };
+
+                    header_collection = vec![header, header_children];
+
+                    contents.push(ContentIr::Card(header_collection));
+                    header_collection = vec![];
+                }
+
+                processing_header = Some(i);
+            }
+            _ => {
+                if processing_header.is_some() {
+                    header_collection.push(i);
+                } else {
+                    contents.push(i);
+                }
+            }
+        }
+    }
+
+    // If there's a working header, add it to the end
+    if let Some(header) = processing_header {
+        let header_children = ContentIr::Div {
+            contents: header_collection,
+        };
+
+        header_collection = vec![header, header_children];
+
+        contents.push(ContentIr::Card(header_collection));
+    }
+
+    Res::Ok(Item {
+        item: ContentIr::Div { contents },
+        location: Some(location),
+    })
+}
+
+pub(crate) fn parse(
+    elements: &amp;Vec&lt;ContentIr>,
+    location: &amp;Location,
+    opts: Options,
+) -> Res&lt;(Vec&lt;ContentIr>, ContinueRunning)> {
+    let mut new = vec![];
+    let mut continue_running = ContinueRunning::No;
+
+    let mut warnings = vec![];
+
+    for element in elements {
+        match element {
+            ContentIr::Unparsed {
+                contents,
+                validations,
+            } => {
+                // Attempt to process something.
+                // If something was found, add it to the end and keep going.
+                let ir;
+                match try_process(contents, &amp;location, opts, validations) {
+                    Res::Ok(item) => ir = item.item,
+                    Res::Warn { item, msg } => {
+                        warnings.push((msg, item.location.clone()));
+                        ir = item.item;
+                    }
+                    Res::Error { location, msg } => {
+                        return Res::Error {
+                            location: location.clone(),
+                            msg,
+                        }
+                    }
+                    Res::Warnings { item, mut msgs } => {
+                        warnings.append(&amp;mut msgs);
+                        ir = item.item;
+                    }
+                }
+
+                if let Some(mut ir) = ir {
+                    new.append(&amp;mut ir);
+                    continue_running = ContinueRunning::Yes;
+                }
+                // Nothing matched, so return it as text.
+                else if contents.len() > 0 {
+                    new.push(ContentIr::Text {
+                        text: contents.clone(),
+                    });
+                }
+            }
+            _ => {
+                new.push(element.clone());
+            }
+        }
+    }
+
+    let item = Item {
+        item: (new, continue_running),
+        location: Some(location.clone()),
+    };
+
+    if warnings.is_empty() {
+        Res::Ok(item)
+    } else if warnings.len() == 1 {
+        Res::Warn {
+            item,
+            msg: warnings[0].0.clone(),
+        }
+    } else {
+        Res::Warnings {
+            item,
+            msgs: warnings,
+        }
+    }
+}
+
+/// Attempts to process the contents, stepping through the various types until nothing is left.
+fn try_process(
+    contents: &amp;String,
+    location: &amp;Location,
+    opts: Options,
+    validations: &amp;Validations,
+) -> Res&lt;Option&lt;Vec&lt;ContentIr>>> {
+    // Do these in priority.
+    // New things that are added should be processed here.
+    let mut validations = validations.clone();
+
+    if !validations.skip_metadata_display_title {
+        if let Some(ir) = chomp::metadata_display_title(contents, &amp;validations) {
+            return Res::Ok(Item {
+                item: Some(ir),
+                location: Some(location.clone()),
+            });
+        } else {
+            validations.skip_metadata_display_title = true;
+        }
+    }
+
+    if !validations.skip_code_block {
+        if let Some(ir) = chomp::block(contents, &amp;validations) {
+            return Res::Ok(Item {
+                item: Some(ir),
+                location: Some(location.clone()),
+            });
+        } else {
+            validations.skip_code_block = true;
+        }
+    }
+
+    if !validations.skip_header {
+        if let Some(ir) = chomp::header(contents, &amp;validations) {
+            return Res::Ok(Item {
+                item: Some(ir),
+                location: Some(location.clone()),
+            });
+        } else {
+            validations.skip_header = true;
+        }
+    }
+
+    if !validations.skip_list {
+        if let Some(ir) = chomp::list(contents, opts, &amp;validations) {
+            return Res::Ok(Item {
+                item: Some(ir),
+                location: Some(location.clone()),
+            });
+        } else {
+            validations.skip_list = true;
+        }
+    }
+
+    if !validations.skip_inline_code {
+        if let Some(ir) = chomp::inline_code(contents, &amp;validations) {
+            return Res::Ok(Item {
+                item: Some(ir),
+                location: Some(location.clone()),
+            });
+        } else {
+            validations.skip_list = true;
+        }
+    }
+
+    if !validations.skip_link {
+        let mut warnings = vec![];
+        let ir;
+
+        match chomp::link(contents, location, &amp;validations) {
+            Res::Ok(item) => ir = item.item,
+            Res::Warn { item, msg } => {
+                ir = item.item;
+                warnings.push((msg, item.location.clone()));
+            }
+            Res::Error { location, msg } => todo!(),
+            Res::Warnings { item, mut msgs } => {
+                ir = item.item;
+                warnings.append(&amp;mut msgs);
+            }
+        }
+
+        if let Some(ir) = ir {
+            if warnings.is_empty() {
+                return Res::Ok(Item {
+                    item: Some(ir),
+                    location: Some(location.clone()),
+                });
+            } else if warnings.len() == 1 {
+                return Res::Warn {
+                    item: Item {
+                        item: Some(ir),
+                        location: Some(location.clone()),
+                    },
+                    msg: warnings[0].0.clone(),
+                };
+            } else {
+                return Res::Warnings {
+                    item: Item {
+                        item: Some(ir),
+                        location: Some(location.clone()),
+                    },
+                    msgs: warnings,
+                };
+            }
+        } else {
+            validations.skip_link = true;
+        }
+    }
+
+    return Res::Ok(Item {
+        item: None,
+        location: Some(location.clone()),
+    });
+}
+</div>
+<p   >Finally the <span   class="codeblockDark outlinedDark">Md</span> parser is updated to pull the metadata and append it to the page.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/mod.rs
+mod filename;
+mod parse_contents;
+
+use super::IntermediateRepresentation;
+use crate::{
+    parser::md::parse_contents::{Metadata, Options},
+    Item, Location, Res,
+};
+pub use parse_contents::ContentIr;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Md {
+    pub contents: Item&lt;ContentIr>,
+    pub date: String,
+    pub day: String,
+    pub default_title: String,
+    pub display_title: String,
+    pub html_file_name: String,
+    pub keywords: Vec&lt;String>,
+    pub month: String,
+    pub path: String,
+    pub summary: String,
+    pub year: String,
+}
+
+pub fn parse(file_path: String, location: Location) -> Res&lt;IntermediateRepresentation> {
+    let path = std::path::Path::new(&amp;file_path);
+    let path_string = String::from(path.to_str().unwrap_or("".into()));
+    let file_name = path.file_name().unwrap().to_str().unwrap_or("").to_string();
+    let mut warnings = vec![];
+
+    match filename::validate(&amp;file_name, &amp;path_string) {
+        Ok(_) => {}
+        Err(e) => {
+            return Res::Error {
+                location: Some(location),
+                msg: e,
+            }
+        }
+    }
+
+    const DATE_LEN: usize = 10;
+
+    let date = &amp;file_name[..DATE_LEN].to_string().replace(".", "_");
+
+    let default_title = &amp;file_name[DATE_LEN..]
+        .to_string()
+        .replace("_", "")
+        .replace(".md", "");
+
+    let date = date.clone().replace("_", ".");
+
+    let split: Vec&lt;String> = date.split(".").map(|m| m.to_string()).collect();
+    const YEAR_IDX: usize = 0;
+    const MONTH_IDX: usize = 1;
+    const DAY_IDX: usize = 2;
+
+    let contents = match std::fs::read_to_string(path) {
+        Ok(s) => s,
+        Err(e) => {
+            return Res::Error {
+                location: Some(location),
+                msg: format!("{:#?}", e),
+            }
+        }
+    };
+
+    let parse_opts = Options { make_cards: true };
+
+    let contents = match parse_contents::execute(contents, location.clone(), parse_opts) {
+        Res::Ok(item) => item,
+        Res::Warn { item, msg } => {
+            warnings.push((msg, item.location.clone()));
+            item
+        }
+        Res::Error { location, msg } => return Res::Error { location, msg },
+        Res::Warnings { item, mut msgs } => {
+            warnings.append(&amp;mut msgs);
+            item
+        }
+    };
+
+    let display_title = match get_display_title(&amp;contents) {
+        Res::Ok(title) => title.item,
+        Res::Warn { item, msg } => {
+            warnings.push((msg, item.location.clone()));
+            item.item
+        }
+        Res::Warnings { item, mut msgs } => {
+            warnings.append(&amp;mut msgs);
+            item.item
+        }
+        Res::Error { location, msg } => return Res::Error { location, msg },
+    };
+    let keywords = vec!["A".into(), "Test".into(), "Value".into()];
+    let summary = "TODO: Summary".to_string();
+
+    let item = Item {
+        item: IntermediateRepresentation::Md(Md {
+            contents,
+            date: date.clone(),
+            day: split[DAY_IDX].clone(),
+            default_title: default_title.clone(),
+            display_title,
+            html_file_name: format!("{}_{}.html", date, default_title),
+            keywords,
+            month: split[MONTH_IDX].clone(),
+            summary,
+            path: path_string.clone(),
+            year: split[YEAR_IDX].clone(),
+        }),
+        location: Some(location),
+    };
+
+    if warnings.len() == 1 {
+        Res::Warn {
+            item,
+            msg: warnings[0].0.clone(),
+        }
+    } else if warnings.len() > 1 {
+        Res::Warnings {
+            item,
+            msgs: warnings,
+        }
+    } else {
+        Res::Ok(item)
+    }
+}
+
+fn get_display_title(contents: &amp;Item&lt;ContentIr>) -> Res&lt;String> {
+    match &amp;contents.item {
+        ContentIr::Div {
+            contents: content_ir,
+        } => {
+            for ir in content_ir.iter() {
+                let item = Item {
+                    location: contents.location.clone(),
+                    item: ir.clone(),
+                };
+
+                let result = get_display_title(&amp;item);
+                match result {
+                    Res::Error { .. } => {
+                        // skip over to parse the next
+                    }
+                    _ => return result,
+                }
+            }
+        }
+        ContentIr::Metadata(m) => match m {
+            Metadata::DisplayTitle(title) => {
+                if title.len() == 0 {
+                    return Res::Warn {
+                        item: Item {
+                            item: "Placeholder!".into(),
+                            location: contents.location.clone(),
+                        },
+                        msg: "Display title empty!".into(),
+                    };
+                }
+
+                return Res::Ok(Item {
+                    location: contents.location.clone(),
+                    item: title.clone(),
+                });
+            }
+            Metadata::Keywords(_) => {
+                // skip
+            }
+            Metadata::Summary(_) => {
+                // skip
+            }
+        },
+        _ => {}
+    }
+
+    Res::Error {
+        location: contents.location.clone(),
+        msg:
+            "Display title not found! Start each page with '!!title YOUR TITLE' ended with newline."
+                .into(),
+    }
+}
+
+fn get_keywords(contents: &amp;Item&lt;ContentIr>) -> Res&lt;Vec&lt;String>> {
+    todo!()
+}
+
+fn get_summary(contents: &amp;Item&lt;ContentIr>) -> Res&lt;String> {
+    todo!()
+}
+</div></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1200"  ><a  href="#1200"  >#</a>
+ 1200</h3>
+<div   ><p   >The other metadata parsers are similar. </p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+
+// parser/md/parse_contents/chomp/metadata.rs
+
+...
+
+
+pub fn metadata_keywords(contents: &amp;String, validations: &amp;Validations) -> Option&lt;Vec&lt;ContentIr>> {
+    // This should only be parsed once, at the very top of the file.
+    let mut validations = validations.clone();
+    validations.skip_metadata_keywords = true;
+
+    // Try to split it on the large chunks.
+    const START: &amp;'static str = "!!keywords";
+    if let Some(start_idx) = contents.find(START) {
+        let (before, start) = contents.split_at(start_idx);
+        let start = start.replacen(START, "", 1);
+
+        if let Some(end_idx) = start.find("\n") {
+            let (content, after) = start.split_at(end_idx);
+            let after = after.replacen("\n", "", 1);
+
+            let mut ir = vec![];
+
+            if before.len() > 0 {
+                ir.push(ContentIr::Unparsed {
+                    contents: before.into(),
+                    validations: validations.clone(),
+                });
+            }
+
+            ir.push(ContentIr::Metadata(Metadata::Keywords(
+                content
+                    .trim()
+                    .split_ascii_whitespace()
+                    .map(|s| s.to_string())
+                    .collect(),
+            )));
+
+            if after.len() > 0 {
+                ir.push(ContentIr::Unparsed {
+                    contents: after.into(),
+                    validations: validations.clone(),
+                });
+            }
+
+            return Some(ir);
+        }
+    }
+
+    None
+}
+
+pub fn metadata_summary(contents: &amp;String, validations: &amp;Validations) -> Option&lt;Vec&lt;ContentIr>> {
+    // This should only be parsed once, at the very top of the file.
+    let mut validations = validations.clone();
+    validations.skip_metadata_summary = true;
+
+    // Try to split it on the large chunks.
+    const START: &amp;'static str = "!!summary";
+    if let Some(start_idx) = contents.find(START) {
+        let (before, start) = contents.split_at(start_idx);
+        let start = start.replacen(START, "", 1);
+
+        if let Some(end_idx) = start.find("\n") {
+            let (content, after) = start.split_at(end_idx);
+            let after = after.replacen("\n", "", 1);
+
+            let mut ir = vec![];
+
+            if before.len() > 0 {
+                ir.push(ContentIr::Unparsed {
+                    contents: before.into(),
+                    validations: validations.clone(),
+                });
+            }
+
+            ir.push(ContentIr::Metadata(Metadata::Summary(
+                content.trim().into(),
+            )));
+
+            if after.len() > 0 {
+                ir.push(ContentIr::Unparsed {
+                    contents: after.into(),
+                    validations: validations.clone(),
+                });
+            }
+
+            return Some(ir);
+        }
+    }
+
+    None
+}
+</div>
+<p   >The <span   class="codeblockDark outlinedDark">parse_contents</span> module changes are exactly the same as the <span   class="codeblockDark outlinedDark">metadata_display_title</span> changes and will not be covered.</p>
+<p   >The <span   class="codeblockDark outlinedDark">parser/md/mod.rs</span> changes are the same as well.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser/md/mod.rs
+
+...
+
+
+fn get_keywords(contents: &amp;Item&lt;ContentIr>) -> Res&lt;Vec&lt;String>> {
+    match &amp;contents.item {
+        ContentIr::Div {
+            contents: content_ir,
+        } => {
+            for ir in content_ir.iter() {
+                let item = Item {
+                    location: contents.location.clone(),
+                    item: ir.clone(),
+                };
+
+                let result = get_keywords(&amp;item);
+                match result {
+                    Res::Error { .. } => {
+                        // skip over to parse the next
+                    }
+                    _ => return result,
+                }
+            }
+        }
+        ContentIr::Metadata(m) => match m {
+            Metadata::Keywords(words) => {
+                if words.len() == 0 {
+                    return Res::Warn {
+                        item: Item {
+                            item: vec!["A".into(), "Placeholder!".into()],
+                            location: contents.location.clone(),
+                        },
+                        msg: "Keywords empty!".into(),
+                    };
+                }
+
+                return Res::Ok(Item {
+                    location: contents.location.clone(),
+                    item: words.clone(),
+                });
+            }
+            _ => {}
+        },
+        _ => {}
+    }
+
+    Res::Error {
+        location: contents.location.clone(),
+        msg:
+            "Keywords not found! Start each page with '!!keywords A LIST OF KEYWORDS' ended with newline."
+                .into(),
+    }
+}
+
+fn get_summary(contents: &amp;Item&lt;ContentIr>) -> Res&lt;String> {
+    match &amp;contents.item {
+        ContentIr::Div {
+            contents: content_ir,
+        } => {
+            for ir in content_ir.iter() {
+                let item = Item {
+                    location: contents.location.clone(),
+                    item: ir.clone(),
+                };
+
+                let result = get_summary(&amp;item);
+                match result {
+                    Res::Error { .. } => {
+                        // skip over to parse the next
+                    }
+                    _ => return result,
+                }
+            }
+        }
+        ContentIr::Metadata(m) => match m {
+            Metadata::Summary(summary) => {
+                if summary.len() == 0 {
+                    return Res::Warn {
+                        item: Item {
+                            item: "A placeholder!".into(),
+                            location: contents.location.clone(),
+                        },
+                        msg: "Summary empty!".into(),
+                    };
+                }
+
+                return Res::Ok(Item {
+                    location: contents.location.clone(),
+                    item: summary.clone(),
+                });
+            }
+            _ => {}
+        },
+        _ => {}
+    }
+
+    Res::Error {
+        location: contents.location.clone(),
+        msg:
+            "Keywords not found! Start each page with '!!keywords A LIST OF KEYWORDS' ended with newline."
+                .into(),
+    }
+}
+
+
+</div>
+<p   >I will update those with requirements once I determine the minimum keyword length + minimum summary length for SEO purposes.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

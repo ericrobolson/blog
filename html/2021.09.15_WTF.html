@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WTF CHICKEN</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="A simple example for code that modifies code, that modifies code...">
+<meta name="keywords" content="project, chicken, macro, self, modifying, code">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.15_Projects.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.16_Catalog.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.15 - WTF CHICKEN</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1832"  ><a  href="#1832"  >#</a>
+ 1832 </h3>
+<div   ><p   >Honestly this is baffling. Say you have three Scheme files. Each with macros. </p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+; one.scm
+(define (one) "one")
+</div>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+; two.scm
+(include "one")
+
+(print (one))
+
+(define-syntax one
+    (syntax-rules ()
+          ((one)
+           "two"))) 
+
+(print (one))
+</div>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+; three.scm
+(include "two")
+
+(one)
+
+
+(define-syntax one
+    (syntax-rules ()
+          ((one)
+           "three"))) 
+
+(print (one))
+</div>
+<p   >What gets printed?</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+./three
+one
+two
+three
+</div>
+<p   >At each stage of compilation, a macro rewrites the definition. I'm wondering how to utilize this.</p>
+<p   >Food for thought.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>
