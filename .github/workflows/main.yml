@@ -23,4 +23,4 @@ jobs:
       - name: Deploy to prod
         env: 
           WHO_TO_TRUST: ${{ secrets.TEST_SECRET }}
-        run: echo env.WHO_TO_TRUEST
+        run: echo env.WHO_TO_TRUST
