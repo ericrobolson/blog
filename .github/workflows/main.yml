@@ -30,6 +30,6 @@ jobs:
         run: |
           echo "HI"
           sshpass -v
-          sshpass -p "${PASSWORD}" ssh -tt "${SERVER_USER}"@"${SERVER_IP}"
+          sshpass -p "${PASSWORD}" ssh "${SERVER_USER}"@"${SERVER_IP}"
        
 
