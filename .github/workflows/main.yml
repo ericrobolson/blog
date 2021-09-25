@@ -24,4 +24,4 @@ jobs:
         env: 
           WHO_TO_TRUST: ${{ secrets.TEST_SECRET }}
         if:  env.WHO_TO_TRUST == 'TrustNo1'
-          run: echo "I know what the secret token is!"
+        run: echo "I know what the secret token is!"
