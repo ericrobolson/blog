@@ -29,7 +29,6 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
           sshpass -p "${PASSWORD}" ssh "${SERVER_USER}"@"${SERVER_IP}"
-          echo "I'm here"
           exit
        
 
