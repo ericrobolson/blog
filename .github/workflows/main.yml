@@ -23,11 +23,9 @@ jobs:
 
       - name: Deploy to prod
         env: 
-          WHO_TO_TRUST: ${{ secrets.TEST_SECRET }}
+          RSYNC_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_DEST_FOLDER: ${{ secrets.SERVER_DEST_FOLDER }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
-          echo WHO_TO_TRUST
-          echo "a ${WHO_TO_TRUST}"
-          echo "The GitHub Action Secret will be masked:  "
-          echo ${{ secrets.SECRET_TOKEN }}
-          echo "Trick to echo GitHub Actions Secret:  "
-          echo ${{secrets.SECRET_TOKEN}} | sed 's/./& /g' 
+          rsync -avz html/ "${SERVER_USER}"@"${SERVER_IP}":"${SERVER_DEST_FOLDER}"
