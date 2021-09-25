@@ -28,6 +28,7 @@ jobs:
           SERVER_DEST_FOLDER: ${{ secrets.SERVER_DEST_FOLDER }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
+          echo "HI"
           sshpass -p "${PASSWORD}" ssh -tt "${SERVER_USER}"@"${SERVER_IP}"
        
 
