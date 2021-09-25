@@ -22,5 +22,5 @@ jobs:
 
       - name: Deploy to prod
         env:
-          TEST_ENV: ${{ secrets.TEST_SECRET }}
+          TEST_ENV: ${{ prod.TEST_SECRET }}
         run: echo  "%TEST_ENV%"!
