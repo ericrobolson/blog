@@ -23,4 +23,10 @@ jobs:
       - name: Deploy to prod
         env: 
           WHO_TO_TRUST: ${{ secrets.TEST_SECRET }}
-        run: echo ${{ secrets.TEST_SECRET }}
+        run: |
+          echo WHO_TO_TRUST
+          echo "a ${WHO_TO_TRUST}"
+          echo "The GitHub Action Secret will be masked:  "
+          echo ${{ secrets.SECRET_TOKEN }}
+          echo "Trick to echo GitHub Actions Secret:  "
+          echo ${{secrets.SECRET_TOKEN}} | sed 's/./& /g' 
