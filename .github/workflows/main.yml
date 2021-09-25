@@ -23,10 +23,9 @@ jobs:
 
       - name: Deploy to prod
         env: 
-          RSYNC_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+          PASSWORD: ${{ secrets.SERVER_PASSWORD }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_DEST_FOLDER: ${{ secrets.SERVER_DEST_FOLDER }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
-          ls -a html/
-          rsync -avz html/ "${SERVER_USER}"@"${SERVER_IP}":"${SERVER_DEST_FOLDER}"
+          sshpass -p "${PASSWORD}" rsync -avz html/ "${SERVER_USER}"@"${SERVER_IP}":"${SERVER_DEST_FOLDER}"
