@@ -23,7 +23,4 @@ jobs:
       - name: Deploy to prod
         env: 
           WHO_TO_TRUST: ${{ secrets.TEST_SECRET }}
-        if:  env.WHO_TO_TRUST == 'TrustNo1'
-        run: echo "I know what the secret token is!"
-        if:  env.WHO_TO_TRUST != 'TrustNo1'
-        run: echo "I don't know what the secret token is!"
+        run: echo env.WHO_TO_TRUEST
