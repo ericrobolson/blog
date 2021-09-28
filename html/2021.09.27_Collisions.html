@@ -1,0 +1,234 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Collision Pt. 1</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Implementing a generic collision detection system.">
+<meta name="keywords" content="rust, gamedev, containers, generic, no_std, embedded">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.26_Containers.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.09.28_CollisionPt2.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.27 - Collision Pt. 1</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="2100"  ><a  href="#2100"  >#</a>
+ 2100</h3>
+<div   ><p   >I've been wanting to play with <span   class="codeblockDark outlinedDark">no_std</span> Rust for a while. This is a limited version of the language that could be used anywhere. Also wanted to experiment more with hexagonal architecture + bottom up design. Since collisions are core to everything in a game engine, I'll start with that and expand from there.</p>
+<p   >This was written to be generic, where callers implement the provided traits for types they wish to use.</p>
+<p   >I'll start by adding some Traits. These are effectively contracts that a type must fulfill and enable writing generic code based on them.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// traits.rs
+use core::ops::{Add, Mul, Neg, Sub};
+
+/// Generic number that the collision detection runs off of.
+pub trait Number:
+    Add&lt;Output = Self>
+    + Copy
+    + core::cmp::PartialEq
+    + core::cmp::PartialOrd
+    + Clone
+    + Mul&lt;Output = Self>
+    + Neg&lt;Output = Self>
+    + Sub&lt;Self, Output = Self>
+    + Sized
+{
+    /// Returns whether the number is zero or not.
+    fn is_zero(&amp;self) -> bool;
+
+    // The value of one.
+    fn one() -> Self;
+}
+
+/// Generic vector that the collision detection runs off of.
+pub trait Vector&lt;N>:
+    Add&lt;Output = Self>
+    + Copy
+    + core::cmp::PartialEq
+    + core::ops::Div&lt;N, Output = Self>
+    + Clone
+    + Mul&lt;Output = Self>
+    + Neg&lt;Output = Self>
+    + Sub&lt;Self, Output = Self>
+    + Sized
+where
+    N: Number,
+{
+    /// Returns the length of the vector.
+    fn len(&amp;self) -> N;
+
+    /// Returns the squared length of the vector.
+    fn len_sqrd(&amp;self) -> N;
+}
+</div>
+<p   >Vectors and Numbers are all I need right now. If I add rotations things will get complicated, but not quite there yet. Pretty sure I can go a long distance with boxes and circles.</p>
+<p   >Next up is a <span   class="codeblockDark outlinedDark">Collider</span> enumeration. This allows me to specify the shapes I want to check for collisions. Right now it's an aabb (axis-aligned bounding box) and a circle.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// collider.rs
+use crate::prelude::*;
+
+pub enum Collider&lt;N, Pos>
+where
+    N: Number,
+    Pos: Vector&lt;N>,
+{
+    Aabb { min: Pos, max: Pos },
+    Sphere { position: Pos, radius: N },
+}
+</div>
+<p   >I'll add a <span   class="codeblockDark outlinedDark">Manifold</span> type to store information about a collision.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// manifold.rs
+use crate::prelude::*;
+
+pub struct Manifold&lt;N, V>
+where
+    N: Number,
+    V: Vector&lt;N>,
+{
+    pub normal: V,
+    pub penetration: N,
+}
+
+impl&lt;N, V> core::ops::Neg for Manifold&lt;N, V>
+where
+    N: Number,
+    V: Vector&lt;N>,
+{
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            normal: -self.normal,
+            penetration: self.penetration,
+        }
+    }
+}
+</div>
+<p   >I'll stub out the collisions that can occur in a function. A trick I learned from Type Driven Development is specify your types, then write functions to operate on them. In effect, transform data with functions.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// collision/mod.rs
+pub mod circle_collision;
+
+use crate::prelude::*;
+
+pub fn collision&lt;N, V>(
+    entity_a: &amp;Collider&lt;N, V>,
+    entity_b: &amp;Collider&lt;N, V>,
+) -> Option&lt;Manifold&lt;N, V>>
+where
+    N: Number,
+    V: Vector&lt;N>,
+{
+    match entity_a {
+        Collider::Aabb { min, max } => match entity_b {
+            Collider::Aabb {
+                min: b_min,
+                max: b_max,
+            } => aabb_vs_aabb(min, max, b_min, b_max),
+            Collider::Sphere { position, radius } => aabb_vs_circle(min, max, position, radius),
+        },
+        Collider::Sphere { position, radius } => match entity_b {
+            Collider::Aabb { min, max } => aabb_vs_circle(min, max, position, radius),
+            Collider::Sphere {
+                position: b_pos,
+                radius: b_r,
+            } => circle_collision::execute(position, radius, b_pos, b_r),
+        },
+    }
+}
+
+pub fn aabb_vs_aabb&lt;N, V>(
+    a_aabb_min: &amp;V,
+    a_aabb_max: &amp;V,
+    b_aabb_min: &amp;V,
+    b_aabb_max: &amp;V,
+) -> Option&lt;Manifold&lt;N, V>>
+where
+    N: Number,
+    V: Vector&lt;N>,
+{
+    todo!()
+}
+
+pub fn aabb_vs_circle&lt;N, V>(
+    aabb_min: &amp;V,
+    aabb_max: &amp;V,
+    circle_pos: &amp;V,
+    circle_r: &amp;N,
+) -> Option&lt;Manifold&lt;N, V>>
+where
+    N: Number,
+    V: Vector&lt;N>,
+{
+    todo!()
+}
+
+</div>
+<p   >Finally we reach the first implementation of a collision check. The easiest, circle vs circle. I'll compare the distances and radii to see if a collision occurred, if so note the penetration and normal then return the manifold. Otherwise I'll return nothing.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// collision/circle_collision.rs
+use crate::prelude::*;
+
+/// Executes a Circle vs Circle collision
+pub fn execute&lt;N, V>(a_pos: &amp;V, a_r: &amp;N, b_pos: &amp;V, b_r: &amp;N) -> Option&lt;Manifold&lt;N, V>>
+where
+    N: Number,
+    V: Vector&lt;N>,
+{
+    // Inspired by https://gamedevelopment.tutsplus.com/tutorials/how-to-create-a-custom-2d-physics-engine-the-basics-and-impulse-resolution--gamedev-6331
+
+    let n = *b_pos - *a_pos;
+
+    let radius_sqrd = {
+        let a_b = *a_r + *b_r;
+
+        a_b * a_b
+    };
+
+    // If they don't overlap then return no collision.
+    // Also handles case where a radius of 0 is provided.
+    if n.len_sqrd() > radius_sqrd || a_r.is_zero() || b_r.is_zero() {
+        return None;
+    }
+
+    // If same spot, return a random (but consistent) value
+    if a_pos == b_pos {
+        return Some(Manifold {
+            normal: *a_pos,
+            penetration: N::one(),
+        });
+    }
+
+    let dist = n.len();
+
+    Some(Manifold {
+        normal: n / dist,
+        penetration: radius_sqrd - dist,
+    })
+}
+</div>
+<p   >While I don't know how well it will function, I'm gonna charge ahead and get the rest filled out. The focus for this project will be composable, reuseable building blocks. I'd like to deploy this on the web, PC + mobile, so we'll see how this goes.</p>
+<p   >Ideas are endless, but rarely do they come to fruition. By going bottom up, I can leverage many chunks across projects and reduce wasted effort. Not sure how well it'll go, but previous attempts where I didn't do this failed. By going with a hexagonal architecture, I can easily port the core between platforms and pivot when necessary.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>
