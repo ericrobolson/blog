@@ -2,11 +2,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>GGezBB</title>
+        <title>Rollback Netcode</title>
         <!-- metadata -->
         <meta charset="UTF-8">
-<meta name="description" content="Home page">
-<meta name="keywords" content="blog, senior, software, lisp, elixir, erlang, rust, c, c#, language design, compilers, gpu, game dev">
+<meta name="description" content="Implementing a generic rollback netcode inspired by GGPO.">
+<meta name="keywords" content="rust, gamedev, no_std, ggpo, rollback, netcode, fighting, game">
 <meta name="author" content="Eric Olson">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <!-- css -->
@@ -18,18 +18,12 @@
             <!-- content wrapper -->
             <div class=contentWrapperLight>
                 <!-- content -->
-                <div   ><div   ><h2 id="indexTitle"  ><a  href="#indexTitle"  >#</a>
-Home</h2>
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
-Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.09.29_Rollback.html"  >2021.09.29: Rollback Netcode</a>
- - Implementing a generic rollback netcode inspired by GGPO.</div></li><li><div   ><a  href="2021.09.28_CollisionPt2.html"  >2021.09.28: Collision Pt. 2</a>
- - Implementing a generic collision detection system continued.</div></li><li><div   ><a  href="2021.09.27_Collisions.html"  >2021.09.27: Collision Pt. 1</a>
- - Implementing a generic collision detection system.</div></li><li><div   ><a  href="2021.09.26_Containers.html"  >2021.09.26: Containers</a>
- - Building out a collection of containers.</div></li><li><div   ><a  href="2021.09.25_Prototyping.html"  >2021.09.25: Prototyping</a>
- - Prototyping a 3rd person game in Godot.</div></li><li><div   ><a  href="2021.09.24_NextProject.html"  >2021.09.24: Next Project</a>
- - Posting ChickenTest and deciding where to go next.</div></li><li><div   ><a  href="2021.09.23_Finished.html"  >2021.09.23: Finished</a>
- - Wrapped up blog_gen and picking the next project.</div></li></ul></div>
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.28_CollisionPt2.html"  >🡄 Previous</a>
+Forward 🡆</div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
 2021.09.29 - Rollback Netcode</h2>
 <div   >
@@ -44,10 +38,6 @@ Recent Posts</h3>
 <ol  type="1" class="listLight"><li><div   > Set up initial game state</div></li><li><div   > Set up players (remote and local)</div></li><li><div   > Register local input at the current frame + N. This is done to deal with remote player latency.</div></li><li><div   > Tick the game state always. If a remote player input is received for a past frame, go back to the last 'confirmed' state and replay all inputs until the current frame. Save the most recent frame with all player inputs as the 'confirmed' state.</div></li></ol>
 <p   >Like the previous posts, I'm taking a <span   class="codeblockDark outlinedDark">no_std</span> approach to ensure maximum platform compatibility. I'm also using a finite state automata (FSM) for logic. That deserves another post, but the gist is that I can ensure logic occurs under certain scenarios.</p>
 <p   >Another thing I've started doing is a <span   class="codeblockDark outlinedDark">check_targets</span> script which will build my crates against all possible architectures I may want. This way I can ensure I'm always writing code that will work.</p></div></div></div></div></div>
-<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
-<a id="catalogNav" href="catalog.html"  >Catalog</a>
-<a id="projectsNav" href="projects.html"  >Projects</a>
-<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
             </div>
         </div>
     </body>
