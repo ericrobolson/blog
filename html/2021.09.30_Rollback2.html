@@ -1,0 +1,42 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Rollback Netcode Part 2</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Implementing a generic rollback netcode inspired by GGPO part 2.">
+<meta name="keywords" content="rust, gamedev, no_std, ggpo, rollback, netcode, fighting, game">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.29_Rollback.html"  >🡄 Previous</a>
+Forward 🡆</div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.09.30 - Rollback Netcode Part 2</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0737"  ><a  href="#0737"  >#</a>
+ 0737</h3>
+<div   ><p   >I've got a barebones netcode module done. This does not take into account the transport layer, such as UDP, websockets or TCP. </p>
+<p   >Why? Well, there's some complications that can occur when that is added in. By introducing it to the <span   class="codeblockDark outlinedDark">netcode</span> module, I'm forced to abstract the connection layer away. I have to deal with packet losses, confirmations, etc. and that is a task I wanted to postpone. </p>
+<p   >Ideally I'll write a bunch of little modules that are very self contained and wire them up in the actual application. Doing that should allow me to easily change things as time goes on. For example, the communication protocol on web will likely be websockets, whereas on PC it may be UDP. Web may use WebGL, PC may use Vulkan. </p>
+<p   >Back to netcode. I plan on publishing a crate on Github at some point and will likely dig into the implementation then.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -22,28 +22,26 @@
 Home</h2>
 <div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
 Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.09.29_Rollback.html"  >2021.09.29: Rollback Netcode</a>
+<ul   class="listLight"><li><div   ><a  href="2021.09.30_Rollback2.html"  >2021.09.30: Rollback Netcode Part 2</a>
+ - Implementing a generic rollback netcode inspired by GGPO part 2.</div></li><li><div   ><a  href="2021.09.29_Rollback.html"  >2021.09.29: Rollback Netcode</a>
  - Implementing a generic rollback netcode inspired by GGPO.</div></li><li><div   ><a  href="2021.09.28_CollisionPt2.html"  >2021.09.28: Collision Pt. 2</a>
  - Implementing a generic collision detection system continued.</div></li><li><div   ><a  href="2021.09.27_Collisions.html"  >2021.09.27: Collision Pt. 1</a>
  - Implementing a generic collision detection system.</div></li><li><div   ><a  href="2021.09.26_Containers.html"  >2021.09.26: Containers</a>
  - Building out a collection of containers.</div></li><li><div   ><a  href="2021.09.25_Prototyping.html"  >2021.09.25: Prototyping</a>
  - Prototyping a 3rd person game in Godot.</div></li><li><div   ><a  href="2021.09.24_NextProject.html"  >2021.09.24: Next Project</a>
- - Posting ChickenTest and deciding where to go next.</div></li><li><div   ><a  href="2021.09.23_Finished.html"  >2021.09.23: Finished</a>
- - Wrapped up blog_gen and picking the next project.</div></li></ul></div>
+ - Posting ChickenTest and deciding where to go next.</div></li></ul></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
-2021.09.29 - Rollback Netcode</h2>
+2021.09.30 - Rollback Netcode Part 2</h2>
 <div   >
 
 
 
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0743"  ><a  href="#0743"  >#</a>
- 0743</h3>
-<div   ><p   >I've been working on adding a generic rollback netcode module. This does not take into account transport layers or anything of that sort, though I can see value in doing so. The purpose is to build out a purely algorithmic implementation where I can plug and play various games.</p>
-<p   >Not sure this is the best approach, but it will hopefully let me reuse functionality across games (or even other apps).</p>
-<p   >I don't think I'll go into the code quite yet, as this will drastically change over time. The basic algorithm is as follows:</p>
-<ol  type="1" class="listLight"><li><div   > Set up initial game state</div></li><li><div   > Set up players (remote and local)</div></li><li><div   > Register local input at the current frame + N. This is done to deal with remote player latency.</div></li><li><div   > Tick the game state always. If a remote player input is received for a past frame, go back to the last 'confirmed' state and replay all inputs until the current frame. Save the most recent frame with all player inputs as the 'confirmed' state.</div></li></ol>
-<p   >Like the previous posts, I'm taking a <span   class="codeblockDark outlinedDark">no_std</span> approach to ensure maximum platform compatibility. I'm also using a finite state automata (FSM) for logic. That deserves another post, but the gist is that I can ensure logic occurs under certain scenarios.</p>
-<p   >Another thing I've started doing is a <span   class="codeblockDark outlinedDark">check_targets</span> script which will build my crates against all possible architectures I may want. This way I can ensure I'm always writing code that will work.</p></div></div></div></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0737"  ><a  href="#0737"  >#</a>
+ 0737</h3>
+<div   ><p   >I've got a barebones netcode module done. This does not take into account the transport layer, such as UDP, websockets or TCP. </p>
+<p   >Why? Well, there's some complications that can occur when that is added in. By introducing it to the <span   class="codeblockDark outlinedDark">netcode</span> module, I'm forced to abstract the connection layer away. I have to deal with packet losses, confirmations, etc. and that is a task I wanted to postpone. </p>
+<p   >Ideally I'll write a bunch of little modules that are very self contained and wire them up in the actual application. Doing that should allow me to easily change things as time goes on. For example, the communication protocol on web will likely be websockets, whereas on PC it may be UDP. Web may use WebGL, PC may use Vulkan. </p>
+<p   >Back to netcode. I plan on publishing a crate on Github at some point and will likely dig into the implementation then.</p></div></div></div></div></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>
