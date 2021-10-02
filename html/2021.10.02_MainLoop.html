@@ -2,11 +2,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>GGezBB</title>
+        <title>Engine refactor attempts</title>
         <!-- metadata -->
         <meta charset="UTF-8">
-<meta name="description" content="Home page">
-<meta name="keywords" content="blog, senior, software, lisp, elixir, erlang, rust, c, c#, language design, compilers, gpu, game dev">
+<meta name="description" content="Refactoring the engine structure.">
+<meta name="keywords" content="rust, gamedev, no_std, ggpo, rollback, netcode, fighting, game">
 <meta name="author" content="Eric Olson">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <!-- css -->
@@ -18,18 +18,12 @@
             <!-- content wrapper -->
             <div class=contentWrapperLight>
                 <!-- content -->
-                <div   ><div   ><h2 id="indexTitle"  ><a  href="#indexTitle"  >#</a>
-Home</h2>
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
-Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.10.02_MainLoop.html"  >2021.10.02: Engine refactor attempts</a>
- - Refactoring the engine structure.</div></li><li><div   ><a  href="2021.10.01_EngineContinued.html"  >2021.10.01: Netcode Pt. 3 + Engine Dev</a>
- - Continuing netcode implementation and general engine structure.</div></li><li><div   ><a  href="2021.09.30_Rollback2.html"  >2021.09.30: Rollback Netcode Part 2</a>
- - Implementing a generic rollback netcode inspired by GGPO part 2.</div></li><li><div   ><a  href="2021.09.29_Rollback.html"  >2021.09.29: Rollback Netcode</a>
- - Implementing a generic rollback netcode inspired by GGPO.</div></li><li><div   ><a  href="2021.09.28_CollisionPt2.html"  >2021.09.28: Collision Pt. 2</a>
- - Implementing a generic collision detection system continued.</div></li><li><div   ><a  href="2021.09.27_Collisions.html"  >2021.09.27: Collision Pt. 1</a>
- - Implementing a generic collision detection system.</div></li><li><div   ><a  href="2021.09.26_Containers.html"  >2021.09.26: Containers</a>
- - Building out a collection of containers.</div></li></ul></div>
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.10.01_EngineContinued.html"  >🡄 Previous</a>
+Forward 🡆</div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
 2021.10.02 - Engine refactor attempts</h2>
 <div   >
@@ -64,10 +58,6 @@ core_engine/src
  - Contains all external dependencies that may change by platform. Things such as windowing, GPU rendering, socket IO, etc. </div></li></ul>
 <p   >The hope is that by doing this I can compose lower level crates into higher level functionality. The directory structure is a bit of a mess but we'll see how that goes.</p>
 <p   >Now that the restructure is done I'll keep working towards getting an application running.</p></div></div></div></div></div>
-<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
-<a id="catalogNav" href="catalog.html"  >Catalog</a>
-<a id="projectsNav" href="projects.html"  >Projects</a>
-<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
             </div>
         </div>
     </body>

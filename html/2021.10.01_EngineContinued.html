@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Netcode Pt. 3 + Engine Dev</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Continuing netcode implementation and general engine structure.">
+<meta name="keywords" content="rust, gamedev, no_std, ggpo, rollback, netcode, fighting, game">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.09.30_Rollback2.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.10.02_MainLoop.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.10.01 - Netcode Pt. 3 + Engine Dev</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0625"  ><a  href="#0625"  >#</a>
+ 0625 </h3>
+<div   ><p   >One thing I'm noticing is I'll use things like <span   class="codeblockDark outlinedDark">PlayerId</span> or <span   class="codeblockDark outlinedDark">Input</span> or <span   class="codeblockDark outlinedDark">Frame</span> in a lot of different places. I'll add a new <span   class="codeblockDark outlinedDark">types</span> library to contain these things.</p>
+<p   >The netcode will still have some kinks to work out, but I need to get something playable first before progressing.</p>
+<p   >Thinking on it, I'm undoing the move of the types. If this is purely hexagonal architecture, then the types and contracts should be self contained. They should be glued together at a separate level.</p>
+<p   >It wasn't all in vain, as I did clean up the interactions with structs.</p>
+<p   >I'll be working on a simple networking abstraction layer next. This will be based off the <a  href="https://www.gamedevs.org/uploads/tribes-networking-model.pdf"  >Tribes 2 networking model</a>. </p>
+<p   >As for code, I'll share my <span   class="codeblockDark outlinedDark">data_structures</span> module. It is a collection of traits (or contracts) that collections must implement. Right now there are two: a circle buffer and a generic collection. </p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+#![no_std]
+
+/// A generic circle buffer.
+pub trait CircleBuffer&lt;T> {
+    /// Returns the capacity of the buffer.
+    fn capacity(&amp;self) -> usize;
+
+    /// Clears the stored items.
+    fn clear(&amp;mut self);
+
+    /// Attempts to insert at the given index.
+    fn insert(&amp;mut self, idx: usize, item: T);
+
+    /// Returns the given item.
+    fn get(&amp;self, idx: usize) -> &amp;T;
+}
+
+/// A generic collection. Equivalent to `std::vec::Vec`.
+pub trait Collection&lt;T> {
+    /// Clears the stored items.
+    fn clear(&amp;mut self);
+
+    /// Returns a slice of all items.
+    fn items(&amp;self) -> &amp;[T];
+
+    /// Returns a mutable slice of all items.
+    fn items_mut(&amp;mut self) -> &amp;mut [T];
+
+    /// Pushes an item onto the collection.
+    fn push(&amp;mut self, item: T);
+}
+</div>
+<p   >As I'm implementing the generic networking crates, I'll be using these a lot so wanted to get a shared implementation going.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>
