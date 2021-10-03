@@ -2,11 +2,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>GGezBB</title>
+        <title>Completing the Main Loop</title>
         <!-- metadata -->
         <meta charset="UTF-8">
-<meta name="description" content="Home page">
-<meta name="keywords" content="blog, senior, software, lisp, elixir, erlang, rust, c, c#, language design, compilers, gpu, game dev">
+<meta name="description" content="Sketching out + filling in the main loop for the application.">
+<meta name="keywords" content="rust, gamedev, no_std, ggpo, rollback, netcode, fighting, game">
 <meta name="author" content="Eric Olson">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <!-- css -->
@@ -18,18 +18,12 @@
             <!-- content wrapper -->
             <div class=contentWrapperLight>
                 <!-- content -->
-                <div   ><div   ><h2 id="indexTitle"  ><a  href="#indexTitle"  >#</a>
-Home</h2>
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
-Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.10.03_Refactoring.html"  >2021.10.03: Completing the Main Loop</a>
- - Sketching out + filling in the main loop for the application.</div></li><li><div   ><a  href="2021.10.02_MainLoop.html"  >2021.10.02: Engine refactor attempts</a>
- - Refactoring the engine structure.</div></li><li><div   ><a  href="2021.10.01_EngineContinued.html"  >2021.10.01: Netcode Pt. 3 + Engine Dev</a>
- - Continuing netcode implementation and general engine structure.</div></li><li><div   ><a  href="2021.09.30_Rollback2.html"  >2021.09.30: Rollback Netcode Part 2</a>
- - Implementing a generic rollback netcode inspired by GGPO part 2.</div></li><li><div   ><a  href="2021.09.29_Rollback.html"  >2021.09.29: Rollback Netcode</a>
- - Implementing a generic rollback netcode inspired by GGPO.</div></li><li><div   ><a  href="2021.09.28_CollisionPt2.html"  >2021.09.28: Collision Pt. 2</a>
- - Implementing a generic collision detection system continued.</div></li><li><div   ><a  href="2021.09.27_Collisions.html"  >2021.09.27: Collision Pt. 1</a>
- - Implementing a generic collision detection system.</div></li></ul></div>
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.10.02_MainLoop.html"  >🡄 Previous</a>
+Forward 🡆</div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
 2021.10.03 - Completing the Main Loop</h2>
 <div   >
@@ -163,10 +157,6 @@ fn main() {
 <p   >The basic idea is I have a core <span   class="codeblockDark outlinedDark">no_std</span> application which will handle all logic. It will communicate with external subsystems through messages. This means that I can run things in separate threads, or even move to a job system.</p>
 <p   >All the sinks and faucets seem a bit redundant, but I'll roll with it for a bit longer to see how it goes. </p>
 <p   >I'll likely start filling in the subsystems next and iterate on those.</p></div></div></div></div></div>
-<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
-<a id="catalogNav" href="catalog.html"  >Catalog</a>
-<a id="projectsNav" href="projects.html"  >Projects</a>
-<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
             </div>
         </div>
     </body>
