@@ -45,6 +45,11 @@
             "url": "https://github.com/ericrobolson/blog"
         },
         {
+            "title": "benchy",
+            "description": "A crate used for profiling Rust applications.",
+            "url": "https://github.com/ericrobolson/benchy"
+        },
+        {
             "title": "ChickenTest",
             "description": "Unit testing framework for Chicken Scheme.",
             "url": "https://github.com/ericrobolson/ChickenTest"
