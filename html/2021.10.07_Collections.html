@@ -2,11 +2,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>GGezBB</title>
+        <title>Implementing Collections</title>
         <!-- metadata -->
         <meta charset="UTF-8">
-<meta name="description" content="Home page">
-<meta name="keywords" content="blog, senior, software, lisp, elixir, erlang, rust, c, c#, language design, compilers, gpu, game dev">
+<meta name="description" content="Adding a StaticBuffer and Collection implementation to use.">
+<meta name="keywords" content="rust, gamedev, no_std, ggpo, rollback, netcode, fighting, game, benchmark, benchy, profiling, time, lazy_static">
 <meta name="author" content="Eric Olson">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <!-- css -->
@@ -18,18 +18,12 @@
             <!-- content wrapper -->
             <div class=contentWrapperLight>
                 <!-- content -->
-                <div   ><div   ><h2 id="indexTitle"  ><a  href="#indexTitle"  >#</a>
-Home</h2>
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
-Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.10.07_Collections.html"  >2021.10.07: Implementing Collections</a>
- - Adding a StaticBuffer and Collection implementation to use.</div></li><li><div   ><a  href="2021.10.06_BenchyRealStart.html"  >2021.10.06: Benchy's Implementation: A benchmark crate</a>
- - Creating a benchmarking crate to use for apps.</div></li><li><div   ><a  href="2021.10.05_Benchy.html"  >2021.10.05: Benchy: A benchmark crate</a>
- - Creating a benchmarking crate to use for apps.</div></li><li><div   ><a  href="2021.10.04_GansAndSuch.html"  >2021.10.04: GANs and continued engine development.</a>
- - Getting the main loop stable and starting on GANs.</div></li><li><div   ><a  href="2021.10.03_Refactoring.html"  >2021.10.03: Completing the Main Loop</a>
- - Sketching out + filling in the main loop for the application.</div></li><li><div   ><a  href="2021.10.02_MainLoop.html"  >2021.10.02: Engine refactor attempts</a>
- - Refactoring the engine structure.</div></li><li><div   ><a  href="2021.10.01_EngineContinued.html"  >2021.10.01: Netcode Pt. 3 + Engine Dev</a>
- - Continuing netcode implementation and general engine structure.</div></li></ul></div>
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.10.06_BenchyRealStart.html"  >🡄 Previous</a>
+Forward 🡆</div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
 2021.10.07 - Implementing Collections</h2>
 <div   >
@@ -156,10 +150,6 @@ impl&lt;T> data_structures::Collection&lt;T> for Collection&lt;T> {
 }
 </div>
 <p   >After doing this, I've changed most collections I have to static buffers and removed my collection implementation. Why? I'll be utilizing a form of rollback netcode which is extremely CPU intensive so I want to minimize memory allocations. I have a theory that making decisions like this early on will have a major pay off down the line.</p></div></div></div></div></div>
-<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
-<a id="catalogNav" href="catalog.html"  >Catalog</a>
-<a id="projectsNav" href="projects.html"  >Projects</a>
-<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
             </div>
         </div>
     </body>
