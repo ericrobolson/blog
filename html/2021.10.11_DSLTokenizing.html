@@ -2,11 +2,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>GGezBB</title>
+        <title>DSLs Part 3: Tokenizing</title>
         <!-- metadata -->
         <meta charset="UTF-8">
-<meta name="description" content="Home page">
-<meta name="keywords" content="blog, senior, software, lisp, elixir, erlang, rust, c, c#, language design, compilers, gpu, game dev">
+<meta name="description" content="Implementing a basic tokenizer.">
+<meta name="keywords" content="rust, domain, specific, language, parsing, structure, generation, parsing">
 <meta name="author" content="Eric Olson">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <!-- css -->
@@ -18,18 +18,12 @@
             <!-- content wrapper -->
             <div class=contentWrapperLight>
                 <!-- content -->
-                <div   ><div   ><h2 id="indexTitle"  ><a  href="#indexTitle"  >#</a>
-Home</h2>
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
-Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.10.11_DSLTokenizing.html"  >2021.10.11: DSLs Part 3: Tokenizing</a>
- - Implementing a basic tokenizer.</div></li><li><div   ><a  href="2021.10.11_DSLContinued.html"  >2021.10.11: DSLs Part 2</a>
- - Stubbing out structure creation in various target languages.</div></li><li><div   ><a  href="2021.10.10_DSL.html"  >2021.10.10: DSLs and Forced Telemetry</a>
- - Playing around with a DSL generator and a brief warning about forced telemetry.</div></li><li><div   ><a  href="2021.10.09_Interpretation.html"  >2021.10.09: Interpretation</a>
- - Beginning a simple interpreter for a strongly typed language.</div></li><li><div   ><a  href="2021.10.08_PickingAHost.html"  >2021.10.08: Deciding on a host</a>
- - Mulling on how to progress the engine in a fast manner.</div></li><li><div   ><a  href="2021.10.07_Collections.html"  >2021.10.07: Implementing Collections</a>
- - Adding a StaticBuffer and Collection implementation to use.</div></li><li><div   ><a  href="2021.10.06_BenchyRealStart.html"  >2021.10.06: Benchy's Implementation: A benchmark crate</a>
- - Creating a benchmarking crate to use for apps.</div></li></ul></div>
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.10.11_DSLContinued.html"  >🡄 Previous</a>
+Forward 🡆</div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
 2021.10.11 - DSLs Part 3: Tokenizing</h2>
 <div   >
@@ -175,10 +169,6 @@ mod tests {
 <p   >There's two ways I can take this:</p>
 <ol  type="1" class="listLight"><li><div   > An approach like Lisp with many parenthesis</div></li><li><div   > An approach like Haskell where things are split by whitespace</div></li></ol>
 <p   >I'm leaning towards 2 as I generally prefer Haskell like syntax and I think it removes a lot of boilerplate (such as ';').</p></div></div></div></div></div>
-<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
-<a id="catalogNav" href="catalog.html"  >Catalog</a>
-<a id="projectsNav" href="projects.html"  >Projects</a>
-<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
             </div>
         </div>
     </body>
