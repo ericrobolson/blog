@@ -174,7 +174,158 @@ mod tests {
 <p   >I don't really know what I'll end up using this for, but it will at least give me a launching point for anything I write that seems like it needs to parse code. </p>
 <p   >There's two ways I can take this:</p>
 <ol  type="1" class="listLight"><li><div   > An approach like Lisp with many parenthesis</div></li><li><div   > An approach like Haskell where things are split by whitespace</div></li></ol>
-<p   >I'm leaning towards 2 as I generally prefer Haskell like syntax and I think it removes a lot of boilerplate (such as ';').</p></div></div></div></div></div>
+<p   >I'm leaning towards 2 as I generally prefer Haskell like syntax and I think it removes a lot of boilerplate (such as ';').</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1708"  ><a  href="#1708"  >#</a>
+ 1708</h3>
+<div   ><p   >I've implemented the tokenizer function a bit more. I still need to figure out comments + parenthesis, but I'm not worried about that right now.</p>
+<p   >While I suppose an optimal solution would be to tokenize everything and then calculate comments, lists, brackets, etc. separately, I don't want to deal with that in another level. It will be trivial to add in so I'll do that next session.</p>
+<p   >Here's the updated code + tests:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+pub use crate::prelude::*;
+
+pub fn tokenize&lt;'a>(code: &amp;'a str, file: Option&lt;File&lt;'a>>) -> Vec&lt;Entity&lt;'a>> {
+    let mut entities = vec![];
+
+    let chars_len = code.chars().count();
+    let end_idx = if chars_len == 0 { 0 } else { chars_len - 1 };
+
+    let mut column = 0;
+    let mut idx = 0;
+    let mut line = 0;
+    let mut start_column = 0;
+    let mut terminated;
+    let mut token_end_idx = 0;
+    let mut token_start_idx = 0;
+
+    for c in code.chars() {
+        // TODO: handle comments?
+        // TODO: handle brackets + parenthesis + curly brackets
+
+        // Add a new line if necessary
+        if c == '\n' {
+            // If needing to handle \r\n specifically, modify code in here.
+            // For now it treats \r as whitespace and will break on \n.
+            line += 1;
+            column = 0;
+        } else {
+            column += 1;
+        }
+
+        terminated = c.is_whitespace() || idx == end_idx;
+        token_end_idx += 1;
+
+        if terminated {
+            // Only push non-whitespace chars
+            if !code[token_start_idx..token_end_idx].trim().is_empty() {
+                entities.push(make_token(
+                    &amp;code[token_start_idx..token_end_idx].trim(),
+                    file,
+                    line,
+                    start_column,
+                ));
+            }
+
+            token_start_idx = token_end_idx;
+            start_column = column;
+        }
+
+        idx += 1;
+    }
+
+    entities
+}
+
+/// Helper func for making a token
+fn make_token&lt;'a>(s: &amp;'a str, file: Option&lt;File&lt;'a>>, ln: usize, col: usize) -> Entity&lt;'a> {
+    Entity {
+        file,
+        location: Location {
+            column: col.into(),
+            line: ln.into(),
+        },
+        token: s.into(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn one_token() {
+        let input = "wut";
+        let expected: Vec&lt;Entity&lt;'_>> = vec![make_token("wut", None, 0, 0)];
+
+        assert_eq!(expected, tokenize(input, None));
+    }
+
+    #[test]
+    fn one_token_with_starting_spaces() {
+        let input = "    wut";
+        let expected: Vec&lt;Entity&lt;'_>> = vec![make_token("wut", None, 0, 4)];
+
+        assert_eq!(expected, tokenize(input, None));
+    }
+
+    #[test]
+    fn one_token_with_ending_spaces() {
+        let input = "wut    ";
+        let expected: Vec&lt;Entity&lt;'_>> = vec![make_token("wut", None, 0, 0)];
+
+        assert_eq!(expected, tokenize(input, None));
+    }
+
+    #[test]
+    fn two_tokens() {
+        let input = "wut up";
+        let expected: Vec&lt;Entity&lt;'_>> =
+            vec![make_token("wut", None, 0, 0), make_token("up", None, 0, 4)];
+
+        assert_eq!(expected, tokenize(input, None));
+    }
+
+    #[test]
+    fn two_tokens_with_spaces() {
+        let input = "wut   up";
+        let expected: Vec&lt;Entity&lt;'_>> =
+            vec![make_token("wut", None, 0, 0), make_token("up", None, 0, 6)];
+
+        assert_eq!(expected, tokenize(input, None));
+    }
+
+    #[test]
+    fn two_tokens_with_new_line() {
+        let input = "wut \n up";
+        let expected: Vec&lt;Entity&lt;'_>> =
+            vec![make_token("wut", None, 0, 0), make_token("up", None, 1, 1)];
+
+        assert_eq!(expected, tokenize(input, None));
+    }
+
+    #[test]
+    fn two_tokens_with_return_newline() {
+        let input = "wut \r\n up";
+        let expected: Vec&lt;Entity&lt;'_>> =
+            vec![make_token("wut", None, 0, 0), make_token("up", None, 1, 1)];
+
+        assert_eq!(expected, tokenize(input, None));
+    }
+
+    #[test]
+    fn many_tokens_with_return_newline() {
+        let input = "wut \r\n up    \n     my dawg";
+        let expected: Vec&lt;Entity&lt;'_>> = vec![
+            make_token("wut", None, 0, 0),
+            make_token("up", None, 1, 1),
+            make_token("my", None, 2, 5),
+            make_token("dawg", None, 2, 8),
+        ];
+
+        assert_eq!(expected, tokenize(input, None));
+    }
+}
+</div>
+<p   >I've updated my roadmap to handle brackets + comments. From there I can look into analyzing the code and building a parse tree.</p></div></div></div></div></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>
