@@ -35,7 +35,272 @@ Forward 🡆</div>
 <div   ><p   >Hoping to go on a run before work so we'll see how far I get today for parsing strings. There was a lot I did yesterday that I neglected to post here, but I guarantee you'll see it over time. </p></div></div>
 <div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0705"  ><a  href="#0705"  >#</a>
  0705</h3>
-<div   ><p   >Well, this is trickier than I thought. I got 80% of it done, but escaped quotes are what I'm blocked on. I'll circle back later today.</p></div></div></div></div></div>
+<div   ><p   >Well, this is trickier than I thought. I got 80% of it done, but escaped quotes are what I'm blocked on. I'll circle back later today.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1621"  ><a  href="#1621"  >#</a>
+ 1621</h3>
+<div   ><p   >Nailed it. My code was good, but I misunderstood some of the functionality behind Rust's iterators. Cleaning that up got all but one of my unit tests passing.</p>
+<p   >I'll be posting all the changes for the <span   class="codeblockDark outlinedDark">tokenizer</span>.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// tokenizer.rs
+
+
+/// Context for tokenizing
+struct TokenContext&lt;'a> {
+    code: &amp;'a str,
+    column: usize,
+    file: Option&lt;File&lt;'a>>,
+    idx: usize,
+    is_newline: bool,
+    line: usize,
+    making_comment: bool,
+    making_string: bool,
+    start_column: usize,
+    terminated: bool,
+    token_end_idx: usize,
+    token_start_idx: usize,
+}
+
+/// Tokenizes the given string.
+pub fn tokenize&lt;'a>(code: &amp;'a str, file: Option&lt;File&lt;'a>>) -> Result&lt;Vec&lt;Entity&lt;'a>>, Error&lt;'a>> {
+    Benchy::time("core_lang::tokenizer::tokenize()");
+
+    let mut entities = vec![];
+
+    let chars_len = code.chars().count();
+    let end_idx = if chars_len == 0 { 0 } else { chars_len - 1 };
+
+    let mut ctx = TokenContext {
+        code,
+        column: 0,
+        file,
+        idx: 0,
+        is_newline: false,
+        line: 0,
+        making_comment: false,
+        making_string: false,
+        start_column: 0,
+        terminated: false,
+        token_end_idx: 0,
+        token_start_idx: 0,
+    };
+
+    let mut chars = code.chars().enumerate();
+
+    while let Some((char_idx, c)) = chars.next() {
+        let prev_char = {
+            if char_idx >= 1 {
+                code.chars().nth(char_idx - 1)
+            } else {
+                None
+            }
+        };
+
+        // Check if a termination happened and if a comment should be started
+        if is_terminating_char(c, prev_char) {
+            let is_comment = c == ';';
+            let is_string = c == '"';
+
+            if is_string {
+                if ctx.making_string {
+                    ctx.terminated = true;
+                }
+
+                ctx.making_string = true;
+            } else {
+                // Attempt to create an entity
+                let (new_ctx, entity) = try_make_token(ctx);
+                ctx = new_ctx;
+                if let Some(entity) = entity {
+                    entities.push(entity);
+                }
+
+                // Final cleanup
+                if is_comment {
+                    ctx.making_comment = true;
+                } else {
+                    ctx.terminated = true;
+                }
+            }
+        }
+
+        // Add a new line if necessary
+        ctx.is_newline = c == '\n';
+        if ctx.is_newline {
+            // Terminate comments with new lines.
+            if ctx.making_comment {
+                ctx.terminated = true;
+            }
+        } else {
+            ctx.column += 1;
+        }
+
+        // Update the end index and check if it should be terminated
+        if !ctx.terminated {
+            let is_end = ctx.idx == end_idx;
+            if ctx.making_comment {
+                ctx.terminated = is_end;
+            } else if !ctx.making_string {
+                ctx.terminated = c.is_whitespace() || is_end;
+            } else if is_end &amp;&amp; ctx.making_string {
+                return Err(Error {
+                    entity: make_entity(
+                        ctx.code[ctx.token_start_idx..ctx.token_end_idx].into(),
+                        false,
+                        true,
+                        ctx.file,
+                        ctx.line,
+                        ctx.start_column,
+                    ),
+                    kind: ErrorKind::UnclosedString,
+                });
+            }
+        }
+
+        // Increment end index
+        ctx.token_end_idx += 1;
+
+        // Attempt to create an entity if terminated
+        if ctx.terminated {
+            let (new_ctx, entity) = try_make_token(ctx);
+            ctx = new_ctx;
+            if let Some(entity) = entity {
+                entities.push(entity);
+            }
+        }
+
+        // Increment line + reset column on newlines
+        if ctx.is_newline {
+            // If needing to handle \r\n specifically, modify code in here.
+            // For now it treats \r as whitespace and will break on \n.
+            ctx.line += 1;
+            ctx.column = 0;
+        }
+
+        // Increase index and reset variables
+        ctx.idx += 1;
+        ctx.terminated = false;
+    }
+
+    Ok(entities)
+}
+</div>
+<p   >I needed to modify the terminating character method to take in the last character, as we do not want to terminate on escaped quotes. I also did a little refactoring in the <span   class="codeblockDark outlinedDark">try_make_token</span> method.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// tokenizer.rs
+
+/// Returns whether the given character is a terminating character.
+fn is_terminating_char(c: char, prev_char: Option&lt;char>) -> bool {
+    match c {
+        ';' => true,
+        '(' | ')' => true,
+        '[' | ']' => true,
+        '{' | '}' => true,
+        '"' => prev_char != Some('\\'),
+        _ => false,
+    }
+}
+
+/// Attempts to make a token
+fn try_make_token&lt;'a>(mut ctx: TokenContext&lt;'a>) -> (TokenContext&lt;'a>, Option&lt;Entity>) {
+    let mut entity = None;
+
+    // Only push non-whitespace chars
+    let trimmed_code = &amp;ctx.code[ctx.token_start_idx..ctx.token_end_idx].trim();
+
+    if !trimmed_code.is_empty() {
+        let token = if ctx.making_comment {
+            ctx.making_comment = false;
+            make_comment(trimmed_code, ctx.file, ctx.line, ctx.start_column)
+        } else if ctx.making_string {
+            ctx.making_string = false;
+            make_string(trimmed_code, ctx.file, ctx.line, ctx.start_column)
+        } else {
+            make_token(trimmed_code, ctx.file, ctx.line, ctx.start_column)
+        };
+
+        entity = Some(token);
+    }
+
+    ctx.token_start_idx = ctx.token_end_idx;
+    ctx.start_column = ctx.column;
+
+    (ctx, entity)
+}
+</div>
+<p   >I'll also add in a new <span   class="codeblockDark outlinedDark">Str</span> type into the <span   class="codeblockDark outlinedDark">parser</span> to represent this. No error checking needs to be done at this level since it was handled by the tokenizer.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// parser.rs
+
+make_entity_type!(Bool, bool);
+make_entity_type!(Comment, &amp;'a str);
+make_entity_type!(Float, InnerFloat);
+make_entity_type!(Identifier, Id&lt;'a>);
+make_entity_type!(Str, &amp;'a str);
+make_entity_type!(WholeNumber, InnerWholeNumber);
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ParseTree&lt;'a> {
+    Bool(Bool&lt;'a>),
+    Comment(Comment&lt;'a>),
+    Float(Float&lt;'a>),
+    Identifier(Identifier&lt;'a>),
+    Str(Str&lt;'a>),
+    WholeNumber(WholeNumber&lt;'a>),
+}
+</div>
+<p   >I'll update the <span   class="codeblockDark outlinedDark">parse()</span> method and call it a day.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+
+pub fn parse&lt;'a>(mut entities: Vec&lt;Entity&lt;'a>>) -> Result&lt;Vec&lt;ParseTree&lt;'a>>, Error&lt;'a>> {
+    Benchy::time("core_lang::parser::parse()");
+
+    let mut entity;
+    let mut results = vec![];
+
+    // Drain all entities, converting them to a parse tree
+    while entities.is_empty() == false {
+        entity = entities.remove(0);
+
+        // Bool - false
+        if entity.token.as_str() == "false" {
+            results.push(make_bool(false, entity));
+            continue;
+        }
+
+        // Bool - true
+        if entity.token.as_str() == "true" {
+            results.push(make_bool(true, entity));
+            continue;
+        }
+
+        // Comment
+        if entity.is_comment {
+            results.push(make_comment(entity));
+            continue;
+        }
+
+        // Attempt to make a number
+        if let Some(number) = try_make_number(entity)? {
+            results.push(number);
+            continue;
+        }
+
+        // String
+        if entity.is_string {
+            results.push(make_string(entity));
+            continue;
+        }
+
+        // TODO: lists and the like
+
+        // Anything else is an identifier
+        results.push(make_identifier(entity));
+    }
+
+    Ok(results)
+}
+</div>
+<p   >Lists are next on the roadmap and I do not look forward to them.</p></div></div></div></div></div>
             </div>
         </div>
     </body>
