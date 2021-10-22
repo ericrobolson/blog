@@ -2,11 +2,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>GGezBB</title>
+        <title>Bloom Part 13: Syntax Chosen + Interpreter vs Compiler</title>
         <!-- metadata -->
         <meta charset="UTF-8">
-<meta name="description" content="Home page">
-<meta name="keywords" content="blog, senior, software, lisp, elixir, erlang, rust, c, c#, language design, compilers, gpu, game dev">
+<meta name="description" content="Going with an C inspired and debating on an interpreter vs compiler.">
+<meta name="keywords" content="rust, domain, specific, language, parsing, bloom, token, tokenizer, intermediate, representation, algebraic, data, types, syntax, compiler, interpreter">
 <meta name="author" content="Eric Olson">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <!-- css -->
@@ -18,18 +18,12 @@
             <!-- content wrapper -->
             <div class=contentWrapperLight>
                 <!-- content -->
-                <div   ><div   ><h2 id="indexTitle"  ><a  href="#indexTitle"  >#</a>
-Home</h2>
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
-Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.10.22_Bloom13.html"  >2021.10.22: Bloom Part 13: Syntax Chosen + Interpreter vs Compiler</a>
- - Going with an C inspired and debating on an interpreter vs compiler.</div></li><li><div   ><a  href="2021.10.21_Bloom12SyntaxExamples.html"  >2021.10.21: Bloom Part 12: Choosing Syntax</a>
- - Writing different syntax styles to help guide where to go.</div></li><li><div   ><a  href="2021.10.20_Bloom11BeginningIr.html"  >2021.10.20: Bloom Part 11: Intermediate Representation</a>
- - Building out the intermediate representation for Bloom.</div></li><li><div   ><a  href="2021.10.19_Bloom10Lists.html"  >2021.10.19: Bloom Part 10: Lists</a>
- - Building Lists in Bloom and mulling on where to go next.</div></li><li><div   ><a  href="2021.10.18_Bloom9Strings.html"  >2021.10.18: Bloom Part 9: Strings</a>
- - Tokenizing + parsing strings in Bloom</div></li><li><div   ><a  href="2021.10.17_Bloom8Concatenative.html"  >2021.10.17: Bloom Part 8: Concatenative Languages</a>
- - Making Bloom a concatenative language.</div></li><li><div   ><a  href="2021.10.16_Bloom7MoreParsing.html"  >2021.10.16: Bloom Part 7: Continuing a Parse Tree</a>
- - Continuing implementation for a parse tree.</div></li></ul></div>
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.10.21_Bloom12SyntaxExamples.html"  >🡄 Previous</a>
+Forward 🡆</div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
 2021.10.22 - Bloom Part 13: Syntax Chosen + Interpreter vs Compiler</h2>
 <div   >
@@ -231,10 +225,6 @@ mod adt_tests {
 </div>
 <p   >There will likely be some additional tokenizing/parsing that has to be done to handle the syntax, but it's in a decent state. Another option I could do is entirely forgo the parsing here and directly write a Rust program that operates on these constructs. Not sold on that. </p>
 <p   >The final, and perhaps easiest option, is to write an interpreter that operates in a stupid fashion and go from there. By stupid fashion I mean directly executing code as it reads it in. This would be the least performant, but the fastest to bootstrap. I'll noodle on that option.</p></div></div></div></div></div>
-<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
-<a id="catalogNav" href="catalog.html"  >Catalog</a>
-<a id="projectsNav" href="projects.html"  >Projects</a>
-<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
             </div>
         </div>
     </body>
