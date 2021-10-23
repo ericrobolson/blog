@@ -19,7 +19,7 @@
             <div class=contentWrapperLight>
                 <!-- content -->
                 <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.10.21_Bloom12SyntaxExamples.html"  >🡄 Previous</a>
-Forward 🡆</div>
+<a id="next_page_link" href="2021.10.23_Bloom14.html"  >Forward 🡆</a></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>
@@ -224,7 +224,12 @@ mod adt_tests {
 }
 </div>
 <p   >There will likely be some additional tokenizing/parsing that has to be done to handle the syntax, but it's in a decent state. Another option I could do is entirely forgo the parsing here and directly write a Rust program that operates on these constructs. Not sold on that. </p>
-<p   >The final, and perhaps easiest option, is to write an interpreter that operates in a stupid fashion and go from there. By stupid fashion I mean directly executing code as it reads it in. This would be the least performant, but the fastest to bootstrap. I'll noodle on that option.</p></div></div></div></div></div>
+<p   >The final, and perhaps easiest option, is to write an interpreter that operates in a stupid fashion and go from there. By stupid fashion I mean directly executing code as it reads it in. This would be the least performant, but the fastest to bootstrap. I'll noodle on that option.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0839"  ><a  href="#0839"  >#</a>
+ 0839</h3>
+<div   ><p   >I'm gonna play with an interpreter. I want to start writing programs in it + implementing a self hosted compiler to see how well the language works.</p>
+<p   >One thing I'm immediately running into is I do not want nearly as many symbols as Rust. Love the language, love what it does, but sometimes you just want to put words on the screen and have it work.</p>
+<p   >Perhaps that's an argument against the C-like syntax. Would an approach like Elixir work, where it is primarily word based? A concatenative language may make a more pleasant to read and write experience as things can be defined to mimic spoken or written language.</p></div></div></div></div></div>
             </div>
         </div>
     </body>
