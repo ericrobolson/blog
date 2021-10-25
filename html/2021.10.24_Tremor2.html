@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Tremor2: Part 1</title>
+        <title>Tremor2 Part 1 - Sketching the Engine</title>
         <!-- metadata -->
         <meta charset="UTF-8">
 <meta name="description" content="Taking a break from Bloom and playing with GGEZ.">
@@ -19,13 +19,13 @@
             <div class=contentWrapperLight>
                 <!-- content -->
                 <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.10.23_Bloom14.html"  >🡄 Previous</a>
-Forward 🡆</div>
+<a id="next_page_link" href="2021.10.25_Tremor2Part2.html"  >Forward 🡆</a></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>
 <a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
-2021.10.25 - Tremor2: Part 1</h2>
+2021.10.24 - Tremor2 Part 1 - Sketching the Engine</h2>
 <div   >
 
 
@@ -264,7 +264,13 @@ where
         }
     }
 }
-</div></div></div></div></div></div>
+</div></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1700"  ><a  href="#1700"  >#</a>
+ 1700</h3>
+<div   ><p   >One thing I'm considering is using the Rust application as a client and an Elixir server as the front end. All data MUST be served over the wire, thus ensuring that I have final say. I would have to ensure that the 'engine' is relatively static to see if I could get around having to do constant application updates.</p>
+<p   >Why do this? The reason is simple: I want to maximize the content I can put out while minimizing the time spent not working on content. Building the engine is a way to enable the content, nothing more. In a game the content is what rules. </p>
+<p   >I'll have to be careful to understand my data, build it out, and get something playable. Ideally I'll use datasheets for all characters, containing the stats, the assets, etc. sent over as JSON. This simple to do.</p>
+<p   >One caveat is that users can manipulate the data. This is why I have a server. When a match completes, players send their inputs to the server. The server then plays the game in a Rust NIF and uses that to determine ranking.</p></div></div></div></div></div>
             </div>
         </div>
     </body>

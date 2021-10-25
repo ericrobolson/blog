@@ -2,11 +2,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>GGezBB</title>
+        <title>Tremor2 Part 2 - Rendering</title>
         <!-- metadata -->
         <meta charset="UTF-8">
-<meta name="description" content="Home page">
-<meta name="keywords" content="blog, senior, software, lisp, elixir, erlang, rust, c, c#, language design, compilers, gpu, game dev">
+<meta name="description" content="Fleshing out the renderer and adding data collections.">
+<meta name="keywords" content="rust, bloom, ggez, game, development, 2d, native, pc, game">
 <meta name="author" content="Eric Olson">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <!-- css -->
@@ -18,18 +18,12 @@
             <!-- content wrapper -->
             <div class=contentWrapperLight>
                 <!-- content -->
-                <div   ><div   ><h2 id="indexTitle"  ><a  href="#indexTitle"  >#</a>
-Home</h2>
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
-Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.10.25_Tremor2Part2.html"  >2021.10.25: Tremor2 Part 2 - Rendering</a>
- - Fleshing out the renderer and adding data collections.</div></li><li><div   ><a  href="2021.10.24_Tremor2.html"  >2021.10.24: Tremor2 Part 1 - Sketching the Engine</a>
- - Taking a break from Bloom and playing with GGEZ.</div></li><li><div   ><a  href="2021.10.23_Bloom14.html"  >2021.10.23: Bloom Part 14: Interpreter</a>
- - Going forward with an interpreter and dealing with parsing issues.</div></li><li><div   ><a  href="2021.10.22_Bloom13.html"  >2021.10.22: Bloom Part 13: Syntax Chosen + Interpreter vs Compiler</a>
- - Going with an C inspired and debating on an interpreter vs compiler.</div></li><li><div   ><a  href="2021.10.21_Bloom12SyntaxExamples.html"  >2021.10.21: Bloom Part 12: Choosing Syntax</a>
- - Writing different syntax styles to help guide where to go.</div></li><li><div   ><a  href="2021.10.20_Bloom11BeginningIr.html"  >2021.10.20: Bloom Part 11: Intermediate Representation</a>
- - Building out the intermediate representation for Bloom.</div></li><li><div   ><a  href="2021.10.19_Bloom10Lists.html"  >2021.10.19: Bloom Part 10: Lists</a>
- - Building Lists in Bloom and mulling on where to go next.</div></li></ul></div>
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.10.24_Tremor2.html"  >🡄 Previous</a>
+Forward 🡆</div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
 2021.10.25 - Tremor2 Part 2 - Rendering</h2>
 <div   >
@@ -526,10 +520,6 @@ impl EventHandler&lt;ggez::GameError> for Application {
 }
 </div>
 <p   >I'll want to add in colors and interpolation at some point, but that can be deferred until after I get a basic platformer up and running.</p></div></div></div></div></div>
-<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
-<a id="catalogNav" href="catalog.html"  >Catalog</a>
-<a id="projectsNav" href="projects.html"  >Projects</a>
-<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
             </div>
         </div>
     </body>
