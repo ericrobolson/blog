@@ -22,53 +22,26 @@
 Home</h2>
 <div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
 Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.10.26_Tremor2Part3.html"  >2021.10.26: Tremor2 Part 3 - Server + Filesystem</a>
+<ul   class="listLight"><li><div   ><a  href="2021.10.27_Tremor2Part4.html"  >2021.10.27: Tremor2 Part 4 - Monogame + Emacs + Lisp?</a>
+ - Considering a switch to Monogame, utilizing Emacs and Lisp.</div></li><li><div   ><a  href="2021.10.26_Tremor2Part3.html"  >2021.10.26: Tremor2 Part 3 - Server + Filesystem</a>
  - Started building out an Elixir server and loading of config files.</div></li><li><div   ><a  href="2021.10.25_Tremor2Part2.html"  >2021.10.25: Tremor2 Part 2 - Rendering</a>
  - Fleshing out the renderer and adding data collections.</div></li><li><div   ><a  href="2021.10.24_Tremor2.html"  >2021.10.24: Tremor2 Part 1 - Sketching the Engine</a>
  - Taking a break from Bloom and playing with GGEZ.</div></li><li><div   ><a  href="2021.10.23_Bloom14.html"  >2021.10.23: Bloom Part 14: Interpreter</a>
  - Going forward with an interpreter and dealing with parsing issues.</div></li><li><div   ><a  href="2021.10.22_Bloom13.html"  >2021.10.22: Bloom Part 13: Syntax Chosen + Interpreter vs Compiler</a>
  - Going with an C inspired and debating on an interpreter vs compiler.</div></li><li><div   ><a  href="2021.10.21_Bloom12SyntaxExamples.html"  >2021.10.21: Bloom Part 12: Choosing Syntax</a>
- - Writing different syntax styles to help guide where to go.</div></li><li><div   ><a  href="2021.10.20_Bloom11BeginningIr.html"  >2021.10.20: Bloom Part 11: Intermediate Representation</a>
- - Building out the intermediate representation for Bloom.</div></li></ul></div>
+ - Writing different syntax styles to help guide where to go.</div></li></ul></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
-2021.10.26 - Tremor2 Part 3 - Server + Filesystem</h2>
+2021.10.27 - Tremor2 Part 4 - Monogame + Emacs + Lisp?</h2>
 <div   >
 
 
 
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0645"  ><a  href="#0645"  >#</a>
- 0645</h3>
-<div   ><p   >I've started working on some of the infrastructure surrounding this engine. I'm using Elixir for my backend with Phoenix as the framework. Nothing is wired up yet, but I'm working towards pinging the server from the client.</p>
-<p   >To that end, I've added <span   class="codeblockDark outlinedDark">serde</span> as a dependency to my engine. </p>
-<p   >I've also added a build script to copy a <span   class="codeblockDark outlinedDark">res/</span> directory to the same directory as the executable.</p>
-<p   > </p>
-<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
-use fs_extra::copy_items;
-use fs_extra::dir::CopyOptions;
-use std::env;
-
-fn main() {
-    println!("cargo:rerun-if-changed=res/*");
-
-    let out_dir = env::var("OUT_DIR").unwrap();
-    let mut copy_options = CopyOptions::new();
-    copy_options.overwrite = true;
-    let mut paths_to_copy = Vec::new();
-    paths_to_copy.push("res/");
-    copy_items(&amp;paths_to_copy, out_dir, &amp;copy_options).unwrap();
-}
-</div>
-<p   >This way I can add a new configuration object and load it.</p>
-<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
-// config.rs
-use crate::prelude::*;
-
-#[derive(Deserialize, Serialize)]
-pub struct Config {
-    pub server_addr: Option&lt;ServerAddress>,
-}
-</div>
-<p   >The <span   class="codeblockDark outlinedDark">ServerAddress</span> object is stubbed out right now, but will be used for connecting to the Elixir server. I want to get the server connection going before progressing, as it will be a critical part of any game I make. It will also be easiest to handle now rather than later.</p></div></div></div></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0640"  ><a  href="#0640"  >#</a>
+ 0640</h3>
+<div   ><p   >Yesterday I spent some time playing with Monogame. This is a cross platform, C# based game framework. It was simple to get up and running, but was missing some parts of Rust that I enjoy (ADTs). Truthfully though I may go all in on that as it is open source and extremely cross platform.</p>
+<p   >Another thing I've been doing is utilizing Emacs. The keybindings are very bizarre, but overall it's getting better. The main reason I'm doing this is I do not want to utilize VS Code unless absolutely necessary. Forced telemetry and dark patterns is the reason why.</p>
+<p   >To get up to speed on Emacs + Lisp, I've installed Slime. Slime is a development environment targeted towards Emacs and Common Lisp. I'll be utilizing that over time for various tasks, though I am not sure what yet. I do want to make a few types of games, but I really don't have any fantastic ideas yet.</p>
+<p   >Perhaps I'll get up to speed on Emacs + Lisp, then utilize Monogame to build the client and Elixir to build the server?</p></div></div></div></div></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>
