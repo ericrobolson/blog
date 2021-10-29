@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Common Lisp, Slime and Emacs part 2</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Continuing Common Lisp, playing with Slime and powering through with Emacs.">
+<meta name="keywords" content="rust, elixir, ggez, game, development, 2d, native, pc, game, monogame, lisp, emacs, c">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.10.28_CommonLispSlimeEmacs.html"  >🡄 Previous</a>
+Forward 🡆</div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.10.29 - Common Lisp, Slime and Emacs part 2</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0701"  ><a  href="#0701"  >#</a>
+ 0701</h3>
+<div   ><p   >I'm starting to get the hang of Emacs. It's a process, but slowly getting there. Primarily using Slime + CL and hope to eventually add in Elixir and JS.</p>
+<p   >I really haven't gotten very far on any project, but for now I'm building up some functions to generate C code.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+(defun make-struct (id first-prop &amp;rest props)
+  (concatenate 'string
+	       "struct " (pretty-print id) "{"
+	       (make-struct-prop (car first-prop) (car (cdr first-prop)))
+	       ;; TODO: map rest of props
+	       "}" ";" ))
+
+
+(defun stringify-type (type)
+  (cond
+    ((eq 'char type) "char")
+    (T (error 'invalid-type :unhandled-type type))
+    ))
+
+(defun make-struct-prop (type id)
+  (concatenate 'string (pretty-print type) " " (pretty-print id) ";"))
+
+(defun pretty-print (val)
+  (format NIL "~a" val))
+</div>
+<p   >The idea is I can slowly build from the bottom up and make something that way. I chose C since it is a simple language that is very portable. I may do Rust or C# next, but want to get something simple first.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

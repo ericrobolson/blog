@@ -22,26 +22,46 @@
 Home</h2>
 <div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
 Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.10.28_CommonLispSlimeEmacs.html"  >2021.10.28: Common Lisp, Slime and Emacs</a>
+<ul   class="listLight"><li><div   ><a  href="2021.10.29_LispSlimeEmacs2.html"  >2021.10.29: Common Lisp, Slime and Emacs part 2</a>
+ - Continuing Common Lisp, playing with Slime and powering through with Emacs.</div></li><li><div   ><a  href="2021.10.28_CommonLispSlimeEmacs.html"  >2021.10.28: Common Lisp, Slime and Emacs</a>
  - Learning Common Lisp, playing with Slime and powering through with Emacs.</div></li><li><div   ><a  href="2021.10.27_Tremor2Part4.html"  >2021.10.27: Tremor2 Part 4 - Monogame + Emacs + Lisp?</a>
  - Considering a switch to Monogame, utilizing Emacs and Lisp.</div></li><li><div   ><a  href="2021.10.26_Tremor2Part3.html"  >2021.10.26: Tremor2 Part 3 - Server + Filesystem</a>
  - Started building out an Elixir server and loading of config files.</div></li><li><div   ><a  href="2021.10.25_Tremor2Part2.html"  >2021.10.25: Tremor2 Part 2 - Rendering</a>
  - Fleshing out the renderer and adding data collections.</div></li><li><div   ><a  href="2021.10.24_Tremor2.html"  >2021.10.24: Tremor2 Part 1 - Sketching the Engine</a>
  - Taking a break from Bloom and playing with GGEZ.</div></li><li><div   ><a  href="2021.10.23_Bloom14.html"  >2021.10.23: Bloom Part 14: Interpreter</a>
- - Going forward with an interpreter and dealing with parsing issues.</div></li><li><div   ><a  href="2021.10.22_Bloom13.html"  >2021.10.22: Bloom Part 13: Syntax Chosen + Interpreter vs Compiler</a>
- - Going with an C inspired and debating on an interpreter vs compiler.</div></li></ul></div>
+ - Going forward with an interpreter and dealing with parsing issues.</div></li></ul></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
-2021.10.28 - Common Lisp, Slime and Emacs</h2>
+2021.10.29 - Common Lisp, Slime and Emacs part 2</h2>
 <div   >
 
 
 
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0625"  ><a  href="#0625"  >#</a>
- 0625</h3>
-<div   ><p   >Played around more with Slime + Emacs. While I still don't have it down, it's a very different experience from what I've used in the past. The main difference is that everything happens so fast. </p>
-<p   >What do I mean by that? Well, I can write a function, instantly compile it, and then test it out in a few seconds. There may be downsides to this process and the language, such as long term maintainability, but for now it's a different way to develop and I want to see how far it goes. </p>
-<p   >At the moment I am just familiarizing myself with the workflow and testing things out. I'll slowly build up a library of methods to use, then perhaps generate some forms of code with Lisp that is then wired up into a game engine. Of course, that is the ideal and the real world destroys ideals. </p>
-<p   >Regardless, this is a form of hacking I will pursue for a while longer.</p></div></div></div></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0701"  ><a  href="#0701"  >#</a>
+ 0701</h3>
+<div   ><p   >I'm starting to get the hang of Emacs. It's a process, but slowly getting there. Primarily using Slime + CL and hope to eventually add in Elixir and JS.</p>
+<p   >I really haven't gotten very far on any project, but for now I'm building up some functions to generate C code.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+(defun make-struct (id first-prop &amp;rest props)
+  (concatenate 'string
+	       "struct " (pretty-print id) "{"
+	       (make-struct-prop (car first-prop) (car (cdr first-prop)))
+	       ;; TODO: map rest of props
+	       "}" ";" ))
+
+
+(defun stringify-type (type)
+  (cond
+    ((eq 'char type) "char")
+    (T (error 'invalid-type :unhandled-type type))
+    ))
+
+(defun make-struct-prop (type id)
+  (concatenate 'string (pretty-print type) " " (pretty-print id) ";"))
+
+(defun pretty-print (val)
+  (format NIL "~a" val))
+</div>
+<p   >The idea is I can slowly build from the bottom up and make something that way. I chose C since it is a simple language that is very portable. I may do Rust or C# next, but want to get something simple first.</p></div></div></div></div></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>
