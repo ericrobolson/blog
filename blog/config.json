@@ -18,18 +18,21 @@
     "github": "https://github.com/ericrobolson",
     "index_keywords": [
         "blog",
-        "senior",
-        "software",
-        "lisp",
-        "elixir",
-        "erlang",
-        "rust",
         "c",
         "c#",
-        "language design",
         "compilers",
+        "design",
+        "elixir",
+        "engineer",
+        "erlang",
+        "game",
         "gpu",
-        "game dev"
+        "language",
+        "lisp",
+        "rust",
+        "senior",
+        "software",
+        "video"
     ],
     "index_title": "GGezBB",
     "linked_in": "https://www.linkedin.com/in/eric-olson-1b7b37b0/",
@@ -53,6 +56,11 @@
             "title": "ChickenTest",
             "description": "Unit testing framework for Chicken Scheme.",
             "url": "https://github.com/ericrobolson/ChickenTest"
+        },
+        {
+            "title": "Development environment",
+            "description": "A repository for my development environment.",
+            "url": "https://github.com/ericrobolson/dev-env"
         },
         {
             "title": "Heimdall",
