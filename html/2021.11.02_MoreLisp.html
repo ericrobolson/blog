@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>More Lisp</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Playing with Lisp macros and seeing what can be done.">
+<meta name="keywords" content="rust, nes, emulator, vm, emulation, gamedev, wgpu, lisp, c, macro, code, generation">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.11.01_BurnedCoffee.html"  >🡄 Previous</a>
+Forward 🡆</div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.11.02 - More Lisp</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0718"  ><a  href="#0718"  >#</a>
+ 0718</h3>
+<div   ><p   >I feel like I'm slowly making progress with Lisp. I wrote out a simple method + macro to convert Lisp code to something similar to C.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+;; Creates a function that returns the given type
+;; TODO: type checking
+(defmacro defun-t (type id args &amp;rest statements)
+  `(defun ,id ,args ,@statements))
+
+(defun-t t-int main ()
+  (print "hello world!")
+  0)
+
+
+(defun get-c-type (type)
+  (cond
+    ((eq 't-int type) "int")
+    (T (error "invalid c-type!" type))))
+
+(defmacro compile-c (type id args &amp;rest statements)
+  `(list ,type id "(" ")" "{" "}"))
+</div>
+<p   >My intent by doing this is that I can write something using <span   class="codeblockDark outlinedDark">defun-t</span>, leverage Slime to get interactivity, and then run a compile macro that converts it to a different language.</p>
+<p   >I don't know how viable that will be, but it seems like an interesting approach.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -22,92 +22,44 @@
 Home</h2>
 <div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
 Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.10.30_LispSlimeEmacs3.html"  >2021.10.30: Common Lisp, Slime and Emacs part 3</a>
+<ul   class="listLight"><li><div   ><a  href="2021.11.02_MoreLisp.html"  >2021.11.02: More Lisp</a>
+ - Playing with Lisp macros and seeing what can be done.</div></li><li><div   ><a  href="2021.11.01_BurnedCoffee.html"  >2021.11.01: Burned Coffee + More Lisp</a>
+ - Continuing on with Lisp and stubbing out some ECS generation.</div></li><li><div   ><a  href="2021.10.31_NesEmulator1.html"  >2021.10.31: Building a NES emulator in Rust</a>
+ - Building a basic NES emulator in Rust and tackling the CPU.</div></li><li><div   ><a  href="2021.10.30_LispSlimeEmacs3.html"  >2021.10.30: Common Lisp, Slime and Emacs part 3</a>
  - Building a C generator in Common Lisp with Slime + Emacs.</div></li><li><div   ><a  href="2021.10.29_LispSlimeEmacs2.html"  >2021.10.29: Common Lisp, Slime and Emacs part 2</a>
  - Continuing Common Lisp, playing with Slime and powering through with Emacs.</div></li><li><div   ><a  href="2021.10.28_CommonLispSlimeEmacs.html"  >2021.10.28: Common Lisp, Slime and Emacs</a>
  - Learning Common Lisp, playing with Slime and powering through with Emacs.</div></li><li><div   ><a  href="2021.10.27_Tremor2Part4.html"  >2021.10.27: Tremor2 Part 4 - Monogame + Emacs + Lisp?</a>
- - Considering a switch to Monogame, utilizing Emacs and Lisp.</div></li><li><div   ><a  href="2021.10.26_Tremor2Part3.html"  >2021.10.26: Tremor2 Part 3 - Server + Filesystem</a>
- - Started building out an Elixir server and loading of config files.</div></li><li><div   ><a  href="2021.10.25_Tremor2Part2.html"  >2021.10.25: Tremor2 Part 2 - Rendering</a>
- - Fleshing out the renderer and adding data collections.</div></li><li><div   ><a  href="2021.10.24_Tremor2.html"  >2021.10.24: Tremor2 Part 1 - Sketching the Engine</a>
- - Taking a break from Bloom and playing with GGEZ.</div></li></ul></div>
+ - Considering a switch to Monogame, utilizing Emacs and Lisp.</div></li></ul></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
-2021.10.30 - Common Lisp, Slime and Emacs part 3</h2>
+2021.11.02 - More Lisp</h2>
 <div   >
 
 
 
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0721"  ><a  href="#0721"  >#</a>
- 0721</h3>
-<div   ><p   >I'm slowly getting better at using Emacs. I do bounce between it and VS Code, but am moving over.</p>
-<p   >My current project is building some Lisp code that generates this C program:</p>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0718"  ><a  href="#0718"  >#</a>
+ 0718</h3>
+<div   ><p   >I feel like I'm slowly making progress with Lisp. I wrote out a simple method + macro to convert Lisp code to something similar to C.</p>
 <div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
-#include &lt;stdio.h>
+;; Creates a function that returns the given type
+;; TODO: type checking
+(defmacro defun-t (type id args &amp;rest statements)
+  `(defun ,id ,args ,@statements))
 
-int main()
-{
-    // Prints some numbers
-    int i;
-    for (i = 0; i &lt; 10; i++)
-    {
-        printf("%d", i);
-    }
-
-    return 0;
-}
-</div>
-<p   >This is not anything complex, but it's a fun little test to see how far I can go.</p>
-<p   >I'm going with a bottom up approach, building out small little functions that get composed into larger functions.</p>
-<p   >The main guts is the <span   class="codeblockDark outlinedDark">program</span> method which right now takes in a list of includes.</p>
-<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
-
-;; Creates an include.
-(defun include (module)
-  (append-nl (concatenate 'string "#include " module)))
+(defun-t t-int main ()
+  (print "hello world!")
+  0)
 
 
-;; Builds out a C program
-(defun program (includes)
-  (flatten-strings
-   (flatten
-    (list
-     ;; Build out includes
-     (map 'list (lambda (module) (include module)) includes)
-     ;; Build the main function
-     "int main() { return 0;}"
-     ;; FIN
-     ))))
-
-;;;;;;;;;;;;;;;;;;;;
-;;; Helper funcs ;;;
-;;;;;;;;;;;;;;;;;;;;
-
-
-;; Adds a new line to the string
-(defun append-nl (contents)
-  (with-output-to-string (stream)
-    (write-line contents stream)))
-
-;; Flattens the given list
-(defun flatten (l)
+(defun get-c-type (type)
   (cond
-    ((null l) '())
-    ((atom (car l)) (cons (car l) (flatten (cdr l))))
-    (T (append (flatten (car l)) (flatten (cdr l))))))
+    ((eq 't-int type) "int")
+    (T (error "invalid c-type!" type))))
 
-
-;; Combines a list of strings into a single list
-(defun flatten-strings (args)
-  (cond
-    ((null args) "")
-    ((stringp args) args)
-    ((stringp (car args)) (concatenate 'string (car args) (flatten-strings (cdr args))))
-    (T (concatenate 'string (car args) (flatten-strings (cdr args))))))
+(defmacro compile-c (type id args &amp;rest statements)
+  `(list ,type id "(" ")" "{" "}"))
 </div>
-<p   >I was wanting to play with some assembler, but I think C is a fine goal for now.</p></div></div>
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1638"  ><a  href="#1638"  >#</a>
- 1638</h3>
-<div   ><p   >I'm toying with writing a NES emulator in Rust. I like the language and would love to get a version of NES Tetris running.</p>
-<p   >Why? One reason is I want to experiment with virtual machines, and an emulator is a fantastic way to do that. A potential avenue for this could be making a NES emulator, then writing my own games on top of that platform. A compiler could be written in CL which outputs ROMs. Food for thought.</p></div></div></div></div></div>
+<p   >My intent by doing this is that I can write something using <span   class="codeblockDark outlinedDark">defun-t</span>, leverage Slime to get interactivity, and then run a compile macro that converts it to a different language.</p>
+<p   >I don't know how viable that will be, but it seems like an interesting approach.</p></div></div></div></div></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>

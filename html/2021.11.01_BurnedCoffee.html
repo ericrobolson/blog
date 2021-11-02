@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Burned Coffee + More Lisp</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Continuing on with Lisp and stubbing out some ECS generation.">
+<meta name="keywords" content="rust, nes, emulator, vm, emulation, gamedev, wgpu, lisp">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.10.31_NesEmulator1.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.11.02_MoreLisp.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.11.01 - Burned Coffee + More Lisp</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0647"  ><a  href="#0647"  >#</a>
+ 0647</h3>
+<div   ><p   >A bit of a sad day today. I burned the handle off my moka pot, meaning I have no coffee. I immediately ordered a new one.</p>
+<p   >Oh well. I've began stubbing out how I may create an ECS that is generated from Lisp. Nothing too complex, mainly just writing out things that may prove useful.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+(defconstant types
+  (list
+   (make-struct Vec3 (f32 x) (f32 y) (f32 z))))
+
+(defconstant components
+  (list
+   (make-struct Hp (int hp))
+   (make-struct Position (int x) (int y) (int z))
+   (make-struct Transform (int x) (int y) (int z))
+   ))
+
+
+(defmacro make-struct (id &amp;rest props)
+  `'(struct ,id (properties ,props)))
+</div>
+<p   >I want to take this approach and see if it buys me anything.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>
