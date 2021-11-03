@@ -22,44 +22,46 @@
 Home</h2>
 <div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
 Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.11.02_MoreLisp.html"  >2021.11.02: More Lisp</a>
+<ul   class="listLight"><li><div   ><a  href="2021.11.03_LispContinued.html"  >2021.11.03: Lisp Continued</a>
+ - More Lisp macros and things that can be done with it.</div></li><li><div   ><a  href="2021.11.02_MoreLisp.html"  >2021.11.02: More Lisp</a>
  - Playing with Lisp macros and seeing what can be done.</div></li><li><div   ><a  href="2021.11.01_BurnedCoffee.html"  >2021.11.01: Burned Coffee + More Lisp</a>
  - Continuing on with Lisp and stubbing out some ECS generation.</div></li><li><div   ><a  href="2021.10.31_NesEmulator1.html"  >2021.10.31: Building a NES emulator in Rust</a>
  - Building a basic NES emulator in Rust and tackling the CPU.</div></li><li><div   ><a  href="2021.10.30_LispSlimeEmacs3.html"  >2021.10.30: Common Lisp, Slime and Emacs part 3</a>
  - Building a C generator in Common Lisp with Slime + Emacs.</div></li><li><div   ><a  href="2021.10.29_LispSlimeEmacs2.html"  >2021.10.29: Common Lisp, Slime and Emacs part 2</a>
  - Continuing Common Lisp, playing with Slime and powering through with Emacs.</div></li><li><div   ><a  href="2021.10.28_CommonLispSlimeEmacs.html"  >2021.10.28: Common Lisp, Slime and Emacs</a>
- - Learning Common Lisp, playing with Slime and powering through with Emacs.</div></li><li><div   ><a  href="2021.10.27_Tremor2Part4.html"  >2021.10.27: Tremor2 Part 4 - Monogame + Emacs + Lisp?</a>
- - Considering a switch to Monogame, utilizing Emacs and Lisp.</div></li></ul></div>
+ - Learning Common Lisp, playing with Slime and powering through with Emacs.</div></li></ul></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
-2021.11.02 - More Lisp</h2>
+2021.11.03 - Lisp Continued</h2>
 <div   >
 
 
 
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0718"  ><a  href="#0718"  >#</a>
- 0718</h3>
-<div   ><p   >I feel like I'm slowly making progress with Lisp. I wrote out a simple method + macro to convert Lisp code to something similar to C.</p>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0658"  ><a  href="#0658"  >#</a>
+ 0658</h3>
+<div   ><p   >Made some more progress with Lisp today. I did run into a stack overflow issue so I'll have to research how to recursively call functions so as not to do that.</p>
+<p   >I wrote a method that outputs something in a C like structure:</p>
 <div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
-;; Creates a function that returns the given type
-;; TODO: type checking
-(defmacro defun-t (type id args &amp;rest statements)
-  `(defun ,id ,args ,@statements))
-
-(defun-t t-int main ()
-  (print "hello world!")
-  0)
 
 
-(defun get-c-type (type)
-  (cond
-    ((eq 't-int type) "int")
-    (T (error "invalid c-type!" type))))
+(defconstant START "{")
+(defconstant END "}")
+(defconstant TERM ";")
 
-(defmacro compile-c (type id args &amp;rest statements)
-  `(list ,type id "(" ")" "{" "}"))
+;; Struct that holds some data
+(defmacro s-data (ident prop &amp;rest props)
+  `'(struct ,ident
+     ,START
+     ,(map 'list
+       (lambda (property)
+	 (list
+	  (car property)
+	  (car (cdr property))
+	  TERM))
+       (cons prop props))
+     ,END ,TERM))
 </div>
-<p   >My intent by doing this is that I can write something using <span   class="codeblockDark outlinedDark">defun-t</span>, leverage Slime to get interactivity, and then run a compile macro that converts it to a different language.</p>
-<p   >I don't know how viable that will be, but it seems like an interesting approach.</p></div></div></div></div></div>
+<p   >The issue is that it returns a few nested lists, whereas if I wanted to spit out generated C code I can't have that. Hence the need for tail-call optimizations to prevent overflows.</p>
+<p   >Either way, it was a fun little experiment getting to this point. Macros as well as functions seem to enable a lot of crazy things, so we'll see how that turns up as time goes on.</p></div></div></div></div></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>

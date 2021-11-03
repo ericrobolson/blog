@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Lisp Continued</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="More Lisp macros and things that can be done with it.">
+<meta name="keywords" content="rust, nes, emulator, vm, emulation, gamedev, wgpu, lisp, c, macro, code, generation">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.11.02_MoreLisp.html"  >🡄 Previous</a>
+Forward 🡆</div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.11.03 - Lisp Continued</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0658"  ><a  href="#0658"  >#</a>
+ 0658</h3>
+<div   ><p   >Made some more progress with Lisp today. I did run into a stack overflow issue so I'll have to research how to recursively call functions so as not to do that.</p>
+<p   >I wrote a method that outputs something in a C like structure:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+
+
+(defconstant START "{")
+(defconstant END "}")
+(defconstant TERM ";")
+
+;; Struct that holds some data
+(defmacro s-data (ident prop &amp;rest props)
+  `'(struct ,ident
+     ,START
+     ,(map 'list
+       (lambda (property)
+	 (list
+	  (car property)
+	  (car (cdr property))
+	  TERM))
+       (cons prop props))
+     ,END ,TERM))
+</div>
+<p   >The issue is that it returns a few nested lists, whereas if I wanted to spit out generated C code I can't have that. Hence the need for tail-call optimizations to prevent overflows.</p>
+<p   >Either way, it was a fun little experiment getting to this point. Macros as well as functions seem to enable a lot of crazy things, so we'll see how that turns up as time goes on.</p></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>
