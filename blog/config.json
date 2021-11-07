@@ -58,9 +58,24 @@
             "url": "https://github.com/ericrobolson/ChickenTest"
         },
         {
+            "title": "das_ubershader",
+            "description": "Stack based image manipulation program.",
+            "url": "https://github.com/ericrobolson/das_ubershader"
+        },
+        {
             "title": "Development environment",
             "description": "A repository for my development environment.",
             "url": "https://github.com/ericrobolson/dev-env"
+        },
+        {
+            "title": "g_time",
+            "description": "A library used for game related time functionality. The main piece is a timer class that abstracts common functionality.",
+            "url": "https://github.com/ericrobolson/g_time"
+        },
+        {
+            "title": "GoForthAndProsper",
+            "description": "A minimal example for a Forth compiler written in Rust.",
+            "url": "https://github.com/ericrobolson/GoForthAndProsper"
         },
         {
             "title": "Heimdall",
@@ -71,16 +86,6 @@
             "title": "Realtime CPU Raytracer",
             "description": "A real time CPU raytracer that dynamically scales the image based on frame rate.",
             "url": "https://github.com/ericrobolson/realtime-cpu-raytracer"
-        },
-        {
-            "title": "das_ubershader",
-            "description": "Stack based image manipulation program.",
-            "url": "https://github.com/ericrobolson/das_ubershader"
-        },
-        {
-            "title": "GoForthAndProsper",
-            "description": "A minimal example for a Forth compiler written in Rust.",
-            "url": "https://github.com/ericrobolson/GoForthAndProsper"
         },
         {
             "title": "ToyPaymentEngine",
