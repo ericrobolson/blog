@@ -23,12 +23,15 @@
         "compilers",
         "design",
         "elixir",
+        "embedded",
         "engineer",
         "erlang",
         "game",
         "gpu",
         "language",
         "lisp",
+        "logging",
+        "no std",
         "rust",
         "senior",
         "software",
@@ -66,6 +69,11 @@
             "title": "Development environment",
             "description": "A repository for my development environment.",
             "url": "https://github.com/ericrobolson/dev-env"
+        },
+        {
+            "title": "g_logger",
+            "description": "A library used for game related logging in dev builds. It provides a way to log events and replay them.",
+            "url": "https://github.com/ericrobolson/g_logger"
         },
         {
             "title": "g_time",
