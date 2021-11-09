@@ -2,11 +2,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>GGezBB</title>
+        <title>Poker and ECS implementation</title>
         <!-- metadata -->
         <meta charset="UTF-8">
-<meta name="description" content="Home page">
-<meta name="keywords" content="blog, c, c#, compilers, design, elixir, embedded, engineer, erlang, game, gpu, language, lisp, logging, no std, rust, senior, software, video">
+<meta name="description" content="Codifying a poker book and implementing an ECS.">
+<meta name="keywords" content="rust, open, source, mit, timer, timing, crate, library, gamedev, poker, lisp">
 <meta name="author" content="Eric Olson">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <!-- css -->
@@ -18,18 +18,12 @@
             <!-- content wrapper -->
             <div class=contentWrapperLight>
                 <!-- content -->
-                <div   ><div   ><h2 id="indexTitle"  ><a  href="#indexTitle"  >#</a>
-Home</h2>
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
-Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.11.09_PokerAndEcs.html"  >2021.11.09: Poker and ECS implementation</a>
- - Codifying a poker book and implementing an ECS.</div></li><li><div   ><a  href="2021.11.08_Logging.html"  >2021.11.08: Logging</a>
- - Building out a crate for logging + replaying events.</div></li><li><div   ><a  href="2021.11.07_TimersAndGamedev.html"  >2021.11.07: Timers and Gamedev</a>
- - Creating a simple library for timing.</div></li><li><div   ><a  href="2021.11.06_Art.html"  >2021.11.06: Art and Hikes</a>
- - Skipping the tech and going into nature.</div></li><li><div   ><a  href="2021.11.05_Matching.html"  >2021.11.05: Matching in Lisp</a>
- - Writing some safe matching macros in Lisp.</div></li><li><div   ><a  href="2021.11.04_UserActionsInLisp.html"  >2021.11.04: User Actions in Lisp</a>
- - Building out a CLI/interactive application in Lisp.</div></li><li><div   ><a  href="2021.11.03_LispContinued.html"  >2021.11.03: Lisp Continued</a>
- - More Lisp macros and things that can be done with it.</div></li></ul></div>
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.11.08_Logging.html"  >🡄 Previous</a>
+Forward 🡆</div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
 2021.11.09 - Poker and ECS implementation</h2>
 <div   >
@@ -308,10 +302,6 @@ World {
 </div>
 <p   >The reason is simple: simplicity. It is likely that a struct of arrays is faster if my access patterns are tuned for it, but I am going for something that is easy to maintain, easy to reason about and easy to extend.</p>
 <p   >I could likely build out some monstrosity that does a nicely optimized struct of arrays, but I don't have the time. I want to build out my basic building blocks, then start digging into the complex bits.</p></div></div></div></div></div>
-<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
-<a id="catalogNav" href="catalog.html"  >Catalog</a>
-<a id="projectsNav" href="projects.html"  >Projects</a>
-<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
             </div>
         </div>
     </body>
