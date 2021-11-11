@@ -76,6 +76,11 @@
             "url": "https://github.com/ericrobolson/g_logger"
         },
         {
+            "title": "g_threading",
+            "description": "A library used for multithreading.",
+            "url": "https://github.com/ericrobolson/g_threading"
+        },
+        {
             "title": "g_time",
             "description": "A library used for game related time functionality. The main piece is a timer class that abstracts common functionality.",
             "url": "https://github.com/ericrobolson/g_time"
