@@ -71,6 +71,11 @@
             "url": "https://github.com/ericrobolson/dev-env"
         },
         {
+            "title": "ex_duktape_to_rust",
+            "description": "An example for binding a C library (Duktape) to Rust and exposing it.",
+            "url": "https://github.com/ericrobolson/ex_duktape_to_rust"
+        },
+        {
             "title": "g_logger",
             "description": "A library used for game related logging in dev builds. It provides a way to log events and replay them.",
             "url": "https://github.com/ericrobolson/g_logger"
