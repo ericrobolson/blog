@@ -22,27 +22,25 @@
 Home</h2>
 <div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
 Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.11.15_BlenderScriptsContinued.html"  >2021.11.15: Blender Scripts Continued</a>
+<ul   class="listLight"><li><div   ><a  href="2021.11.16_BlenderScriptsContinued.html"  >2021.11.16: Blender Scripts Continued part 3</a>
+ - Continuing a content pipeline in Blender and Rust.</div></li><li><div   ><a  href="2021.11.15_BlenderScriptsContinued.html"  >2021.11.15: Blender Scripts Continued</a>
  - Continuing a content pipeline in Blender and Rust.</div></li><li><div   ><a  href="2021.11.14_BlenderScripts.html"  >2021.11.14: Writing Blender Scripts</a>
  - Building a content pipeline in Blender and Rust.</div></li><li><div   ><a  href="2021.11.13_ScriptingInC.html"  >2021.11.13: Playing with C libraries</a>
  - Building and binding a C library in Rust.</div></li><li><div   ><a  href="2021.11.12_Scripting.html"  >2021.11.12: Adding in a scripting environment</a>
  - Adding in a basic scripting environment.</div></li><li><div   ><a  href="2021.11.11_JobQueue.html"  >2021.11.11: Creating a Job Queue</a>
  - Creating a Job Queue and other threading primitives in Rust.</div></li><li><div   ><a  href="2021.11.10_Drawing.html"  >2021.11.10: Drawing a square</a>
- - Wiring up a simple renderer using GGEZ.</div></li><li><div   ><a  href="2021.11.09_PokerAndEcs.html"  >2021.11.09: Poker and ECS implementation</a>
- - Codifying a poker book and implementing an ECS.</div></li></ul></div>
+ - Wiring up a simple renderer using GGEZ.</div></li></ul></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
-2021.11.15 - Blender Scripts Continued</h2>
+2021.11.16 - Blender Scripts Continued part 3</h2>
 <div   >
 
 
 
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0650"  ><a  href="#0650"  >#</a>
- 0650</h3>
-<div   ><p   >No code right now, but I'm getting it all rendering. Hoping to have an example that I can post shortly. </p>
-<p   >I did get the file importing and running, but now I may want to do a final pass to ensure everything is working properly and redo things for ergonomic purposes.</p></div></div>
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1715"  ><a  href="#1715"  >#</a>
- 1715</h3>
-<div   ><p   >Update: I got a sprite drawing + rendering from the sprite sheet. It showed me some major areas that needed work for it to be a useable library. Particularly the ergonomics need to be improved, though I think that should be relatively simple to do. I'll dig into that tomorrow.</p></div></div></div></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0731"  ><a  href="#0731"  >#</a>
+ 0731</h3>
+<div   ><p   >Another big step was made today. I was able to embed my Python script into the Rust application, execute the rendering, and spit out the sprite sheets. I'll likely do a deep dive on the architecture when I have it all built out, but until then I'll keep plugging away until its ready to be released to the public.</p>
+<p   >Road map so far:</p>
+<ul   class="listLight"><li><div   >Add in configuration for render sizes to CLI</div></li><li><div   >Add in multithreading</div></li><li><div   >Make sprite sheets more ergonomic for callers to use</div></li><li><div   >Add in examples for how it's all used.</div></li></ul></div></div></div></div></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>
