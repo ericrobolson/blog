@@ -75,7 +75,121 @@ $(EXE):
 clean: 
 	rm $(OBJ)/*.o
 </div>
-<p   >Using this allows one to source + link all C and header files. I'm sure it will change over time, but it's good enough for now.</p></div></div></div></div></div>
+<p   >Using this allows one to source + link all C and header files. I'm sure it will change over time, but it's good enough for now.</p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1726"  ><a  href="#1726"  >#</a>
+ 1726</h3>
+<div   ><p   >Ok, I'll take back what I said. Make is most certainly unintuitive. But once you grok it, it's quite nice. The main thing is the implicit dependencies and figuring out how to leverage them. </p>
+<p   >I've updated my <span   class="codeblockDark outlinedDark">Makefile</span> to include some tests, as well as some other nifty commands.</p>
+<p   >Commands:</p>
+<ul   class="listLight"><li><div   ><span   class="codeblockDark outlinedDark">make test</span>
+ - Builds + executes tests using 
+<a  href="https://github.com/yshui/test.h"  >test.h</a></div></li><li><div   ><span   class="codeblockDark outlinedDark">make clean</span>
+ - Cleans all binaries and obj files</div></li><li><div   ><span   class="codeblockDark outlinedDark">make</span>
+ - Builds the program</div></li><li><div   ><span   class="codeblockDark outlinedDark">make run</span>
+ - Builds and runs the program</div></li></ul>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+# Makefile - use at your own risk
+
+#
+# Compiler
+#
+CC=gcc
+CFLAGS=
+CWARNINGS=-Werror -Wall -Wextra -Wpedantic 
+
+#
+# EXEs
+#
+EXE = game
+TEST_EXE = test
+
+#
+# Directories
+#
+BIN = .bin
+INCLUDE = include
+OBJ = .obj
+OBJ_TEST = .obj_test
+SRC = src
+
+#
+# Misc sourcing of files
+#
+SOURCES := $(wildcard $(SRC)/*.c)
+OBJECTS := $(patsubst $(SRC)%.c, $(OBJ)/%.o, $(SOURCES))
+OBJECTS_TEST := $(patsubst $(SRC)%.c, $(OBJ_TEST)/%.o, $(SOURCES))
+
+#
+# Things to always do
+#
+all: mkdirs $(OBJECTS) link_program
+
+#
+# Tests
+#
+test: mkdirs $(OBJECTS_TEST) link_tests execute_test FORCE
+
+#
+# Compile all obj files
+#
+$(OBJ)/%.o: $(SRC)/%.c
+	$(CC) $(CFLAGS) $(CWARNINGS) -I$(INCLUDE) -c $&lt; -o $@
+
+#
+# Compile all obj files for tests, see https://github.com/yshui/test.h
+#
+$(OBJ_TEST)/%.o: $(SRC)/%.c
+	$(CC) $(CFLAGS) -I$(INCLUDE) -c $&lt; -o $@ -DUNIT_TEST
+
+#
+# Linking
+#
+link_program:
+	$(CC) -o $(BIN)/$(EXE) $(OBJECTS)
+
+link_tests:
+	$(CC) -o $(BIN)/$(TEST_EXE) $(OBJECTS_TEST)
+
+
+#
+# Run tests
+#
+execute_test:
+	-./$(BIN)/$(TEST_EXE) --unittest
+
+#
+# Builds + runs the program
+#
+run: all
+	clear
+	./$(BIN)/$(EXE)
+
+#
+# Clean task
+# 
+.PHONY: clean
+clean: 
+	-rm -R $(BIN)
+	-rm -R $(OBJ)/
+	-rm -R $(OBJ_TEST)/
+
+#
+# Make directories
+#
+.PHONY: mkdirs
+mkdirs:
+	-mkdir $(BIN)
+	-mkdir $(OBJ)
+	-mkdir $(OBJ_TEST)
+
+#
+# Empty command to always run
+#
+FORCE:
+</div>
+<p   >We'll see how long I stick with C, but I'm kinda digging the low level nature of it. </p>
+<p   >Roadmap for C:</p>
+<ul   class="listLight"><li><div   >Integrate Sokol</div></li><li><div   >Determine whether to use Duktape, S7, Embeddable Common Lisp or another scripting language</div></li><li><div   >Implement some GFX stuff</div></li></ul></div></div></div></div></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>
