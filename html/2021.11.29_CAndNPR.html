@@ -1,0 +1,247 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>C And Non-Physical-Rendering</title>
+        <!-- metadata -->
+        <meta charset="UTF-8">
+<meta name="description" content="Continuing Scheme scripting and alternatives to Physicall Based Rendering.">
+<meta name="keywords" content="c, emacs, header, only, low, level, scripting, s7, make, makefile, refactor, physics, aabb, rendering, npr, non, physically, based">
+<meta name="author" content="Eric Olson">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- css -->
+        <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+        <!-- page class -->
+        <div class=pageLight>
+            <!-- content wrapper -->
+            <div class=contentWrapperLight>
+                <!-- content -->
+                <div   ><div   ><div   class="navbottomLight"><a id="previous_page_link" href="2021.11.28_CAndPhysics.html"  >🡄 Previous</a>
+<a id="next_page_link" href="2021.11.30_CInput.html"  >Forward 🡆</a></div>
+<div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
+<a id="catalogNav" href="catalog.html"  >Catalog</a>
+<a id="projectsNav" href="projects.html"  >Projects</a>
+<a id="aboutMeNav" href="about_me.html"  >About Me</a></div></div>
+<div   ><h2 id="title"  ><a  href="#title"  >#</a>
+2021.11.29 - C And Non-Physical-Rendering</h2>
+<div   >
+
+
+
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0636"  ><a  href="#0636"  >#</a>
+ 0636</h3>
+<div   ><p   >I've been watching Arcane and have really been enjoying the rendering style. Here's the trailer:</p>
+<p   ><div   class="aspectRatio16x9ContainerLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"><iframe  
+                        src="https://www.youtube.com/embed/4Ps6nV4wiCE" 
+                        title="YouTube video player" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen class="aspectRatio16x9InnerLight"></iframe></div></p>
+<p   >Another cool one is Into the Spider-Verse:</p>
+<p   ><div   class="aspectRatio16x9ContainerLight hoverShadowLight paddedbottomLight paddedtopLight shadowLight"><iframe  
+                        src="https://www.youtube.com/embed/g4Hbz2jLxvQ" 
+                        title="YouTube video player" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen class="aspectRatio16x9InnerLight"></iframe></div></p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0700"  ><a  href="#0700"  >#</a>
+ 0700</h3>
+<div   ><p   >I've spent quite a bit of time getting my Scheme interpreter up and running. So far I have hot reloading, exiting, and triggering of a REPL.</p>
+<p   >Today I plan on wiring up a C function and calling that from Scheme.</p>
+<p   >Done. I'll show off my code so far. It's not pretty but is the start of something.</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+// app.c
+// This runs main.scm
+
+#include "g_file.h"
+#include "s7.h"
+#include "utest.h"
+#include "utf8.h"
+#include &lt;stdio.h>
+#include &lt;stdlib.h>
+#include &lt;string.h>
+
+#define HOT_RELOAD_VAR "gsys-hot-reload"
+#define QUIT_VAR "gsys-quit"
+#define REPL_VAR "gsys-repl"
+
+void load_script(s7_scheme *s7, const char *str_init_script, const size_t script_bytes)
+{
+	if (s7 != NULL &amp;&amp; str_init_script != NULL &amp;&amp; script_bytes > 0)
+	{
+		s7_load_c_string(s7, str_init_script, (s7_int)script_bytes);
+	}
+}
+
+void set_bool(s7_scheme *s7, const char *name, bool value)
+{
+	s7_define_variable(s7, name, s7_make_boolean(s7, value));
+}
+
+static s7_pointer add1(s7_scheme *sc, s7_pointer args)
+{
+	/* all added functions have this form, args is a list, 
+   *    s7_car(args) is the first arg, etc 
+   */
+	if (s7_is_integer(s7_car(args)))
+		return (s7_make_integer(sc, 1 + s7_integer(s7_car(args))));
+	return (s7_wrong_type_arg_error(sc, "add1", 1, s7_car(args), "an integer"));
+}
+
+void define_engine_methods(s7_scheme *s7)
+{
+	if (!s7)
+	{
+		return;
+	}
+
+	s7_define_function(s7, "add1", add1, 1, 0, false, "(add1 int) adds 1 to int");
+	/* add the function "add1" to the interpreter.
+                                       *   1, 0, false -> one required arg,
+				       *                  no optional args,
+				       *                  no "rest" arg
+				       */
+}
+
+s7_scheme *init_scheme(const char *str_init_script, const size_t script_bytes)
+{
+	// Init Scheme
+	s7_scheme *s7;
+	s7 = s7_init();
+
+	// Set values
+	set_bool(s7, HOT_RELOAD_VAR, false);
+	set_bool(s7, QUIT_VAR, false);
+	set_bool(s7, REPL_VAR, false);
+
+	// Define built in methods
+	define_engine_methods(s7);
+
+	// Load script
+
+	load_script(s7, str_init_script, script_bytes);
+
+	return s7;
+}
+
+void execute_repl(s7_scheme *s7)
+{
+	if (!s7)
+	{
+		return;
+	}
+
+	char buffer[512];
+	char response[1024];
+
+	// Get input
+	fprintf(stdout, "\n> ");
+	fgets(buffer, 512, stdin);
+
+	// Eval input
+	if ((buffer[0] != '\n') ||
+		(strlen(buffer) > 1))
+	{
+		snprintf(response, 1024, "(write %s)", buffer);
+		s7_eval_c_string(s7, response);
+	}
+
+	printf("\n");
+}
+
+struct GFile try_load_main(const bool debug_log)
+{
+	// Load script
+	struct GFile script;
+	script = g_file_load("./main.scm");
+	if (script.success &amp;&amp; debug_log)
+	{
+		printf("-------\nContents\n-------\n\n%s\n-------\nEnd Contents\n-------\n", script.contents);
+	}
+
+	return script;
+}
+
+bool get_var_bool(s7_scheme *s7, const char *name)
+{
+	s7_pointer var = s7_name_to_value(s7, name);
+	if (s7_is_boolean(var))
+	{
+		return s7_boolean(s7, var);
+	}
+
+	printf("variable '%s' should be #t or #f\n", name);
+	return false;
+}
+
+int app()
+{
+	// Init interpreter
+	struct GFile script = try_load_main(true);
+	s7_scheme *s7 = init_scheme(script.contents, script.size);
+	g_file_close(script);
+
+	// Init system vars
+	bool hot_reload = get_var_bool(s7, HOT_RELOAD_VAR);
+	bool quit = get_var_bool(s7, QUIT_VAR);
+	bool repl = get_var_bool(s7, REPL_VAR);
+
+	// Main loop
+	while (quit != true)
+	{
+		// Potentially run repl
+		if (repl)
+		{
+			execute_repl(s7);
+		}
+
+		// Source variables
+		hot_reload = get_var_bool(s7, HOT_RELOAD_VAR);
+		quit = get_var_bool(s7, QUIT_VAR);
+		repl = get_var_bool(s7, REPL_VAR);
+
+		// Reload scripts
+		if (hot_reload)
+		{
+			struct GFile script = try_load_main(false);
+			if (script.success)
+			{
+				load_script(s7, script.contents, script.size);
+			}
+			else
+			{
+				printf("Didn't reload script\n");
+			}
+
+			g_file_close(script);
+		}
+	}
+
+	s7_free(s7);
+
+	return 0;
+}
+</div>
+<p   >Here's the Scheme file:</p>
+<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
+;; Flags for running the game
+(define gsys-quit #f)
+(define gsys-repl #t)
+(define gsys-hot-reload #t)
+
+;; Tells the engine to exist
+(define (sys-exit)
+	(set! gsys-quit #t))
+
+(define (hi-there)
+	(+ 1 2 3 4))
+
+(define (foo-bar)
+	(+ 1 2 3 (* 99 4)))
+</div></div></div></div></div></div>
+            </div>
+        </div>
+    </body>
+</html>
