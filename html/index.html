@@ -22,75 +22,29 @@
 Home</h2>
 <div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
 Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.12.01_CAndLoading.html"  >2021.12.01: C and Loading</a>
+<ul   class="listLight"><li><div   ><a  href="2021.12.01_CNextSteps.html"  >2021.12.01: C and Next Steps</a>
+ - Learning the Planck keyboard and deciding on where I want to go.</div></li><li><div   ><a  href="2021.12.01_CAndLoading.html"  >2021.12.01: C and Loading</a>
  - Loading Scheme files from a script.</div></li><li><div   ><a  href="2021.11.30_CInput.html"  >2021.11.30: C and crazy file IO</a>
  - Dealing with garbage added when reading files.</div></li><li><div   ><a  href="2021.11.29_CAndNPR.html"  >2021.11.29: C And Non-Physical-Rendering</a>
  - Continuing Scheme scripting and alternatives to Physicall Based Rendering.</div></li><li><div   ><a  href="2021.11.28_CAndPhysics.html"  >2021.11.28: C And Physics</a>
  - Implementing an AABB collision detection scheme.</div></li><li><div   ><a  href="2021.11.27_CAndCrossPlatform.html"  >2021.11.27: C And Cross Platform</a>
  - Adding cross compilation to support Linux, Macs and Windows.</div></li><li><div   ><a  href="2021.11.26_CAndPlanck.html"  >2021.11.26: C And Plancks</a>
- - Adding cross compilation to support Linux, Macs and Windows.</div></li><li><div   ><a  href="2021.11.25_CAddingS7.html"  >2021.11.25: C Continued with S7</a>
- - More Makefile, adding S7 and refactoring.</div></li></ul></div>
+ - Adding cross compilation to support Linux, Macs and Windows.</div></li></ul></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
-2021.12.01 - C and Loading</h2>
+2021.12.01 - C and Next Steps</h2>
 <div   >
 
 
 
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1620"  ><a  href="#1620"  >#</a>
- 1620</h3>
-<div   ><p   >I've finally got Scheme files loading other scheme files. It's not pretty, but it suffices. This is a new <span   class="codeblockDark outlinedDark">load</span> method, similar to what can be found in S7 Scheme. </p>
-<p   >This is the C code:</p>
-<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
-
-/// Loads a module (another Scheme file).
-static s7_pointer built_in_load(s7_scheme *s7, s7_pointer args)
-{
-	// Check first arg is string
-	// If so then attempt to load module
-	if (s7_is_string(s7_car(args)))
-	{
-		s7_pointer s7_str =
-			s7_car(args);
-
-		const char *str = s7_string(s7_str);
-
-		struct GFile script = g_file_load(str);
-		if (script.success)
-		{
-			load_script(s7, script.contents, script.size);
-		}
-		else
-		{
-			printf("error loading %s/n", str);
-		}
-		g_file_close(script);
-
-		return s7_str;
-	}
-	else
-	{
-		return (s7_wrong_type_arg_error(s7, "module", 1, s7_car(args), "a string"));
-	}
-}
-</div>
-<p   >And this is how it is used:</p>
-<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
-;; Flags for running the game
-(define gsys-quit #f)
-(define gsys-repl #t)
-(define gsys-hot-reload #t)
-
-(load "./hi.scm")
-
-;; Tells the engine to exist
-(define (sys-exit)
-	(set! gsys-quit #t))
-
-(define (hi-there)
-	(+ 1 2 3 4))
-</div>
-<p   >I'm finding that C gets the job done, but languages like Rust are far easier to use as a developer. At the end of the day though, I don't forsee myself spending a ton of time in C. </p>
-<p   >Asset creation or scripting is where I'll likely spend time, but gotta get to that point first. </p></div></div></div></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0616"  ><a  href="#0616"  >#</a>
+ 0616</h3>
+<div   ><p   >I'm using the Planck keyboard during non-work hours. It's still an adjustment, but I think it's gonna grow on me.</p>
+<p   >I'm at a cross roads now.</p>
+<p   >Do I do use SDL2, keeping everything in C, or do I make a library and call it from native methods? Both have pros and cons, plusses and minuses. </p></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0645"  ><a  href="#0645"  >#</a>
+ 0645</h3>
+<div   ><p   >This was a good experience, and I'll throw things up on my Github. I think what I'm going to do is a combo of C and Rust, leveraging Rust for all my code and C to bring in useful libraries. </p>
+<p   >For a link to the repo, <a  href="https://github.com/ericrobolson/DemoC"  >click here</a>.</p></div></div></div></div></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>

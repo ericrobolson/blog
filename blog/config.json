@@ -2,6 +2,9 @@
     "about_me": "Senior software engineer based out of the Pacific Northwest with a love for spicy food, vinyl, metal, DnB and hacking on things. I like game dev, web dev, distributed systems, GPU programming and architecture. I approach things from a holistic application perspective, not zeroing in on any one domain. Welcome to the blog!",
     "about_me_keywords": [
         "senior software engineer",
+        "systems",
+        "programming",
+        "c",
         "dnb",
         "metal",
         "rust",
@@ -64,6 +67,11 @@
             "title": "das_ubershader",
             "description": "Stack based image manipulation program.",
             "url": "https://github.com/ericrobolson/das_ubershader"
+        },
+        {
+            "title": "DemoC",
+            "description": "A simple C program that runs a Scheme interpreter. Runs on Mac, Windows and Linux.",
+            "url": "https://github.com/ericrobolson/DemoC"
         },
         {
             "title": "Development environment",
