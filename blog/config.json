@@ -114,6 +114,11 @@
             "url": "https://github.com/ericrobolson/realtime-cpu-raytracer"
         },
         {
+            "title": "Rusty Mon0game",
+            "description": "A Monogame inspired engine in Rust.",
+            "url": "https://github.com/ericrobolson/RustyMon0game"
+        },
+        {
             "title": "ToyPaymentEngine",
             "description": "A toy payment engine built for a code challenge. Written in Rust and parses a CSV.",
             "url": "https://github.com/ericrobolson/ToyPaymentEngine"
