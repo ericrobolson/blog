@@ -22,28 +22,26 @@
 Home</h2>
 <div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
 Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.12.13_GodotAndMono.html"  >2021.12.13: Godot and Mono</a>
+<ul   class="listLight"><li><div   ><a  href="2021.12.14_ADTs.html"  >2021.12.14: ADTs</a>
+ - Missing Algebraic Data Types in C#.</div></li><li><div   ><a  href="2021.12.13_GodotAndMono.html"  >2021.12.13: Godot and Mono</a>
  - Getting Godot and C# working and splitting off RustyMon0game.</div></li><li><div   ><a  href="2021.12.12_Factorio.html"  >2021.12.12: Adding in WASM compilation</a>
  - Continuing an engine inspired by Monogame, with WASM.</div></li><li><div   ><a  href="2021.12.11_RustAndWasm.html"  >2021.12.11: Adding in WASM compilation</a>
  - Continuing an engine inspired by Monogame, with WASM.</div></li><li><div   ><a  href="2021.12.10_RustClient.html"  >2021.12.10: Making a engine in Rust inspired by Monogame</a>
  - Continuing an engine inspired by Monogame.</div></li><li><div   ><a  href="2021.12.09_MonogameAndCurl.html"  >2021.12.09: Monogame, Curl, and Godot</a>
  - Installing Godot and Monogame using Curl and scripts.</div></li><li><div   ><a  href="2021.12.08_Drag.html"  >2021.12.08: Drag</a>
- - Low level code can be a drag. What to do?</div></li><li><div   ><a  href="2021.12.07_Wgpu.html"  >2021.12.07: WGPU</a>
- - Working on a GFX backend in WGPU with the intent of porting.</div></li></ul></div>
+ - Low level code can be a drag. What to do?</div></li></ul></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
-2021.12.13 - Godot and Mono</h2>
+2021.12.14 - ADTs</h2>
 <div   >
 
 
 
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0645"  ><a  href="#0645"  >#</a>
- 0645</h3>
-<div   ><p   >This morning I worked on getting Godot + Mono working on my dev environments. It was relatively simple, I just needed to manually install Mono on my Mac. After doing so I got it up and running, so no issues there. </p>
-<p   >Why do this? I still plan on keeping my Rust-y Monogame project going in the background, but I would like to ship some things. It's a bit easier to do that with an existing engine than to rewrite everything from scratch. </p>
-<p   >Why C#? Simple: Unity uses it, Godot uses it, Monogame uses it, and I have 5 years experience using it. Obviously it will be different than what I previously did, but I like the idea of building my core application out in C#, making it engine agnostic, then wiring it up to whichever engine I want to utilize. </p>
-<p   >Why Godot? I've used it in the past with some friends and enjoyed how simple it was to get things running. I won't be utilizing it to the fullest extent on this project, but I think I can get some nifty stuff going. I want to leverage the 3d capabilities, though I'm not quite sure how I'll do so. Something anime flavored would be ideal.</p>
-<p   >I'll post up my Rusty Monogame project on Github. If you'd like to take a peek, <a  href="https://github.com/ericrobolson/RustyMon0game"  >here is the code</a>.</p>
-<p   >With that done, I'll zero in on Godot + C# until I get bored or something comes of it.</p></div></div></div></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0631"  ><a  href="#0631"  >#</a>
+ 0631</h3>
+<div   ><p   >Working with C# I made a realization: I despise not having Algebraic Data Types. These are extremely useful in writing out logic. Not having them is a major pain. My immediate thought is to write a compiler to fix that... But that's not a good approach to get shit done. </p>
+<p   >I'll suffer this one time, then evaluate it on the next project or until I can't deal with it any more. Perhaps I'll bring back Lisp.</p>
+<p   >Ok, after doing some writing, C# is really boring. I should have realized this, but I didn't. It will certainly get the job done, but there is so much boiler plate compared to JavaScript, Lisp, Elixir, Haskell, Rust, etc. I think C# is the right target language, but I'm not sure it's the right language to write the game in. </p>
+<p   >I'll noodle on either Lisp, Rust, or Haskell for the DSL to use and then possibly generate C# code. That should hopefully make it a more enjoyable experience.</p></div></div></div></div></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>
