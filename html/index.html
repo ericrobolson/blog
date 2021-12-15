@@ -22,26 +22,28 @@
 Home</h2>
 <div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
 Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.12.14_ADTs.html"  >2021.12.14: ADTs</a>
+<ul   class="listLight"><li><div   ><a  href="2021.12.15_Synthesis.html"  >2021.12.15: Sound Synthesis</a>
+ - Writing a simple synthesizer in Rust.</div></li><li><div   ><a  href="2021.12.14_ADTs.html"  >2021.12.14: ADTs</a>
  - Missing Algebraic Data Types in C#.</div></li><li><div   ><a  href="2021.12.13_GodotAndMono.html"  >2021.12.13: Godot and Mono</a>
  - Getting Godot and C# working and splitting off RustyMon0game.</div></li><li><div   ><a  href="2021.12.12_Factorio.html"  >2021.12.12: Adding in WASM compilation</a>
  - Continuing an engine inspired by Monogame, with WASM.</div></li><li><div   ><a  href="2021.12.11_RustAndWasm.html"  >2021.12.11: Adding in WASM compilation</a>
  - Continuing an engine inspired by Monogame, with WASM.</div></li><li><div   ><a  href="2021.12.10_RustClient.html"  >2021.12.10: Making a engine in Rust inspired by Monogame</a>
  - Continuing an engine inspired by Monogame.</div></li><li><div   ><a  href="2021.12.09_MonogameAndCurl.html"  >2021.12.09: Monogame, Curl, and Godot</a>
- - Installing Godot and Monogame using Curl and scripts.</div></li><li><div   ><a  href="2021.12.08_Drag.html"  >2021.12.08: Drag</a>
- - Low level code can be a drag. What to do?</div></li></ul></div>
+ - Installing Godot and Monogame using Curl and scripts.</div></li></ul></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
-2021.12.14 - ADTs</h2>
+2021.12.15 - Sound Synthesis</h2>
 <div   >
 
 
 
 <div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0631"  ><a  href="#0631"  >#</a>
  0631</h3>
-<div   ><p   >Working with C# I made a realization: I despise not having Algebraic Data Types. These are extremely useful in writing out logic. Not having them is a major pain. My immediate thought is to write a compiler to fix that... But that's not a good approach to get shit done. </p>
-<p   >I'll suffer this one time, then evaluate it on the next project or until I can't deal with it any more. Perhaps I'll bring back Lisp.</p>
-<p   >Ok, after doing some writing, C# is really boring. I should have realized this, but I didn't. It will certainly get the job done, but there is so much boiler plate compared to JavaScript, Lisp, Elixir, Haskell, Rust, etc. I think C# is the right target language, but I'm not sure it's the right language to write the game in. </p>
-<p   >I'll noodle on either Lisp, Rust, or Haskell for the DSL to use and then possibly generate C# code. That should hopefully make it a more enjoyable experience.</p></div></div></div></div></div>
+<div   ><p   >I began writing a simple synthesizer in Rust. I haven't gotten much farther than creating a sine or square wave, but it's a fun diversion from other projects. I'll keep working on it as I do want to get back into some music creation, though I don't know how far I'll go.</p>
+<p   >There's a few options:</p>
+<ul   class="listLight"><li><div   >Create a DAW</div></li><li><div   >Create a synthesizer VST plugin</div></li><li><div   >Create a midi generator</div></li><li><div   >Create a standalone synthesizer</div></li></ul>
+<p   >I began with creating a standalone synthesizer, but I may pivot and instead create some form of midi generator, then use other software or hardware to create the sounds. </p>
+<p   >That seems to be easiest, so I'll go that route for now and revisit how things are done later on.</p>
+<p   >I'll need to figure out some form of GUI or scripting language. Leaning towards a GUI with all state that serializes to JSON. </p></div></div></div></div></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>
