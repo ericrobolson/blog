@@ -89,6 +89,11 @@
             "url": "https://github.com/ericrobolson/g_logger"
         },
         {
+            "title": "g_network",
+            "description": "A non-guaranteed UDP based networking protocol written in Rust.",
+            "url": "https://github.com/ericrobolson/g_network"
+        },
+        {
             "title": "g_threading",
             "description": "A library used for multithreading.",
             "url": "https://github.com/ericrobolson/g_threading"

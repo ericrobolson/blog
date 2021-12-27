@@ -22,177 +22,25 @@
 Home</h2>
 <div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
 Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2021.12.24_MoreCode.html"  >2021.12.24: More code from the Networking library</a>
+<ul   class="listLight"><li><div   ><a  href="2021.12.27_GNetwork.html"  >2021.12.27: GNetwork and Unity</a>
+ - Splitting off networking code and digging into Unity.</div></li><li><div   ><a  href="2021.12.24_MoreCode.html"  >2021.12.24: More code from the Networking library</a>
  - Ring buffers, connections, and more.</div></li><li><div   ><a  href="2021.12.23_Packets.html"  >2021.12.23: Packet serialization</a>
  - Implementing a form of packet serialization.</div></li><li><div   ><a  href="2021.12.22_MusicTimelines.html"  >2021.12.22: Music Timelines</a>
  - Adding a timeline to my synthesizer.</div></li><li><div   ><a  href="2021.12.21_MoreLisp.html"  >2021.12.21: More Lisp</a>
  - Generating code in Lisp using a REPL and string concatenation.</div></li><li><div   ><a  href="2021.12.20_BottomUpTdd.html"  >2021.12.20: Bottom Up TDD</a>
  - Using bottom up design combined with test driven development.</div></li><li><div   ><a  href="2021.12.19_Waveforms.html"  >2021.12.19: Waveforms and Botting</a>
- - More waveforms and a building out a bot.</div></li><li><div   ><a  href="2021.12.18_Notes.html"  >2021.12.18: Notes</a>
- - Adding in notes to my synthesizer.</div></li></ul></div>
+ - More waveforms and a building out a bot.</div></li></ul></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
-2021.12.24 - More code from the Networking library</h2>
+2021.12.27 - GNetwork and Unity</h2>
 <div   >
 
 
 
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0655"  ><a  href="#0655"  >#</a>
- 0655</h3>
-<div   ><p   >This morning I continued work on my networking library. The following code is a ring buffer, a container that has a fixed size, but will allow you to access any element in a repeating cycle. It is a pattern I may use in other places, such as particle systems.</p>
-<p   >First I added a new macro for helping with unit tests.</p>
-<p   >I find I use a lot of <span   class="codeblockDark outlinedDark">use super::*;</span> statements, so I wrote something to help simplify that as well as create separate modules for each method I want to test.</p>
-<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
-/// A simple helper for writing tests.
-#[allow(unused_macros)]
-macro_rules! describe {
-    ($module:tt => {$($test:tt)*}) => {
-        mod $module {
-            #[allow(unused_imports)]
-            use super::*;
-
-            $($test)*
-        }
-    };
-}
-</div>
-<p   >Now I'll show off the RingBuffer:</p>
-<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
-/// A simple ring buffer.
-#[derive(Debug, PartialEq)]
-pub struct RingBuffer&lt;T, const BUFFER_SIZE: usize>
-where
-    T: Copy + Default,
-{
-    elements: [T; BUFFER_SIZE],
-}
-
-#[allow(dead_code)]
-impl&lt;T, const BUFFER_SIZE: usize> RingBuffer&lt;T, BUFFER_SIZE>
-where
-    T: Copy + Default + PartialEq,
-{
-    /// Returns the item at the given index.
-    pub fn get(&amp;self, idx: usize) -> T {
-        self.elements[Self::transform_idx(idx)]
-    }
-
-    /// Returns a mutable reference to the given item.
-    pub fn get_mut(&amp;mut self, idx: usize) -> &amp;mut T {
-        &amp;mut self.elements[Self::transform_idx(idx)]
-    }
-
-    /// Inserts an item into the ring buffer.
-    pub fn insert(&amp;mut self, idx: usize, value: T) {
-        self.elements[Self::transform_idx(idx)] = value;
-    }
-
-    /// Returns a new ring buffer.
-    pub fn new() -> Self {
-        Self {
-            elements: [T::default(); BUFFER_SIZE],
-        }
-    }
-
-    /// Wraps the given index
-    fn transform_idx(idx: usize) -> usize {
-        idx % BUFFER_SIZE
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    const SIZE: usize = 1222;
-    type Buff = RingBuffer&lt;u8, SIZE>;
-
-    describe!(get => {
-        #[test]
-        fn under_buffer_size_returns_item(){
-            let idx = 55;
-            let mut buff = Buff::new();
-            buff.insert(idx, 4);
-            assert_eq!(buff.elements[idx], buff.get(idx));
-        }
-
-        #[test]
-        fn over_buffer_size_wraps(){
-            let idx = 55;
-            let mut buff = Buff::new();
-            buff.insert(idx, 4);
-            assert_eq!(buff.elements[idx], buff.get(idx + SIZE));
-        }
-    });
-
-    describe!(get_mut => {
-        #[test]
-        fn under_buffer_size_returns_item(){
-            let idx = 55;
-            let mut buff = Buff::new();
-            buff.insert(idx, 4);
-
-            *buff.get_mut(idx) = 2;
-
-            assert_eq!(2, buff.get(idx));
-        }
-
-        #[test]
-        fn over_buffer_size_wraps(){
-            let idx = 55;
-            let mut buff = Buff::new();
-            buff.insert(idx, 4);
-
-            *buff.get_mut(idx + SIZE) = 2;
-
-            assert_eq!(2, buff.get(idx));
-        }
-    });
-
-    describe!(insert => {
-        #[test]
-        fn should_overwrite(){
-            let mut buff = Buff::new();
-            buff.insert(3, 4);
-            assert_eq!(4, buff.elements[3]);
-        }
-
-        #[test]
-        fn should_wrap_indexes(){
-            let mut buff = Buff::new();
-            let idx = SIZE + 33;
-            buff.insert(idx, 4);
-            assert_eq!(4, buff.elements[33]);
-        }
-    });
-
-    describe!(new => {
-        #[test]
-        fn returns_expected() {
-            let expected = RingBuffer {
-                elements: [0; SIZE],
-            };
-
-            let actual = Buff::new();
-            assert_eq!(expected, actual);
-        }
-    });
-
-    describe!(transform_idx => {
-        #[test]
-        fn under_buffer_size_returns_idx(){
-            let idx = 333;
-            assert_eq!(idx, Buff::transform_idx(idx));
-        }
-
-          #[test]
-        fn over_buffer_size_wraps(){
-            let idx = SIZE + 333;
-            assert_eq!(333, Buff::transform_idx(idx));
-        }
-    });
-}
-</div>
-<p   >I've spent quite a bit of time on my connection abstraction which will let me know if a packet was delivered or dropped. There's no reliability mechanism, that will be required by people using this library.</p>
-<p   >That will be one of the larger posts I do, so I'll save that for another day. Still working out the implementation. TDD has been a blessing.</p></div></div></div></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0755"  ><a  href="#0755"  >#</a>
+ 0755</h3>
+<div   ><p   >I split off my networking code into a separate repo <a  href="https://github.com/ericrobolson/g_network"  >linked here</a>. Why? I wanted to keep it separate from my other code in the event I go back to it. </p>
+<p   >While I want to play around with other projects for the moment, I do want to revisit it at some point in the future.</p>
+<p   >For now I'll work on doing some simple development in Unity. </p></div></div></div></div></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>
