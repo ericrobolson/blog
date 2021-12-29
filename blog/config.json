@@ -127,6 +127,11 @@
             "title": "ToyPaymentEngine",
             "description": "A toy payment engine built for a code challenge. Written in Rust and parses a CSV.",
             "url": "https://github.com/ericrobolson/ToyPaymentEngine"
+        },
+        {
+            "title": "Watcher in the Deep",
+            "description": "A programmable file watching tool.",
+            "url": "https://github.com/ericrobolson/watcher_in_the_deep"
         }
     ],
     "theme": {
