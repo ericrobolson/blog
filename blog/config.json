@@ -59,6 +59,16 @@
             "url": "https://github.com/ericrobolson/benchy"
         },
         {
+            "title": "BuilderGenerator",
+            "description": "A CLI tool used to render spritesheets from Blender files.",
+            "url": "https://github.com/ericrobolson/BuilderGenerator"
+        },
+        {
+            "title": "BuilderSheetRust",
+            "description": "Rust client library for run time usage of spritesheets.",
+            "url": "https://github.com/ericrobolson/BuilderSheetRust"
+        },
+        {
             "title": "ChickenTest",
             "description": "Unit testing framework for Chicken Scheme.",
             "url": "https://github.com/ericrobolson/ChickenTest"
