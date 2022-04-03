@@ -80,8 +80,13 @@
         },
         {
             "title": "DemoC",
-            "description": "A simple C program that runs a Scheme interpreter. Runs on Mac, Windows and Linux.",
+            "description": "A collection of C programs to be used as launching points for other projects.",
             "url": "https://github.com/ericrobolson/DemoC"
+        },
+        {
+            "title": "DemoRust",
+            "description": "A collection of Rust programs to be used as launching points for other projects.",
+            "url": "https://github.com/ericrobolson/DemoRust"
         },
         {
             "title": "Development environment",
