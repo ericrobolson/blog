@@ -22,144 +22,27 @@
 Home</h2>
 <div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="recentposts_headerId"  ><a  href="#recentposts_headerId"  >#</a>
 Recent Posts</h3>
-<ul   class="listLight"><li><div   ><a  href="2022.04.08_Unity.html"  >2022.04.08: Unity</a>
+<ul   class="listLight"><li><div   ><a  href="2022.05.05_Quotes.html"  >2022.05.05: Life and stuff</a>
+ - General quotes and building things.</div></li><li><div   ><a  href="2022.04.08_Unity.html"  >2022.04.08: Unity</a>
  - Switching over to Unity and C# for gamedev</div></li><li><div   ><a  href="2022.04.03_DemoRust.html"  >2022.04.03: Demo Rust</a>
  - Building a collection of demo apps in Rust.</div></li><li><div   ><a  href="2022.02.25_Elixir.html"  >2022.02.25: Elixir + Slowing Down</a>
  - Functional development with Elixir</div></li><li><div   ><a  href="2022.02.18_ContentPipeline2.html"  >2022.02.18: Spritesheet Pipeline pt 2</a>
  - Building out a content pipeline to render sprites</div></li><li><div   ><a  href="2022.02.17_ContentPipeline1.html"  >2022.02.17: Spritesheet Pipeline pt 1</a>
  - Building out a content pipeline to render sprites</div></li><li><div   ><a  href="2022.02.16_ICYou2.html"  >2022.02.16: I C You 2</a>
- - Building C on Windows + learning Prolog continued.</div></li><li><div   ><a  href="2022.02.15_ICYou.html"  >2022.02.15: I C You</a>
- - Building C on Windows + learning Prolog.</div></li></ul></div>
+ - Building C on Windows + learning Prolog continued.</div></li></ul></div>
 <div   ><h2 id="title"  ><a  href="#title"  >#</a>
-2022.04.08 - Unity</h2>
+2022.05.05 - Life and stuff</h2>
 <div   >
 
 
 
-<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="0649"  ><a  href="#0649"  >#</a>
- 0649</h3>
-<div   ><p   >I've decided to give Unity and C# a shot for whatever my next game related project is. Rust's ecosystem is too poor to get what I need and I want something that can be ported across consoles.</p>
-<p   >My main architecture will be a C# library that gets pulled into Unity to minimize coupling. </p>
-<p   >I want everything to be cross platform deterministic, so I won't be using floats in the core engine. This does increase complexity, but I think that the tradeoff will be worth it.</p>
-<p   >To start, I'll show some random number generator code I've written up. It's not tested, but I was able to port it from Rust very easily.</p>
-<div   class="codeblockDark contentWrapperLight hoverShadowLight outlinedDark paddedbottomLight paddedtopLight shadowLight">
-
-using System;
-
-namespace App.Math
-{
-	using N = UInt64;
-
-	/// &lt;summary>
-	/// Psuedo random number generator.
-	/// &lt;/summary>
-	public class Random
-	{
-		static N MODULUS = N.MaxValue;
-		static N MULTIPLIER = 1103515245;
-		static N INCREMENT = 12345;
-
-		private N _value;
-		private readonly N _seed;
-
-		/// &lt;summary>
-		/// Creates a random number generator when given a seed.
-		/// &lt;/summary>
-		/// &lt;param name="seed">&lt;/param>
-		public Random(UInt32 seed)
-		{
-			_value = seed;
-			_seed = seed;
-		}
-
-		/// &lt;summary>
-		/// Calculates a new random number.
-		/// &lt;/summary>
-		/// &lt;returns>&lt;/returns>
-		private N Calculate()
-		{
-			var value = (_seed * MULTIPLIER * _value + INCREMENT) % MODULUS;
-			_value = value;
-
-			return value;
-		}
-
-		/// &lt;summary>
-		/// Returns a random byte.
-		/// &lt;/summary>
-		/// &lt;returns>&lt;/returns>
-		public byte RandomByte()
-		{
-			var n = Calculate() % (N)byte.MaxValue;
-			return (byte)n;
-		}
-
-
-		/// &lt;summary>
-		/// Returns a random UInt16.
-		/// &lt;/summary>
-		/// &lt;returns>&lt;/returns>
-		public UInt16 RandomUInt16()
-		{
-			var n = Calculate() % (N)UInt16.MaxValue;
-			return (UInt16)n;
-		}
-
-		/// &lt;summary>
-		/// Returns a random UInt32.
-		/// &lt;/summary>
-		/// &lt;returns>&lt;/returns>
-		public UInt32 RandomUInt32()
-		{
-			var n = Calculate() % (N)UInt32.MaxValue;
-			return (UInt32)n;
-		}
-
-		/// &lt;summary>
-		/// Returns a random SByte.
-		/// &lt;/summary>
-		/// &lt;returns>&lt;/returns>
-		public sbyte RandomSByte()
-		{
-			const N RANGE = (N)((Int16)sbyte.MaxValue - (Int16)sbyte.MinValue);
-
-			var n = Calculate() % RANGE;
-			var y = (Int16)n + (Int16)sbyte.MinValue;
-
-			return (sbyte)y;
-		}
-
-		/// &lt;summary>
-		/// Returns a random Int16.
-		/// &lt;/summary>
-		/// &lt;returns>&lt;/returns>
-		public Int16 RandomInt16()
-		{
-			const N RANGE = (N)((Int32)Int16.MaxValue - (Int32)Int16.MinValue);
-
-			var n = Calculate() % RANGE;
-			var y = (Int32)n + (Int32)Int16.MinValue;
-
-			return (Int16)y;
-		}
-
-		/// &lt;summary>
-		/// Returns a random Int32.
-		/// &lt;/summary>
-		/// &lt;returns>&lt;/returns>
-		public Int32 RandomInt32()
-		{
-			const N RANGE = (N)((Int64)Int32.MaxValue - (Int64)Int32.MinValue);
-
-			var n = Calculate() % RANGE;
-			var y = (Int64)n + (Int64)Int32.MinValue;
-
-			return (Int32)y;
-		}
-	}
-}
-</div>
-<p   >Stay tuned; there will likely be more posts coming up.</p></div></div></div></div></div>
+<div   class="cardLight hoverShadowLight outlinedLight paddedbottomLight paddedtopLight shadowLight alignmentleftLight"><h3 id="1514"  ><a  href="#1514"  >#</a>
+ 1514</h3>
+<div   ><p   >I've been getting more and more into music production using my MS-20, Digitakt and various samples. It's been a blast.</p>
+<p   >I'll also be getting more into gaming with a new PS5 and seeing what the current state of the art is for console gaming.</p>
+<p   >Bouldering is going well as is lifting. I've switched to running 3x a week, climbing 2-3x a week and 2x a week for full body weightlifting. Sometimes I throw in some yoga to keep limber.</p>
+<p   >Perhaps I'll build a Wordpress equivalent and serve it with Elixir? That may be a good project.</p>
+<p   >I do want to experiment more in gamedev, but I am limited in the content I can pump out. I'll have to think hard on what I can accomplish and how best to achieve it. A vertical slice is a must.</p></div></div></div></div></div>
 <div   class="navtopLight"><a id="homeNav" href="index.html"  >Home</a>
 <a id="catalogNav" href="catalog.html"  >Catalog</a>
 <a id="projectsNav" href="projects.html"  >Projects</a>
