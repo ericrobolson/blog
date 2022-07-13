@@ -1,8 +1,6 @@
-START=$PWD
-
-BLOG_GEN="${PWD}/.blog_gen"
-BLOG="${PWD}/blog/"
-BLOG_WEBSITE="${PWD}/html/"
+BLOG_GEN=".blog_gen"
+BLOG="blog/"
+BLOG_WEBSITE="html/"
 
 BLOG_GEN_URL=https://github.com/ericrobolson/blog_gen
 
@@ -13,4 +11,4 @@ git fetch;
 git pull;
 
 # Execute
-cargo run $BLOG $BLOG_WEBSITE;
+cargo run ../$BLOG $BLOG_WEBSITE;
