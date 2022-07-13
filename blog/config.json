@@ -94,6 +94,11 @@
             "url": "https://github.com/ericrobolson/dev-env"
         },
         {
+            "title": "EggLang",
+            "description": "A programming language that can target many different backends similiar to Haxe.",
+            "url": "https://github.com/ericrobolson/EggLang"
+        },
+        {
             "title": "ex_duktape_to_rust",
             "description": "An example for binding a C library (Duktape) to Rust and exposing it.",
             "url": "https://github.com/ericrobolson/ex_duktape_to_rust"

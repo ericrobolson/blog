@@ -11,4 +11,4 @@ git fetch;
 git pull;
 
 # Execute
-cargo run ../$BLOG $BLOG_WEBSITE;
+cargo run ../$BLOG ../$BLOG_WEBSITE;
