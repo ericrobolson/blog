@@ -134,6 +134,11 @@
             "url": "https://github.com/ericrobolson/heimdall"
         },
         {
+            "title": "Lisper",
+            "description": "A parser and tokenizer for lists written in Rust.",
+            "url": "https://github.com/ericrobolson/Lisper"
+        },
+        {
             "title": "Realtime CPU Raytracer",
             "description": "A real time CPU raytracer that dynamically scales the image based on frame rate.",
             "url": "https://github.com/ericrobolson/realtime-cpu-raytracer"
